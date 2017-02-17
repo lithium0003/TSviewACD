@@ -141,6 +141,7 @@ namespace TSviewACD
                     Console.WriteLine("\t\t--nodecrypt: disable auto decrypt");
                     Console.WriteLine("\tupload   (LOCAL_FILE_PATH) (REMOTE_PATH)  : upload item");
                     Console.WriteLine("\t\t--md5 : hash check after upload");
+                    Console.WriteLine("\t\t--createpath: make upload target folder mode");
                     Console.WriteLine("\t\t--crypt1: crypt upload mode(CTR mode)");
                     Console.WriteLine("\t\t--crypt1name: crypt filename(CTR mode)");
                     Console.WriteLine("\t\t--crypt2: crypt upload mode(CBC mode CarrotDAV)");

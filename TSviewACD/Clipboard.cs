@@ -443,13 +443,16 @@ namespace TSviewACD
             ret[basepath + filename] = items.info;
             if (items.info.kind == "FOLDER")
             {
-                ret = items.children.Values.Select(x => ExpandPath(basepath + filename + "\\", x)).Aggregate((i, j) => i.Concat(j).ToDictionary(y => y.Key, y => y.Value));
+                if(items.children.Count() > 0)
+                    ret = items.children.Values.Select(x => ExpandPath(basepath + filename + "\\", x)).Aggregate((i, j) => i.Concat(j).ToDictionary(y => y.Key, y => y.Value));
             }
             return ret;
         }
 
         public ClipboardAmazonDrive(IEnumerable<ItemInfo> items)
         {
+            if ((items?.Count() ?? 0) == 0) throw new ArgumentException("no item selected");
+
             var exItems = items.Select(x => ExpandPath("", x)).Aggregate((i, j) => i.Concat(j).ToDictionary(y => y.Key, y => y.Value));
             selectedItems = exItems.Values.ToArray();
             baseItems = items.Select(x => x.info).ToArray();

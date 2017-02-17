@@ -2082,6 +2082,7 @@ namespace TSviewACD
             var selectItem = listviewitem.GetItems(listView1.SelectedIndices).Select(x => x.info);
 
             int f_all = selectItem.Count();
+            int changecount = 0;
             if (f_all == 0) return;
 
             if (f_all > 1)
@@ -2097,13 +2098,20 @@ namespace TSviewACD
 
                 foreach (var downitem in selectItem)
                 {
+                    if (DriveData.AmazonDriveTree[downitem.id].IsEncrypted == CryptMethods.Method1_CTR)
+                        continue;
                     using (var NewName = new FormInputName())
                     {
-                        NewName.NewItemName = downitem.name;
+                        NewName.NewItemName = DriveData.AmazonDriveTree[downitem.id].DisplayName;
                         if (NewName.ShowDialog() != DialogResult.OK) break;
 
+                        var newfilename = NewName.NewItemName;
+                        if (DriveData.AmazonDriveTree[downitem.id].IsEncrypted == CryptMethods.Method2_CBC_CarotDAV)
+                            newfilename = CryptCarotDAV.EncryptFilename(newfilename, Config.DrivePassword);
+
                         ct.ThrowIfCancellationRequested();
-                        await Drive.renameItem(downitem.id, NewName.NewItemName, ct: ct);
+                        changecount++;
+                        await Drive.renameItem(downitem.id, newfilename, ct: ct);
                     }
                 }
 
@@ -2111,9 +2119,12 @@ namespace TSviewACD
                 toolStripProgressBar1.Value = toolStripProgressBar1.Minimum;
                 toolStripStatusLabel1.Text = "Rename Items done.";
 
-                toolStripProgressBar1.Style = ProgressBarStyle.Marquee;
-                await Task.Delay(TimeSpan.FromSeconds(5));
-                await ReloadItems(parent_id, true);
+                if (changecount > 0)
+                {
+                    toolStripProgressBar1.Style = ProgressBarStyle.Marquee;
+                    await Task.Delay(TimeSpan.FromSeconds(5));
+                    await ReloadItems(parent_id, true);
+                }
                 Config.Log.LogOut("rename : done.");
             }
             catch (OperationCanceledException)
@@ -2188,7 +2199,7 @@ namespace TSviewACD
                         else
                         {
                             var selectedItems = GetSelectedItemsFromDataObject(e.Data);
-                            if (!current.children.Keys.Intersect(selectedItems?.Select(x => x.id)).Any())
+                            if ((!selectedItems?.Select(x => x.id).Contains(current.info.id) ?? false) && !current.children.Keys.Intersect(selectedItems?.Select(x => x.id)).Any())
                             {
                                 e.Effect = DragDropEffects.Move;
                             }
@@ -3716,7 +3727,14 @@ namespace TSviewACD
         {
             if (listviewitem.Root != null && (listView1.SelectedIndices.Contains(0) || listView1.SelectedIndices.Contains(1)))
                 return;
-            Clipboard.SetDataObject(new ClipboardAmazonDrive(listviewitem.GetItems(listView1.SelectedIndices, IncludeSpetial: false)));
+            try
+            {
+                Clipboard.SetDataObject(new ClipboardAmazonDrive(listviewitem.GetItems(listView1.SelectedIndices, IncludeSpetial: false)));
+            }
+            catch (ArgumentException)
+            {
+                // nothing
+            }
         }
 
         private async void pasteToolStripMenuItem_Click(object sender, EventArgs e)
