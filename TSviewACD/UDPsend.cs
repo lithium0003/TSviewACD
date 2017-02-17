@@ -160,7 +160,7 @@ namespace TSviewACD
                     // 開始時間指定
                     if (SendStartTime > InitialTime)
                     {
-                        ToWaitByte = (long)((SendStartTime - InitialTime).TotalSeconds * bytePerSec * 0.8);
+                        ToWaitByte = (long)((SendStartTime - InitialTime).TotalSeconds * bytePerSec * 0.9);
                         if (ToWaitByte > _Position - offsetTOT && ToWaitByte > CancelForTooLess)
                         {
                             throw new SenderBreakCanceledException(bytePerSec, ToWaitByte + offsetTOT, InitialTime);
@@ -170,7 +170,7 @@ namespace TSviewACD
                 else if (SendDelay != default(TimeSpan))
                 {
                     // 開始遅れ時間指定
-                    ToWaitByte = (long)(SendDelay.TotalSeconds * bytePerSec * 0.8);
+                    ToWaitByte = (long)(SendDelay.TotalSeconds * bytePerSec * 0.9);
                     if (ToWaitByte > _Position && ToWaitByte - _Position > CancelForTooLess)
                     {
                         throw new SenderBreakCanceledException(bytePerSec, ToWaitByte, InitialTime);
@@ -361,6 +361,8 @@ namespace TSviewACD
             Time_posision prevTOT;
             Queue<Time_posision> Send_log = new Queue<Time_posision>();
             Time_posision prevSendTime;
+            TimeSpan DelayforSend = TimeSpan.FromMilliseconds(0);
+            double waitskipforDelay = 0;
 
             CancellationToken ct;
             System.Net.Sockets.UdpClient udp;
@@ -446,9 +448,31 @@ namespace TSviewACD
                 if (rate > bytePerSec)
                 {
                     var slp = ((SendBytes - prevSendTime.Position) - bytePerSec * (DateTime.Now - prevSendTime.Time).TotalSeconds) / bytePerSec;
-                    int delta = Config.SendDelay;
-                    if (slp + delta * 0.001 > 0)
-                        Thread.Sleep((int)(slp * 1000 + delta));
+                    slp += Config.SendDelay * 0.001;
+                    slp *= 1000;
+                    if(waitskipforDelay > 0)
+                    {
+                        if(waitskipforDelay > slp)
+                        {
+                            waitskipforDelay -= slp;
+                            DelayforSend -= TimeSpan.FromMilliseconds(slp);
+                            slp = 0;
+                            System.Diagnostics.Debug.WriteLine("sleep-skip1 {2:0.00} {3:0.00} {4}", rate, bytePerSec, slp, waitskipforDelay, DelayforSend);
+                        }
+                        else
+                        {
+                            slp -= waitskipforDelay;
+                            DelayforSend -= TimeSpan.FromMilliseconds(waitskipforDelay);
+                            waitskipforDelay = 0;
+                            System.Diagnostics.Debug.WriteLine("sleep-skip2 {2:0.00} {3:0.00} {4}", rate, bytePerSec, slp, waitskipforDelay, DelayforSend);
+                        }
+                    }
+                    if (slp > 0)
+                    {
+                        Thread.Sleep((int)slp);
+                        //await Task.Delay((int)slp, ct).ConfigureAwait(false);
+                        //System.Diagnostics.Debug.WriteLine("sleep1 {0:0.00}->{1:0.00} {2:0.00} {3:0.00} {4}", rate, bytePerSec, slp, waitskipforDelay, DelayforSend);
+                    }
                 }
 
                 udp.Send(packet, packetlen, Config.SendToHost, Config.SendToPort);
@@ -457,11 +481,25 @@ namespace TSviewACD
 
                 if (init_TOT)
                 {
-                    if (prevTOT.Time - initialTOT.Time + TimeSpan.FromSeconds((SendBytes - prevTOT.Position) / bytePerSec) > DateTime.Now - InitialTOT_time + TimeSpan.FromMilliseconds(Config.SendLongOffset))
+                    var StreamTime = prevTOT.Time - initialTOT.Time + TimeSpan.FromSeconds((SendBytes - prevTOT.Position) / bytePerSec);
+                    var RealTime = DateTime.Now - InitialTOT_time;
+                    if (RealTime - DelayforSend - TimeSpan.FromMilliseconds(Config.SendLongOffset) > StreamTime)
                     {
-                        var slp = prevTOT.Time - initialTOT.Time + TimeSpan.FromSeconds((SendBytes - prevTOT.Position) / bytePerSec) - (DateTime.Now - InitialTOT_time + TimeSpan.FromMilliseconds(Config.SendLongOffset));
+                        DelayforSend = RealTime - StreamTime;
+                        waitskipforDelay = DelayforSend.TotalMilliseconds;
+                        if (waitskipforDelay > Config.SendLongOffset) waitskipforDelay = Config.SendLongOffset;
+
+                        System.Diagnostics.Debug.WriteLine("delay {0} {1}", DelayforSend, waitskipforDelay);
+                    }
+                    if (StreamTime > RealTime - DelayforSend + TimeSpan.FromMilliseconds(Config.SendLongOffset))
+                    {
+                        var slp = StreamTime - (RealTime - DelayforSend + TimeSpan.FromMilliseconds(Config.SendLongOffset));
                         if (slp.TotalMilliseconds > 0)
+                        {
                             Thread.Sleep(slp);
+                            //await Task.Delay(slp, ct).ConfigureAwait(false);
+                            System.Diagnostics.Debug.WriteLine("++sleep2 {0} {1:0.00} {2}", slp, waitskipforDelay, DelayforSend);
+                        }
                     }
                 }
             }

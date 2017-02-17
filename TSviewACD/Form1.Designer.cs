@@ -760,7 +760,7 @@
             this.textBox_SendLongOffset.Name = "textBox_SendLongOffset";
             this.textBox_SendLongOffset.Size = new System.Drawing.Size(45, 19);
             this.textBox_SendLongOffset.TabIndex = 18;
-            this.toolTip1.SetToolTip(this.textBox_SendLongOffset, "送信するごとに、余分にウエイトを入れて時間を調整します");
+            this.toolTip1.SetToolTip(this.textBox_SendLongOffset, "送信開始からの時間と、ストリームとの時間を合わせる際に、先行して送る時間を設定します");
             this.textBox_SendLongOffset.TextChanged += new System.EventHandler(this.textBox_SendLongOffset_TextChanged);
             // 
             // label20

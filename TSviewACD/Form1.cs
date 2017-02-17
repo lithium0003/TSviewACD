@@ -717,14 +717,24 @@ namespace TSviewACD
                     // wait for retry
                     while (--checkretry > 0)
                     {
-                        Config.Log.LogOut("Upload : wait 10sec for retry..." + checkretry.ToString());
-                        await Task.Delay(TimeSpan.FromSeconds(10), ct);
-
-                        var children = await Drive.ListChildren(parent_id);
-                        if (children.data.Select(x => x.name).Contains(short_filename))
+                        try
                         {
-                            Config.Log.LogOut("Upload : child found.");
-                            break;
+                            Config.Log.LogOut("Upload : wait 10sec for retry..." + checkretry.ToString());
+                            await Task.Delay(TimeSpan.FromSeconds(10), ct);
+
+                            var children = await Drive.ListChildren(parent_id);
+                            if (children.data.Select(x => x.name).Contains(short_filename))
+                            {
+                                Config.Log.LogOut("Upload : child found.");
+                                break;
+                            }
+                        }
+                        catch (OperationCanceledException)
+                        {
+                            throw;
+                        }
+                        catch (Exception)
+                        {
                         }
                     }
                     if (checkretry > 0)
@@ -918,9 +928,12 @@ namespace TSviewACD
             }
             catch (OperationCanceledException)
             {
-                toolStripProgressBar1.Style = ProgressBarStyle.Continuous;
-                toolStripProgressBar1.Value = toolStripProgressBar1.Minimum;
-                toolStripStatusLabel1.Text = "Operation Aborted.";
+                if (!Config.IsClosing)
+                {
+                    toolStripProgressBar1.Style = ProgressBarStyle.Continuous;
+                    toolStripProgressBar1.Value = toolStripProgressBar1.Minimum;
+                    toolStripStatusLabel1.Text = "Operation Aborted.";
+                }
             }
         }
 
@@ -1838,7 +1851,7 @@ namespace TSviewACD
                     {
                         if (SeektoPos < TimeSpan.FromDays(30))
                         {
-                            SkipByte = (long)(SeektoPos.TotalSeconds * bytePerSec * 0.8);
+                            SkipByte = (long)(SeektoPos.TotalSeconds * bytePerSec * 0.9);
                             if (SkipByte > downitem.contentProperties.size)
                                 break;
                             continue;

@@ -476,14 +476,24 @@ namespace TSviewACD
                     // wait for retry
                     while (--checkretry > 0)
                     {
-                        Console.Error.WriteLine("Upload : wait 10sec for retry..." + checkretry.ToString());
-                        await Task.Delay(TimeSpan.FromSeconds(10), Drive.ct);
-
-                        var children = await Drive.ListChildren(target_id);
-                        if (children.data.Select(x => x.name).Contains(short_filename))
+                        try
                         {
-                            Console.Error.WriteLine("Upload : child found.");
-                            break;
+                            Console.Error.WriteLine("Upload : wait 10sec for retry..." + checkretry.ToString());
+                            await Task.Delay(TimeSpan.FromSeconds(10), Drive.ct);
+
+                            var children = await Drive.ListChildren(target_id);
+                            if (children.data.Select(x => x.name).Contains(short_filename))
+                            {
+                                Console.Error.WriteLine("Upload : child found.");
+                                break;
+                            }
+                        }
+                        catch (OperationCanceledException)
+                        {
+                            throw;
+                        }
+                        catch (Exception)
+                        {
                         }
                     }
                     if (checkretry > 0)
