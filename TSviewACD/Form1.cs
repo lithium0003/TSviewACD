@@ -6,6 +6,7 @@ using System.Data;
 using System.Drawing;
 using System.IO;
 using System.Linq;
+using System.Net.Http;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -116,7 +117,7 @@ namespace TSviewACD
         string root_id;
         bool supressListviewRefresh = false;
         ListViewItem[] all_items;
-        private bool IsClosing;
+        private int CriticalCount = 0;
 
         private async Task Login()
         {
@@ -146,7 +147,7 @@ namespace TSviewACD
             }
             catch (OperationCanceledException)
             {
-                if (!IsClosing)
+                if (!Config.IsClosing)
                 {
                     toolStripProgressBar1.Style = ProgressBarStyle.Continuous;
                     toolStripProgressBar1.Value = toolStripProgressBar1.Minimum;
@@ -271,7 +272,7 @@ namespace TSviewACD
             }
             catch (OperationCanceledException)
             {
-                if (!IsClosing)
+                if (!Config.IsClosing)
                 {
                     toolStripProgressBar1.Style = ProgressBarStyle.Continuous;
                     toolStripProgressBar1.Value = toolStripProgressBar1.Minimum;
@@ -290,8 +291,8 @@ namespace TSviewACD
             // 列（コラム）ヘッダの作成
             listView1.Columns.Add("Name",200);
             listView1.Columns.Add("Size",90);
-            listView1.Columns.Add("modifiedDate",115);
-            listView1.Columns.Add("createdDate",115);
+            listView1.Columns.Add("modifiedDate",120);
+            listView1.Columns.Add("createdDate",120);
             listView1.Columns.Add("path",100);
             listView1.Columns.Add("id");
             listView1.Columns.Add("MD5");
@@ -440,7 +441,7 @@ namespace TSviewACD
             }
             catch (OperationCanceledException)
             {
-                if (!IsClosing)
+                if (!Config.IsClosing)
                 {
                     toolStripProgressBar1.Style = ProgressBarStyle.Continuous;
                     toolStripProgressBar1.Value = toolStripProgressBar1.Minimum;
@@ -476,6 +477,7 @@ namespace TSviewACD
             textBox_Port.Text = Config.SendToPort.ToString();
             textBox_SendPacketNum.Text = Config.SendPacketNum.ToString();
             textBox_SendDelay.Text = Config.SendDelay.ToString();
+            textBox_SendLongOffset.Text = Config.SendLongOffset.ToString();
             textBox_SendRatebySendCount.Text = Config.SendRatebySendCount.ToString();
             textBox_SendRatebyTOTCount.Text = Config.SendRatebyTOTCount.ToString();
             textBox_VK.Text = Config.SendVK.ToString();
@@ -485,9 +487,16 @@ namespace TSviewACD
 
         private void Form1_FormClosing(object sender, FormClosingEventArgs e)
         {
-            IsClosing = true;
             Drive.Cancel();
-            Config.Save();
+            if (CriticalCount > 0)
+            {
+                toolStripStatusLabel1.Text = "Critical operration is progress. Please retry.";
+                e.Cancel = true;
+            }
+            else
+            {
+                Config.IsClosing = true;
+            }
         }
 
         private void exitToolStripMenuItem_Click(object sender, EventArgs e)
@@ -666,35 +675,59 @@ namespace TSviewACD
                 toolStripStatusLabel1.Text = upload_str + " " + short_filename;
                 toolStripProgressBar1.Maximum = 10000;
 
-                int retry = 5;
+                int retry = 6;
                 while (--retry > 0)
                 {
-                    var ret = await Drive.uploadFile(
-                        filename,
-                        parent_id,
-                        (src, evnt) =>
-                        {
-                            synchronizationContext.Post(
-                                (o) =>
-                                {
-                                    if (ct.IsCancellationRequested) return;
-                                    var eo = o as PositionChangeEventArgs;
-                                    toolStripStatusLabel1.Text = upload_str + eo.Log + " " + short_filename;
-                                    toolStripProgressBar1.Value = (int)((double)eo.Position / eo.Length * 10000);
-                                }, evnt);
-                        });
-                    if (ret) break;
+                    int checkretry = 4;
+                    try
+                    {
+                        var ret = await Drive.uploadFile(
+                            filename,
+                            parent_id,
+                            (src, evnt) =>
+                            {
+                                synchronizationContext.Post(
+                                    (o) =>
+                                    {
+                                        if (ct.IsCancellationRequested) return;
+                                        var eo = o as PositionChangeEventArgs;
+                                        toolStripStatusLabel1.Text = upload_str + eo.Log + " " + short_filename;
+                                        toolStripProgressBar1.Value = (int)((double)eo.Position / eo.Length * 10000);
+                                    }, evnt);
+                            });
+                        break;
+                    }
+                    catch (HttpRequestException ex)
+                    {
+                        if (ex.Message.Contains("408 (REQUEST_TIMEOUT)")) checkretry = 6 * 5 + 1;
+                        if (ex.Message.Contains("409 (Conflict)")) checkretry = 6 * 5 + 1;
+                        if (ex.Message.Contains("504 (GATEWAY_TIMEOUT)")) checkretry = 6 * 5 + 1;
+                    }
+                    catch (OperationCanceledException)
+                    {
+                        throw;
+                    }
+                    catch (Exception)
+                    {
+                        checkretry = 3 + 1;
+                    }
 
                     Config.Log.LogOut("Upload faild."+retry.ToString());
                     // wait for retry
-                    await Task.Delay(TimeSpan.FromSeconds(10), ct);
-
-                    var children = await Drive.ListChildren(parent_id);
-                    if (children.data.Select(x => x.name).Contains(short_filename))
+                    while (--checkretry > 0)
                     {
-                        Config.Log.LogOut("Upload : child found.");
-                        break;
+                        Config.Log.LogOut("Upload : wait 10sec for retry..." + checkretry.ToString());
+                        await Task.Delay(TimeSpan.FromSeconds(10), ct);
+
+                        var children = await Drive.ListChildren(parent_id);
+                        if (children.data.Select(x => x.name).Contains(short_filename))
+                        {
+                            Config.Log.LogOut("Upload : child found.");
+                            break;
+                        }
                     }
+                    if (checkretry > 0)
+                        break;
                 }
                 if (retry == 0)
                 {
@@ -779,7 +812,7 @@ namespace TSviewACD
             }
             catch (OperationCanceledException)
             {
-                if (!IsClosing)
+                if (!Config.IsClosing)
                 {
                     toolStripProgressBar1.Style = ProgressBarStyle.Continuous;
                     toolStripProgressBar1.Value = toolStripProgressBar1.Minimum;
@@ -842,7 +875,7 @@ namespace TSviewACD
             }
             catch (OperationCanceledException)
             {
-                if (!IsClosing)
+                if (!Config.IsClosing)
                 {
                     toolStripProgressBar1.Style = ProgressBarStyle.Continuous;
                     toolStripProgressBar1.Value = toolStripProgressBar1.Minimum;
@@ -915,6 +948,7 @@ namespace TSviewACD
             try
             {
                 var ct = Drive.ct;
+                toolStripStatusLabel1.Text = "place to download selection.";
                 if (f_all > 1)
                 {
                     folderBrowserDialog1.Description = "Select Save Folder for Download Items";
@@ -948,30 +982,38 @@ namespace TSviewACD
                         {
                             using (var outfile = System.IO.File.OpenWrite(savefilename))
                             {
-                                Config.Log.LogOut("Download : <BIG FILE> temporary filename change");
                                 if (downitem.contentProperties.size > 10 * 1024 * 1024 * 1024L)
                                 {
-                                    var tmpfile = await Drive.renameItem(downitem.id, "test");
+                                    Config.Log.LogOut("Download : <BIG FILE> temporary filename change");
+                                    Interlocked.Increment(ref CriticalCount);
                                     try
                                     {
-                                        var ret = await Drive.downloadFile(downitem.id);
-                                        var f = new PositionStream(ret, downitem.contentProperties.size.Value);
-                                        f.PosChangeEvent += (src, evnt) =>
+                                        try
                                         {
-                                            synchronizationContext.Post(
-                                                (o) =>
-                                                {
-                                                    if (ct.IsCancellationRequested) return;
-                                                    var eo = o as PositionChangeEventArgs;
-                                                    toolStripStatusLabel1.Text = download_str + eo.Log + " " + downitem.name;
-                                                    toolStripProgressBar1.Value = (int)((double)eo.Position / eo.Length * 10000);
-                                                }, evnt);
-                                        };
-                                        await f.CopyToAsync(outfile, 16 * 1024 * 1024, Drive.ct);
+                                            var tmpfile = await Drive.renameItem(downitem.id, ConfigAPI.temporaryFilename + downitem.id);
+                                            var ret = await Drive.downloadFile(downitem.id);
+                                            var f = new PositionStream(ret, downitem.contentProperties.size.Value);
+                                            f.PosChangeEvent += (src, evnt) =>
+                                            {
+                                                synchronizationContext.Post(
+                                                    (o) =>
+                                                    {
+                                                        if (ct.IsCancellationRequested) return;
+                                                        var eo = o as PositionChangeEventArgs;
+                                                        toolStripStatusLabel1.Text = download_str + eo.Log + " " + downitem.name;
+                                                        toolStripProgressBar1.Value = (int)((double)eo.Position / eo.Length * 10000);
+                                                    }, evnt);
+                                            };
+                                            await f.CopyToAsync(outfile, 16 * 1024 * 1024, Drive.ct);
+                                        }
+                                        finally
+                                        {
+                                            await Drive.renameItem(downitem.id, downitem.name);
+                                        }
                                     }
                                     finally
                                     {
-                                        await Drive.renameItem(downitem.id, downitem.name);
+                                        Interlocked.Decrement(ref CriticalCount);
                                     }
                                 }
                                 else
@@ -1032,7 +1074,7 @@ namespace TSviewACD
             }
             catch (OperationCanceledException)
             {
-                if (!IsClosing)
+                if (!Config.IsClosing)
                 {
                     toolStripProgressBar1.Style = ProgressBarStyle.Continuous;
                     toolStripProgressBar1.Value = toolStripProgressBar1.Minimum;
@@ -1179,7 +1221,7 @@ namespace TSviewACD
             }
             catch (OperationCanceledException)
             {
-                if (!IsClosing)
+                if (!Config.IsClosing)
                 {
                     toolStripProgressBar1.Style = ProgressBarStyle.Continuous;
                     toolStripProgressBar1.Value = toolStripProgressBar1.Minimum;
@@ -1257,7 +1299,7 @@ namespace TSviewACD
             }
             catch (OperationCanceledException)
             {
-                if (!IsClosing)
+                if (!Config.IsClosing)
                 {
                     toolStripProgressBar1.Style = ProgressBarStyle.Continuous;
                     toolStripProgressBar1.Value = toolStripProgressBar1.Minimum;
@@ -1434,7 +1476,7 @@ namespace TSviewACD
                 }
                 catch (OperationCanceledException)
                 {
-                    if (!IsClosing)
+                    if (!Config.IsClosing)
                     {
                         toolStripProgressBar1.Style = ProgressBarStyle.Continuous;
                         toolStripProgressBar1.Value = toolStripProgressBar1.Minimum;
@@ -1591,7 +1633,7 @@ namespace TSviewACD
                 }
                 catch (OperationCanceledException)
                 {
-                    if (!IsClosing)
+                    if (!Config.IsClosing)
                     {
                         toolStripProgressBar1.Style = ProgressBarStyle.Continuous;
                         toolStripProgressBar1.Value = toolStripProgressBar1.Minimum;
@@ -1604,7 +1646,7 @@ namespace TSviewACD
 
         private void logToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            Config.Log.Show();
+            Config.Log.Show(this);
         }
 
         private async void button_Play_Click(object sender, EventArgs e)
@@ -1682,8 +1724,6 @@ namespace TSviewACD
                                     UDP.SendStartTime = InitialTOT + SeektoPos;
                                 else
                                     UDP.SendDelay = SeektoPos;
-
-                                SeektoPos = TimeSpan.FromDays(100);
                             }
                             else
                             {
@@ -1706,7 +1746,7 @@ namespace TSviewACD
                                 synchronizationContext.Post(
                                     (o) =>
                                     {
-                                        if (linkedCts.Token.IsCancellationRequested) return;
+                                        //if (linkedCts.Token.IsCancellationRequested) return;
                                         var eo = o as TOTChangeEventArgs;
                                         if (InitialTOT == default(DateTime))
                                         {
@@ -1715,7 +1755,7 @@ namespace TSviewACD
                                         bytePerSec = eo.bytePerSec;
                                         trackBar_Pos.Tag = 1;
                                         trackBar_Pos.Maximum = (int)(downitem.contentProperties.size / eo.bytePerSec);
-                                        trackBar_Pos.Value = (int)((SkipByte??0 + eo.Position) / eo.bytePerSec);
+                                        trackBar_Pos.Value = (int)(((SkipByte??0) + eo.Position) / eo.bytePerSec);
                                         trackBar_Pos.Tag = 0;
                                         label_stream.Text = string.Format(
                                             "TOT:{0} pos {1} / {2} ({3} / {4})",
@@ -1726,6 +1766,7 @@ namespace TSviewACD
                                             downitem.contentProperties.size.Value.ToString("#,0"));
                                     }, evnt);
                             };
+                            SeektoPos = TimeSpan.FromDays(100);
                             await f.CopyToAsync(UDP, ConfigAPI.CopyBufferSize, linkedCts.Token);
                         }
                     }
@@ -1823,14 +1864,23 @@ namespace TSviewACD
                     if (downitem.contentProperties.size > ConfigAPI.FilenameChangeTrickSize)
                     {
                         Config.Log.LogOut("Send UDP download : <BIG FILE> temporary filename change");
-                        var tmpfile = await Drive.renameItem(downitem.id, ConfigAPI.temporaryFilename);
+                        Interlocked.Increment(ref CriticalCount);
                         try
                         {
-                            await PlayOneTSFile(downitem, download_str);
+                            toolStripStatusLabel1.Text = "temporary filename change...";
+                            var tmpfile = await Drive.renameItem(downitem.id, ConfigAPI.temporaryFilename + downitem.id);
+                            try
+                            {
+                                await PlayOneTSFile(downitem, download_str);
+                            }
+                            finally
+                            {
+                                await Drive.renameItem(downitem.id, downitem.name);
+                            }
                         }
                         finally
                         {
-                            await Drive.renameItem(downitem.id, downitem.name);
+                            Interlocked.Decrement(ref CriticalCount);
                         }
                     }
                     else
@@ -1851,7 +1901,7 @@ namespace TSviewACD
             }
             catch (OperationCanceledException)
             {
-                if (!IsClosing)
+                if (!Config.IsClosing)
                 {
                     toolStripProgressBar1.Style = ProgressBarStyle.Continuous;
                     toolStripProgressBar1.Value = toolStripProgressBar1.Minimum;
@@ -1953,11 +2003,11 @@ namespace TSviewACD
             else
             {
                 timer1.Enabled = false;
-                timer1.Enabled = true;
                 SeektoPos = TimeSpan.FromSeconds(trackBar_Pos.Value);
                 label_stream.Text = string.Format(
                     "seeking to {0}",
                     SeektoPos.ToString());
+                timer1.Enabled = true;
             }
         }
 
@@ -2011,6 +2061,18 @@ namespace TSviewACD
             catch
             {
                 textBox_SendDelay.Text = Config.SendDelay.ToString();
+            }
+        }
+
+        private void textBox_SendLongOffset_TextChanged(object sender, EventArgs e)
+        {
+            try
+            {
+                Config.SendLongOffset = int.Parse(textBox_SendLongOffset.Text);
+            }
+            catch
+            {
+                textBox_SendLongOffset.Text = Config.SendLongOffset.ToString();
             }
         }
 
@@ -2083,6 +2145,15 @@ namespace TSviewACD
                 (listView1.SelectedItems.Count == 0? listView1.Items.OfType<ListViewItem>() : listView1.SelectedItems.OfType<ListViewItem>())
                 .Where(item => (item.Name != "." && item.Name != "..")).ToArray();
             Matcher.ShowDialog();
+        }
+
+        private void comboBox_FindStr_KeyPress(object sender, KeyPressEventArgs e)
+        {
+            if (e.KeyChar == (char)Keys.Enter)
+            {
+                e.Handled = true;
+                button_search.PerformClick();
+            }
         }
 
     }

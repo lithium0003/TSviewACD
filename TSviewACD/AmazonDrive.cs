@@ -45,12 +45,7 @@ namespace TSviewACD
             get
             {
                 if (DateTime.Now - key_timer < TimeSpan.FromMinutes(30)) return key;
-                bool ret = false;
-                Task.Factory.StartNew(async () =>
-                {
-                    ret = await Refresh();
-                }).Unwrap().Wait();
-                if (ret) return key;
+                if (Refresh().Result) return key;
                 Config.Log.LogOut("\t[Authkey] autokey refresh failed.");
                 return key;
             }
@@ -72,7 +67,7 @@ namespace TSviewACD
             }
             else
             {
-                return await Refresh();
+                return await Refresh().ConfigureAwait(false);
             }
         }
 
@@ -81,7 +76,7 @@ namespace TSviewACD
             Config.Log.LogOut("\t[Refresh]");
             var newkey = new AuthKeys();
             newkey.refresh_token = Config.refresh_token;
-            newkey = await FormLogin.RefreshAuthorizationCode(newkey, ct_source.Token);
+            newkey = await FormLogin.RefreshAuthorizationCode(newkey, ct_source.Token).ConfigureAwait(false);
             if (newkey != null && !string.IsNullOrEmpty(newkey.access_token))
             {
                 Authkey = newkey;
@@ -89,7 +84,7 @@ namespace TSviewACD
                 return true;
             }
             Config.refresh_token = "";
-            return await Login();
+            return await Login().ConfigureAwait(false);
         }
 
         public void Cancel()
@@ -110,8 +105,8 @@ namespace TSviewACD
 
         public async Task EnsureToken()
         {
-            if (DateTime.Now - key_timer < TimeSpan.FromMinutes(50) && await GetAccountInfo()) return;
-            await Refresh();
+            if (DateTime.Now - key_timer < TimeSpan.FromMinutes(50) && await GetAccountInfo().ConfigureAwait(false)) return;
+            await Refresh().ConfigureAwait(false);
         }
 
         public async Task<bool> GetEndpoint()
@@ -122,7 +117,7 @@ namespace TSviewACD
             {
                 metadataUrl = Config.metadataUrl;
                 contentUrl = Config.contentUrl;
-                if (await GetAccountInfo()) return true;
+                if (await GetAccountInfo().ConfigureAwait(false)) return true;
             }
 
             using (var client = new HttpClient())
@@ -133,9 +128,9 @@ namespace TSviewACD
                     var response = await client.GetAsync(
                         ConfigAPI.getEndpoint,
                         ct
-                    );
+                    ).ConfigureAwait(false);
                     response.EnsureSuccessStatusCode();
-                    string responseBody = await response.Content.ReadAsStringAsync();
+                    string responseBody = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
                     // Above three lines can be replaced with new helper method in following line
                     // string body = await client.GetStringAsync(uri);
                     var data = ParseResponse<getEndpoint_Info>(responseBody);
@@ -150,7 +145,7 @@ namespace TSviewACD
                 catch (HttpRequestException ex)
                 {
                     error_str = ex.Message;
-                    Config.Log.LogOut("\t[GetEndpoint] "+error_str);
+                    Config.Log.LogOut("\t[GetEndpoint] " + error_str);
                     System.Diagnostics.Debug.WriteLine(error_str);
                 }
                 catch (OperationCanceledException)
@@ -179,9 +174,9 @@ namespace TSviewACD
                     var response = await client.GetAsync(
                         metadataUrl + "account/info",
                         ct
-                    );
+                    ).ConfigureAwait(false);
                     response.EnsureSuccessStatusCode();
-                    string responseBody = await response.Content.ReadAsStringAsync();
+                    string responseBody = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
                     // Above three lines can be replaced with new helper method in following line
                     // string body = await client.GetStringAsync(uri);
                     var data = ParseResponse<getAccountInfo_Info>(responseBody);
@@ -190,7 +185,7 @@ namespace TSviewACD
                 catch (HttpRequestException ex)
                 {
                     error_str = ex.Message;
-                    Config.Log.LogOut("\t[GetAccountInfo] "+ error_str);
+                    Config.Log.LogOut("\t[GetAccountInfo] " + error_str);
                     System.Diagnostics.Debug.WriteLine(error_str);
                 }
                 catch (OperationCanceledException)
@@ -219,9 +214,9 @@ namespace TSviewACD
                     var response = await client.GetAsync(
                         metadataUrl + "nodes/" + id + ((templink) ? "?tempLink=true" : ""),
                         ct
-                    );
+                    ).ConfigureAwait(false);
                     response.EnsureSuccessStatusCode();
-                    string responseBody = await response.Content.ReadAsStringAsync();
+                    string responseBody = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
                     // Above three lines can be replaced with new helper method in following line
                     // string body = await client.GetStringAsync(uri);
                     return ParseResponse<FileMetadata_Info>(responseBody);
@@ -258,15 +253,15 @@ namespace TSviewACD
                     var response = await client.GetAsync(
                         metadataUrl + "nodes?filters=" + filters + (string.IsNullOrEmpty(startToken) ? "" : "&startToken=" + startToken),
                         ct
-                    );
+                    ).ConfigureAwait(false);
                     response.EnsureSuccessStatusCode();
-                    string responseBody = await response.Content.ReadAsStringAsync();
+                    string responseBody = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
                     // Above three lines can be replaced with new helper method in following line
                     // string body = await client.GetStringAsync(uri);
                     var info = ParseResponse<FileListdata_Info>(responseBody);
                     if (!string.IsNullOrEmpty(info.nextToken))
                     {
-                        var next_info = await ListMetadata(filters, info.nextToken);
+                        var next_info = await ListMetadata(filters, info.nextToken).ConfigureAwait(false);
                         info.data = info.data.Concat(next_info.data).ToArray();
                     }
                     return info;
@@ -303,15 +298,15 @@ namespace TSviewACD
                     var response = await client.GetAsync(
                         metadataUrl + "nodes/" + id + "/children" + (string.IsNullOrEmpty(startToken) ? "" : "?startToken=" + startToken),
                         ct
-                    );
+                    ).ConfigureAwait(false);
                     response.EnsureSuccessStatusCode();
-                    string responseBody = await response.Content.ReadAsStringAsync();
+                    string responseBody = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
                     // Above three lines can be replaced with new helper method in following line
                     // string body = await client.GetStringAsync(uri);
                     var info = ParseResponse<FileListdata_Info>(responseBody);
                     if (!string.IsNullOrEmpty(info.nextToken))
                     {
-                        var next_info = await ListChildren(id, info.nextToken);
+                        var next_info = await ListChildren(id, info.nextToken).ConfigureAwait(false);
                         info.data = info.data.Concat(next_info.data).ToArray();
                     }
                     return info;
@@ -349,10 +344,10 @@ namespace TSviewACD
             public string[] parents;
         }
 
-        public async Task<bool> uploadFile(string filename, string parent_id = null, PoschangeEventHandler process = null)
+        public async Task<FileMetadata_Info> uploadFile(string filename, string parent_id = null, PoschangeEventHandler process = null)
         {
-            Config.Log.LogOut("\t[uploadFile] "+filename);
-            await EnsureToken();
+            Config.Log.LogOut("\t[uploadFile] " + filename);
+            await EnsureToken().ConfigureAwait(false);
             string error_str;
             using (var client = new HttpClient())
             {
@@ -394,18 +389,19 @@ namespace TSviewACD
                     var response = await client.PostAsync(
                         Config.contentUrl + "nodes?suppress=deduplication",
                         content,
-                        ct);
+                        ct).ConfigureAwait(false);
                     response.EnsureSuccessStatusCode();
-                    string responseBody = await response.Content.ReadAsStringAsync();
+                    string responseBody = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
                     // Above three lines can be replaced with new helper method in following line
                     // string body = await client.GetStringAsync(uri);
-                    return true;
+                    return ParseResponse<FileMetadata_Info>(responseBody);
                 }
                 catch (HttpRequestException ex)
                 {
                     error_str = ex.Message;
                     Config.Log.LogOut("\t[uploadFile] " + error_str);
                     System.Diagnostics.Debug.WriteLine(error_str);
+                    throw;
                 }
                 catch (OperationCanceledException)
                 {
@@ -416,15 +412,15 @@ namespace TSviewACD
                     error_str = ex.ToString();
                     Config.Log.LogOut("\t[uploadFile] " + error_str);
                     System.Diagnostics.Debug.WriteLine(error_str);
+                    throw;
                 }
             }
-            return false;
         }
 
         public async Task<bool> TrashItem(string id)
         {
             Config.Log.LogOut("\t[Trash] " + id);
-            await EnsureToken();
+            await EnsureToken().ConfigureAwait(false);
             string error_str;
             using (var client = new HttpClient())
             {
@@ -451,9 +447,9 @@ namespace TSviewACD
                         metadataUrl + "trash/" + id,
                         new StringContent(sr.ReadToEnd(), System.Text.Encoding.UTF8, "application/json"),
                         ct
-                    );
+                    ).ConfigureAwait(false);
                     response.EnsureSuccessStatusCode();
-                    string responseBody = await response.Content.ReadAsStringAsync();
+                    string responseBody = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
                     // Above three lines can be replaced with new helper method in following line
                     // string body = await client.GetStringAsync(uri);
                     return true;
@@ -481,40 +477,40 @@ namespace TSviewACD
         public async Task<Stream> downloadFile(string id, long? from = null, long? to = null)
         {
             Config.Log.LogOut("\t[downloadFile] " + id);
-            await EnsureToken();
+            await EnsureToken().ConfigureAwait(false);
             string error_str;
-            using (var client = new HttpClient())
+            var client = new HttpClient();
+            client.Timeout = TimeSpan.FromDays(1);
+            try
             {
-                client.Timeout = TimeSpan.FromDays(1);
-                try
-                {
-                    client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", Authkey.access_token);
-                    if (from != null || to != null)
-                        client.DefaultRequestHeaders.Range = new RangeHeaderValue(from, to);
-                    string url = Config.contentUrl + "nodes/" + id + "/content?download=false";
-                    var response = await client.GetAsync(
-                        url,
-                        HttpCompletionOption.ResponseHeadersRead,
-                        ct);
-                    response.EnsureSuccessStatusCode();
-                    return await response.Content.ReadAsStreamAsync();
-                }
-                catch (HttpRequestException ex)
-                {
-                    error_str = ex.Message;
-                    Config.Log.LogOut("\t[downloadFile] " + error_str);
-                    System.Diagnostics.Debug.WriteLine(error_str);
-                }
-                catch (OperationCanceledException)
-                {
-                    throw;
-                }
-                catch (Exception ex)
-                {
-                    error_str = ex.ToString();
-                    Config.Log.LogOut("\t[downloadFile] " + error_str);
-                    System.Diagnostics.Debug.WriteLine(error_str);
-                }
+                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", Authkey.access_token);
+                if (from != null || to != null)
+                    client.DefaultRequestHeaders.Range = new RangeHeaderValue(from, to);
+                string url = Config.contentUrl + "nodes/" + id + "/content?download=false";
+                var response = await client.GetAsync(
+                    url,
+                    HttpCompletionOption.ResponseHeadersRead,
+                    ct);
+                response.EnsureSuccessStatusCode();
+                return await response.Content.ReadAsStreamAsync();
+            }
+            catch (HttpRequestException ex)
+            {
+                error_str = ex.Message;
+                Config.Log.LogOut("\t[downloadFile] " + error_str);
+                System.Diagnostics.Debug.WriteLine(error_str);
+                throw;
+            }
+            catch (OperationCanceledException)
+            {
+                throw;
+            }
+            catch (Exception ex)
+            {
+                error_str = ex.ToString();
+                Config.Log.LogOut("\t[downloadFile] " + error_str);
+                System.Diagnostics.Debug.WriteLine(error_str);
+                throw;
             }
             throw new SystemException("fileDownload failed. " + error_str);
         }
@@ -522,7 +518,7 @@ namespace TSviewACD
         public async Task<FileMetadata_Info> renameItem(string id, string newname)
         {
             Config.Log.LogOut("\t[rename] " + id + ' ' + newname);
-            await EnsureToken();
+            await EnsureToken().ConfigureAwait(false);
             string error_str;
             using (var client = new HttpClient())
             {
@@ -535,9 +531,9 @@ namespace TSviewACD
                     var content = new StringContent(data, Encoding.UTF8, "application/json");
                     content.Headers.ContentType = new MediaTypeWithQualityHeaderValue("application/json");
                     req.Content = content;
-                    var response = await client.SendAsync(req, ct);
+                    var response = await client.SendAsync(req, ct).ConfigureAwait(false);
                     response.EnsureSuccessStatusCode();
-                    string responseBody = await response.Content.ReadAsStringAsync();
+                    string responseBody = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
                     // Above three lines can be replaced with new helper method in following line
                     // string body = await client.GetStringAsync(uri);
                     return ParseResponse<FileMetadata_Info>(responseBody);
@@ -566,7 +562,7 @@ namespace TSviewACD
         public async Task<FileMetadata_Info> createFolder(string foldername, string parent_id = null)
         {
             Config.Log.LogOut("\t[createFolder] " + foldername);
-            await EnsureToken();
+            await EnsureToken().ConfigureAwait(false);
             string error_str;
             using (var client = new HttpClient())
             {
@@ -593,9 +589,9 @@ namespace TSviewACD
                     var response = await client.PostAsync(
                         Config.metadataUrl + "nodes",
                         new StringContent(sr.ReadToEnd(), System.Text.Encoding.UTF8, "application/json"),
-                        ct);
+                        ct).ConfigureAwait(false);
                     response.EnsureSuccessStatusCode();
-                    string responseBody = await response.Content.ReadAsStringAsync();
+                    string responseBody = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
                     // Above three lines can be replaced with new helper method in following line
                     // string body = await client.GetStringAsync(uri);
                     return ParseResponse<FileMetadata_Info>(responseBody);
@@ -633,7 +629,7 @@ namespace TSviewACD
         public async Task<bool> moveChild(string childid, string fromParentId, string toParentId)
         {
             Config.Log.LogOut("\t[move]");
-            await EnsureToken();
+            await EnsureToken().ConfigureAwait(false);
             string error_str;
             using (var client = new HttpClient())
             {
@@ -659,9 +655,9 @@ namespace TSviewACD
                     var response = await client.PostAsync(
                         Config.metadataUrl + "nodes/" + toParentId + "/children",
                         new StringContent(sr.ReadToEnd(), System.Text.Encoding.UTF8, "application/json"),
-                        ct);
+                        ct).ConfigureAwait(false);
                     response.EnsureSuccessStatusCode();
-                    string responseBody = await response.Content.ReadAsStringAsync();
+                    string responseBody = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
                     // Above three lines can be replaced with new helper method in following line
                     // string body = await client.GetStringAsync(uri);
                     return true;

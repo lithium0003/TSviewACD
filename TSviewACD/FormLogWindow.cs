@@ -69,6 +69,7 @@ namespace TSviewACD
             synchronizationContext.Post(
                 (o) =>
                 {
+                    if (Config.IsClosing) return;
                     SendMessage(textBox1.Handle, EM_REPLACESEL, 1, o as string);
                 }, str);
         }
@@ -83,6 +84,22 @@ namespace TSviewACD
             Hide();
             if (e.CloseReason == CloseReason.UserClosing)
                 e.Cancel = true;
+        }
+
+        protected override void OnShown(EventArgs e)
+        {
+            base.OnShown(e);
+            if (Owner != null && StartPosition == FormStartPosition.CenterParent)
+            {
+                int offset = Owner.OwnedForms.Length * 38;  // approx. 10mm
+                Point p = new Point(Owner.Left + Owner.Width / 2 - Width / 2 + offset, Owner.Top + Owner.Height / 2 - Height / 2 + offset);
+                Location = p;
+            }
+        }
+
+        private void textBox1_MouseDown(object sender, MouseEventArgs e)
+        {
+            textBox1.Select(textBox1.Text.Length, 0);
         }
     }
 }

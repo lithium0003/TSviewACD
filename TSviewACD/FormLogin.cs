@@ -137,7 +137,7 @@ namespace TSviewACD
                             {"client_secret",ConfigAPI.client_secret},
                         }),
                         ct
-                    );
+                    ).ConfigureAwait(false);
                     response.EnsureSuccessStatusCode();
                     string responseBody = await response.Content.ReadAsStringAsync();
                     // Above three lines can be replaced with new helper method in following line

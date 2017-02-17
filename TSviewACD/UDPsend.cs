@@ -54,8 +54,10 @@ namespace TSviewACD
         long bytecounter;
         long bytePerSec;
         long ToWaitByte;
-        private event TOTchangeEventHandler _Handler;
-
+        event TOTchangeEventHandler _Handler;
+        Queue<Task> SendTasks = new Queue<Task>();
+        const int SendTaskMax = 1;
+        
         public UDP_TS_Stream(CancellationToken cancellationToken = default(CancellationToken))
         {
             _Position = 0;
@@ -282,9 +284,9 @@ namespace TSviewACD
             return ret;
         }
 
-        public Int64 Calc1secBytes(Stream data)
+        public long Calc1secBytes(Stream data)
         {
-            Int64 ret = 0;
+            long ret = 0;
             var data_remain = data.Length - data.Position;
             while (data_remain > 0)
             {
@@ -355,6 +357,7 @@ namespace TSviewACD
             }
             Queue<Time_posision> TOT_log = new Queue<Time_posision>();
             Time_posision initialTOT;
+            DateTime InitialTOT_time;
             Time_posision prevTOT;
             Queue<Time_posision> Send_log = new Queue<Time_posision>();
             Time_posision prevSendTime;
@@ -368,7 +371,6 @@ namespace TSviewACD
             long Position;
             long bytePerSec;
             int synccount;
-            int failcount;
             long SendBytes;
             TOTChangeEventArgs HandlerArg = new TOTChangeEventArgs();
 
@@ -385,7 +387,6 @@ namespace TSviewACD
                 packet_last = 0;
                 init_TOT = false;
                 synccount = 0;
-                failcount = 0;
                 SendBytes = 0;
                 HandlerArg.bytePerSec = bytePsec;
                 HandlerArg.initialTOT = initTOT;
@@ -398,16 +399,15 @@ namespace TSviewACD
                 var data_remain = data.Length - data.Position;
                 if (data_remain > 0)
                 {
-                    if (data_remain + packet_last < packetlen)
-                    {
-                        int len2 = data.Read(packet, packet_last, (int)data_remain);
-                        packet_last += len2;
-                        return false;
-                    }
                     int len = data.Read(packet, packet_last, packetlen - packet_last);
                     packet_last += len;
-                    if (packet_last >= packetlen) packet_last -= packetlen;
-                    return true;
+                    if (packet_last == packetlen)
+                    {
+                        packet_last = 0;
+                        return true;
+                    }
+                    else
+                        return false;
                 }
                 return false;
             }
@@ -428,8 +428,7 @@ namespace TSviewACD
                     Array.Copy(buffer, offset, packet, packet_last, filllen);
                     offset += filllen;
                     count -= filllen;
-                    packet_last += filllen;
-                    if (packet_last >= packetlen) packet_last -= packetlen;
+                    packet_last = 0;
                     return true;
                 }
                 return false;
@@ -437,22 +436,33 @@ namespace TSviewACD
 
             private void SendUDP()
             {
-                if (failcount > 0 || synccount < 5) return;
+                if (synccount < 5) return;
 
                 ct.ThrowIfCancellationRequested();
-                udp.Send(packet, packetlen, Config.SendToHost, Config.SendToPort);
-                SendBytes += packetlen;
-                Send_log.Enqueue(new Time_posision(DateTime.Now, SendBytes));
-                if (Send_log.Count > Config.SendRatebySendCount)
+                while (Send_log.Count > Config.SendRatebySendCount)
                     prevSendTime = Send_log.Dequeue();
 
                 var rate = (SendBytes - prevSendTime.Position) / (DateTime.Now - prevSendTime.Time).TotalSeconds;
                 if (rate > bytePerSec)
                 {
                     var slp = ((SendBytes - prevSendTime.Position) - bytePerSec * (DateTime.Now - prevSendTime.Time).TotalSeconds) / bytePerSec;
-                    int delta = (Send_log.Count >= Config.SendRatebySendCount)? Config.SendDelay: 0;
+                    int delta = Config.SendDelay;
                     if (slp + delta * 0.001 > 0)
                         Thread.Sleep((int)(slp * 1000 + delta));
+                }
+
+                udp.Send(packet, packetlen, Config.SendToHost, Config.SendToPort);
+                SendBytes += packetlen;
+                Send_log.Enqueue(new Time_posision(DateTime.Now, SendBytes));
+
+                if (init_TOT)
+                {
+                    if (prevTOT.Time - initialTOT.Time + TimeSpan.FromSeconds((SendBytes - prevTOT.Position) / bytePerSec) > DateTime.Now - InitialTOT_time + TimeSpan.FromMilliseconds(Config.SendLongOffset))
+                    {
+                        var slp = prevTOT.Time - initialTOT.Time + TimeSpan.FromSeconds((SendBytes - prevTOT.Position) / bytePerSec) - (DateTime.Now - InitialTOT_time + TimeSpan.FromMilliseconds(Config.SendLongOffset));
+                        if (slp.TotalMilliseconds > 0)
+                            Thread.Sleep(slp);
+                    }
                 }
             }
 
@@ -468,11 +478,8 @@ namespace TSviewACD
                         ct.ThrowIfCancellationRequested();
                         var TOT = (TS_packet.TOT_transport_packet)Marshal.PtrToStructure(gch.AddrOfPinnedObject() + j, typeof(TS_packet.TOT_transport_packet));
                         if (!TOT.IsSync)
-                            ++failcount;
-                        if (!TOT.IsSync && failcount > 1)
                         {
                             synccount = 0;
-                            failcount = 0;
                             while (!TOT.IsSync && ++j < packetlen)
                             {
                                 TOT = (TS_packet.TOT_transport_packet)Marshal.PtrToStructure(gch.AddrOfPinnedObject() + j, typeof(TS_packet.TOT_transport_packet));
@@ -486,13 +493,13 @@ namespace TSviewACD
                         if (TOT.IsSync && ++synccount > 5)
                         {
                             synccount = 5;
-                            failcount = 0;
                         }
                         if (TOT.IsTOT)
                         {
                             if (!init_TOT)
                             {
                                 initialTOT = new Time_posision(TOT.JST_time, Position);
+                                InitialTOT_time = DateTime.Now;
                                 prevTOT = initialTOT;
                                 TOT_log.Enqueue(initialTOT);
                                 init_TOT = true;
@@ -500,7 +507,7 @@ namespace TSviewACD
                             else
                             {
                                 TOT_log.Enqueue(new Time_posision(TOT.JST_time, Position));
-                                if (TOT_log.Count > Config.SendRatebyTOTCount)
+                                while (TOT_log.Count > Config.SendRatebyTOTCount)
                                     prevTOT = TOT_log.Dequeue();
                                 bytePerSec = (long)((Position - prevTOT.Position) / (TOT.JST_time - prevTOT.Time).TotalSeconds);
                             }
@@ -534,6 +541,7 @@ namespace TSviewACD
             {
                 while (data.Position < data.Length)
                 {
+                    ct.ThrowIfCancellationRequested();
                     if (!FillBuffer(data)) continue;
                     SendUDP();
                     checkTOT();
@@ -544,6 +552,7 @@ namespace TSviewACD
             {
                 while (count > 0)
                 {
+                    ct.ThrowIfCancellationRequested();
                     if (!FillBuffer(buffer, ref offset, ref count)) continue;
                     SendUDP();
                     checkTOT();

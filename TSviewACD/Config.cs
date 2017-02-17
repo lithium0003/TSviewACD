@@ -17,10 +17,11 @@ namespace TSviewACD
         public static string Version = System.Diagnostics.FileVersionInfo.GetVersionInfo(System.Reflection.Assembly.GetExecutingAssembly().Location).ProductVersion.ToString();
         public static string SendToHost = "localhost";
         public static int SendToPort = 1240;
-        public static int SendPacketNum = 256;
-        public static int SendDelay = 16;
-        public static int SendRatebySendCount = 3;
-        public static int SendRatebyTOTCount = 3;
+        public static int SendPacketNum = 32;
+        public static int SendDelay = 0;
+        public static int SendLongOffset = 2000;
+        public static int SendRatebySendCount = 5;
+        public static int SendRatebyTOTCount = 1;
         public static System.Windows.Forms.Keys SendVK = default(System.Windows.Forms.Keys);
         public static string SendVK_Application = "";
         public static string refresh_token = "";
@@ -41,6 +42,21 @@ namespace TSviewACD
             set
             {
                 (Log ?? (Log = new FormLogWindow())).LogToFile = value;
+            }
+        }
+
+        private static bool _IsClosing = false;
+        public static bool IsClosing
+        {
+            get { return _IsClosing; }
+            set
+            {
+                if (_IsClosing) return;
+                _IsClosing = value;
+                if (IsClosing)
+                {
+                    Save();
+                }
             }
         }
 
@@ -173,6 +189,8 @@ namespace TSviewACD
                         SendPacketNum = data.SendPacketNum;
                     if (data.SendDelay != default(int))
                         SendDelay = data.SendDelay;
+                    if (data.SendLongOffset != default(int))
+                        SendLongOffset = data.SendLongOffset;
                     if (data.SendRatebySendCount != default(int))
                         SendRatebySendCount = data.SendRatebySendCount;
                     if (data.SendRatebyTOTCount != default(int))
@@ -207,6 +225,7 @@ namespace TSviewACD
                     SendToPort = SendToPort,
                     SendPacketNum = SendPacketNum,
                     SendDelay = SendDelay,
+                    SendLongOffset = SendLongOffset,
                     SendRatebySendCount = SendRatebySendCount,
                     SendRatebyTOTCount = SendRatebyTOTCount,
                     SendVK = SendVK,
@@ -237,6 +256,8 @@ namespace TSviewACD
         public int SendPacketNum;
         [DataMember]
         public int SendDelay;
+        [DataMember]
+        public int SendLongOffset;
         [DataMember]
         public int SendRatebySendCount;
         [DataMember]

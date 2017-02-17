@@ -133,6 +133,9 @@
             this.timer1 = new System.Windows.Forms.Timer(this.components);
             this.toolTip1 = new System.Windows.Forms.ToolTip(this.components);
             this.timer2 = new System.Windows.Forms.Timer(this.components);
+            this.label19 = new System.Windows.Forms.Label();
+            this.textBox_SendLongOffset = new System.Windows.Forms.TextBox();
+            this.label20 = new System.Windows.Forms.Label();
             ((System.ComponentModel.ISupportInitialize)(this.splitContainer1)).BeginInit();
             this.splitContainer1.Panel1.SuspendLayout();
             this.splitContainer1.Panel2.SuspendLayout();
@@ -325,6 +328,7 @@
             this.comboBox_FindStr.Sorted = true;
             this.comboBox_FindStr.TabIndex = 13;
             this.toolTip1.SetToolTip(this.comboBox_FindStr, "検索したい文字列を入れてください");
+            this.comboBox_FindStr.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.comboBox_FindStr_KeyPress);
             // 
             // label2
             // 
@@ -713,6 +717,9 @@
             // 
             // tabPage5
             // 
+            this.tabPage5.Controls.Add(this.label19);
+            this.tabPage5.Controls.Add(this.textBox_SendLongOffset);
+            this.tabPage5.Controls.Add(this.label20);
             this.tabPage5.Controls.Add(this.textBox_keySendApp);
             this.tabPage5.Controls.Add(this.label18);
             this.tabPage5.Controls.Add(this.label17);
@@ -854,7 +861,7 @@
             // label10
             // 
             this.label10.AutoSize = true;
-            this.label10.Location = new System.Drawing.Point(183, 35);
+            this.label10.Location = new System.Drawing.Point(183, 29);
             this.label10.Name = "label10";
             this.label10.Size = new System.Drawing.Size(20, 12);
             this.label10.TabIndex = 4;
@@ -863,7 +870,7 @@
             // textBox_SendDelay
             // 
             this.textBox_SendDelay.ImeMode = System.Windows.Forms.ImeMode.Off;
-            this.textBox_SendDelay.Location = new System.Drawing.Point(132, 32);
+            this.textBox_SendDelay.Location = new System.Drawing.Point(132, 26);
             this.textBox_SendDelay.Name = "textBox_SendDelay";
             this.textBox_SendDelay.Size = new System.Drawing.Size(45, 19);
             this.textBox_SendDelay.TabIndex = 3;
@@ -873,7 +880,7 @@
             // label9
             // 
             this.label9.AutoSize = true;
-            this.label9.Location = new System.Drawing.Point(17, 35);
+            this.label9.Location = new System.Drawing.Point(17, 29);
             this.label9.Name = "label9";
             this.label9.Size = new System.Drawing.Size(109, 12);
             this.label9.TabIndex = 2;
@@ -1193,6 +1200,34 @@
             this.timer2.Interval = 1000;
             this.timer2.Tick += new System.EventHandler(this.timer2_Tick);
             // 
+            // label19
+            // 
+            this.label19.AutoSize = true;
+            this.label19.Location = new System.Drawing.Point(234, 51);
+            this.label19.Name = "label19";
+            this.label19.Size = new System.Drawing.Size(20, 12);
+            this.label19.TabIndex = 19;
+            this.label19.Text = "ms";
+            // 
+            // textBox_SendLongOffset
+            // 
+            this.textBox_SendLongOffset.ImeMode = System.Windows.Forms.ImeMode.Off;
+            this.textBox_SendLongOffset.Location = new System.Drawing.Point(183, 48);
+            this.textBox_SendLongOffset.Name = "textBox_SendLongOffset";
+            this.textBox_SendLongOffset.Size = new System.Drawing.Size(45, 19);
+            this.textBox_SendLongOffset.TabIndex = 18;
+            this.toolTip1.SetToolTip(this.textBox_SendLongOffset, "送信するごとに、余分にウエイトを入れて時間を調整します");
+            this.textBox_SendLongOffset.TextChanged += new System.EventHandler(this.textBox_SendLongOffset_TextChanged);
+            // 
+            // label20
+            // 
+            this.label20.AutoSize = true;
+            this.label20.Location = new System.Drawing.Point(17, 51);
+            this.label20.Name = "label20";
+            this.label20.Size = new System.Drawing.Size(166, 12);
+            this.label20.TabIndex = 17;
+            this.label20.Text = "Long term bitrate control offset";
+            // 
             // Form1
             // 
             this.AllowDrop = true;
@@ -1343,6 +1378,9 @@
         private System.Windows.Forms.ToolTip toolTip1;
         private System.Windows.Forms.Button button_LocalRemoteMatch;
         private System.Windows.Forms.Timer timer2;
+        private System.Windows.Forms.Label label19;
+        private System.Windows.Forms.TextBox textBox_SendLongOffset;
+        private System.Windows.Forms.Label label20;
     }
 }
 
