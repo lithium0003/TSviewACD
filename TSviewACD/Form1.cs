@@ -3086,6 +3086,14 @@ namespace TSviewACD
             englishToolStripMenuItem.Checked = false;
             Config.Language = "ja";
         }
+
+        private void button_TestDownload_Click(object sender, EventArgs e)
+        {
+            if (!initialized) return;
+            var test = new FormTestDownload();
+            test.SelectedRemoteFiles = GetSeletctedRemoteFiles();
+            test.Show();
+        }
     }
 
 

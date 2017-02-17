@@ -467,7 +467,7 @@ namespace TSviewACD
             return false;
         }
 
-        public async Task<Stream> downloadFile(FileMetadata_Info target, long? from = null, long? to = null, string enckey = null, CancellationToken ct = default(CancellationToken))
+        public async Task<Stream> downloadFile(FileMetadata_Info target, long? from = null, long? to = null, string enckey = null, bool autodecrypt = true, CancellationToken ct = default(CancellationToken))
         {
             string id = target.id;
             string filename = target.name;
@@ -486,6 +486,7 @@ namespace TSviewACD
                 Encrypted = true;
                 enckey = Path.GetFileNameWithoutExtension(filename);
             }
+            if (!autodecrypt) Encrypted = false;
             Config.Log.LogOut("\t[downloadFile] " + id);
             string error_str;
             var client = new HttpClient();

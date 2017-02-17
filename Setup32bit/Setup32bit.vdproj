@@ -194,6 +194,14 @@
             "PrerequisitesLocation" = "2:1"
             "Url" = "8:"
             "ComponentsUrl" = "8:"
+                "Items"
+                {
+                    "{EDC2488A-8267-493A-A98E-7D9C3B36CDF3}:.NETFramework,Version=v4.5"
+                    {
+                    "Name" = "8:Microsoft .NET Framework 4.5 (x86 and x64)"
+                    "ProductCode" = "8:.NETFramework,Version=v4.5"
+                    }
+                }
             }
         }
         "Release"
@@ -513,11 +521,6 @@
             "AssemblyAsmDisplayName" = "8:System.Net.Http, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a"
                 "ScatterAssemblies"
                 {
-                    "_9338F118CFD54DE90EA348A5383157E4"
-                    {
-                    "Name" = "8:System.Net.Http.dll"
-                    "Attributes" = "3:512"
-                    }
                 }
             "SourcePath" = "8:System.Net.Http.dll"
             "TargetName" = "8:"
@@ -604,11 +607,6 @@
             "AssemblyAsmDisplayName" = "8:ffmodule_conf, Version=1.0.0.0, Culture=neutral, processorArchitecture=x86"
                 "ScatterAssemblies"
                 {
-                    "_B39B283122AA5AFF9D7E43CBE49D2725"
-                    {
-                    "Name" = "8:ffmodule_conf.dll"
-                    "Attributes" = "3:512"
-                    }
                 }
             "SourcePath" = "8:ffmodule_conf.dll"
             "TargetName" = "8:"
@@ -755,15 +753,15 @@
         {
         "Name" = "8:Microsoft Visual Studio"
         "ProductName" = "8:TSviewACD"
-        "ProductCode" = "8:{1B132346-7F31-4C75-A2FF-FAF7BFF4AFC7}"
-        "PackageCode" = "8:{DDE58321-DA65-42D1-81CC-D2ACC6E031ED}"
+        "ProductCode" = "8:{D20DDDBE-C102-4B0C-9ED5-700263FD33ED}"
+        "PackageCode" = "8:{9EEB854E-7345-4C64-94AA-48BF409F5371}"
         "UpgradeCode" = "8:{2FB4F2BC-56CA-4C1F-88AE-F17A8AF5B9D2}"
         "AspNetVersion" = "8:4.0.30319.0"
         "RestartWWWService" = "11:FALSE"
-        "RemovePreviousVersions" = "11:FALSE"
+        "RemovePreviousVersions" = "11:TRUE"
         "DetectNewerInstalledVersion" = "11:TRUE"
         "InstallAllUsers" = "11:FALSE"
-        "ProductVersion" = "8:4.1.5"
+        "ProductVersion" = "8:4.1.6"
         "Manufacturer" = "8:lithium03"
         "ARPHELPTELEPHONE" = "8:"
         "ARPHELPLINK" = "8:"
@@ -1319,7 +1317,7 @@
             }
             "{5259A561-127C-4D43-A0A1-72F10C7B3BF8}:_9C2876722CCA469BB4DA405C760D3C0A"
             {
-            "SourcePath" = "8:..\\Win32\\Release\\ffmodule.dll"
+            "SourcePath" = "8:"
             "TargetName" = "8:"
             "Tag" = "8:"
             "Folder" = "8:_893A6354AC8049EF8592B19CE4F2EA43"

@@ -32,7 +32,7 @@ namespace TSviewACD
 
         CancellationTokenSource cts;
 
-        public IEnumerable<FileMetadata_Info> _SelectedRemoteFiles;
+        private IEnumerable<FileMetadata_Info> _SelectedRemoteFiles;
 
         public IEnumerable<FileMetadata_Info> SelectedRemoteFiles
         {

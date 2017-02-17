@@ -407,11 +407,6 @@
             "AssemblyAsmDisplayName" = "8:ffmodule_conf, Version=1.0.0.0, Culture=neutral, processorArchitecture=AMD64"
                 "ScatterAssemblies"
                 {
-                    "_81A9D0128E1A5163C562043C4B894E9E"
-                    {
-                    "Name" = "8:ffmodule_conf.dll"
-                    "Attributes" = "3:512"
-                    }
                 }
             "SourcePath" = "8:ffmodule_conf.dll"
             "TargetName" = "8:"
@@ -658,11 +653,6 @@
             "AssemblyAsmDisplayName" = "8:System.Net.Http, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a"
                 "ScatterAssemblies"
                 {
-                    "_EE87D4693607DA830341F2EE0B71A64E"
-                    {
-                    "Name" = "8:System.Net.Http.dll"
-                    "Attributes" = "3:512"
-                    }
                 }
             "SourcePath" = "8:System.Net.Http.dll"
             "TargetName" = "8:"
@@ -769,15 +759,15 @@
         {
         "Name" = "8:Microsoft Visual Studio"
         "ProductName" = "8:TSviewACD"
-        "ProductCode" = "8:{3E77D3E1-4BD8-473A-8165-FA6C86448BE7}"
-        "PackageCode" = "8:{132E5009-5F4F-45D9-BCD1-7170F140FB8E}"
+        "ProductCode" = "8:{DB643CA7-D4AA-4D1E-8436-716EBDE1D575}"
+        "PackageCode" = "8:{E1872CF4-D2BC-4401-8410-ACAB870B7D67}"
         "UpgradeCode" = "8:{35BB5569-D1AC-4F9A-861C-2B676D50BCC7}"
         "AspNetVersion" = "8:4.0.30319.0"
         "RestartWWWService" = "11:FALSE"
-        "RemovePreviousVersions" = "11:FALSE"
+        "RemovePreviousVersions" = "11:TRUE"
         "DetectNewerInstalledVersion" = "11:TRUE"
         "InstallAllUsers" = "11:FALSE"
-        "ProductVersion" = "8:4.1.5"
+        "ProductVersion" = "8:4.1.6"
         "Manufacturer" = "8:lithium03"
         "ARPHELPTELEPHONE" = "8:"
         "ARPHELPLINK" = "8:"
@@ -1305,7 +1295,7 @@
         {
             "{5259A561-127C-4D43-A0A1-72F10C7B3BF8}:_4D846091C7A24176B3DE86DC9148F829"
             {
-            "SourcePath" = "8:..\\ffmodule\\bin\\x64\\Release\\ffmodule.dll"
+            "SourcePath" = "8:"
             "TargetName" = "8:"
             "Tag" = "8:"
             "Folder" = "8:_8D9756B685E142D791ACF2E5FDFC53C4"

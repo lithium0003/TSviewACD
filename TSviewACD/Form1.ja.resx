@@ -123,7 +123,7 @@
   </data>
   <assembly alias="System.Drawing" name="System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" />
   <data name="button_breakone.Location" type="System.Drawing.Point, System.Drawing">
-    <value>636, 21</value>
+    <value>636, 18</value>
   </data>
   <data name="button_breakone.Size" type="System.Drawing.Size, System.Drawing">
     <value>88, 23</value>
@@ -192,7 +192,7 @@
     <value>NoControl</value>
   </data>
   <data name="button_breakall.Location" type="System.Drawing.Point, System.Drawing">
-    <value>636, 49</value>
+    <value>636, 43</value>
   </data>
   <data name="button_breakall.Size" type="System.Drawing.Size, System.Drawing">
     <value>88, 23</value>
@@ -389,6 +389,18 @@
   </data>
   <data name="tabPage_Find.ToolTipText" xml:space="preserve">
     <value>部分一致や正規表現、アップロード日時などで検索します</value>
+  </data>
+  <data name="button_TestDownload.Location" type="System.Drawing.Point, System.Drawing">
+    <value>618, 24</value>
+  </data>
+  <data name="button_TestDownload.Size" type="System.Drawing.Size, System.Drawing">
+    <value>98, 23</value>
+  </data>
+  <data name="button_TestDownload.Text" xml:space="preserve">
+    <value>ダウンロードテスト</value>
+  </data>
+  <data name="button_TestDownload.ToolTip" xml:space="preserve">
+    <value />
   </data>
   <data name="button_LocalRemoteMatch.ImeMode" type="System.Windows.Forms.ImeMode, System.Windows.Forms">
     <value>NoControl</value>

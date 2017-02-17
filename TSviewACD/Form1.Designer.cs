@@ -59,6 +59,7 @@
             this.checkBox_Folder = new System.Windows.Forms.CheckBox();
             this.button_search = new System.Windows.Forms.Button();
             this.tabPage_Folder = new System.Windows.Forms.TabPage();
+            this.button_TestDownload = new System.Windows.Forms.Button();
             this.button_LocalRemoteMatch = new System.Windows.Forms.Button();
             this.textBox_newName = new System.Windows.Forms.TextBox();
             this.label3 = new System.Windows.Forms.Label();
@@ -455,6 +456,7 @@
             // tabPage_Folder
             // 
             resources.ApplyResources(this.tabPage_Folder, "tabPage_Folder");
+            this.tabPage_Folder.Controls.Add(this.button_TestDownload);
             this.tabPage_Folder.Controls.Add(this.button_LocalRemoteMatch);
             this.tabPage_Folder.Controls.Add(this.textBox_newName);
             this.tabPage_Folder.Controls.Add(this.label3);
@@ -462,6 +464,14 @@
             this.tabPage_Folder.Name = "tabPage_Folder";
             this.toolTip1.SetToolTip(this.tabPage_Folder, resources.GetString("tabPage_Folder.ToolTip"));
             this.tabPage_Folder.UseVisualStyleBackColor = true;
+            // 
+            // button_TestDownload
+            // 
+            resources.ApplyResources(this.button_TestDownload, "button_TestDownload");
+            this.button_TestDownload.Name = "button_TestDownload";
+            this.toolTip1.SetToolTip(this.button_TestDownload, resources.GetString("button_TestDownload.ToolTip"));
+            this.button_TestDownload.UseVisualStyleBackColor = true;
+            this.button_TestDownload.Click += new System.EventHandler(this.button_TestDownload_Click);
             // 
             // button_LocalRemoteMatch
             // 
@@ -1566,6 +1576,7 @@
         private System.Windows.Forms.ToolStripSeparator toolStripMenuItem4;
         private System.Windows.Forms.ToolStripMenuItem englishToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem japaneseToolStripMenuItem;
+        private System.Windows.Forms.Button button_TestDownload;
     }
 }
 

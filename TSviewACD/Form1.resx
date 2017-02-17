@@ -130,6 +130,10 @@
   <data name="&gt;&gt;label11.Parent" xml:space="preserve">
     <value>tabPage_UDPConfig</value>
   </data>
+  <assembly alias="mscorlib" name="mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" />
+  <data name="tabPage_FFmpeg.TabIndex" type="System.Int32, mscorlib">
+    <value>5</value>
+  </data>
   <data name="checkBox_dateFrom.Text" xml:space="preserve">
     <value>From</value>
   </data>
@@ -138,6 +142,9 @@
   </data>
   <data name="&gt;&gt;checkBox_LockPassword.ZOrder" xml:space="preserve">
     <value>0</value>
+  </data>
+  <data name="label2.Text" xml:space="preserve">
+    <value>Find by DateTime</value>
   </data>
   <data name="&gt;&gt;button_search.Name" xml:space="preserve">
     <value>button_search</value>
@@ -163,18 +170,14 @@
   <data name="button_FFplay_stop.Location" type="System.Drawing.Point, System.Drawing">
     <value>294, 30</value>
   </data>
-  <assembly alias="mscorlib" name="mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" />
   <data name="tabControl1.ShowToolTips" type="System.Boolean, mscorlib">
     <value>True</value>
-  </data>
-  <data name="&gt;&gt;label_FFplay_stream.Parent" xml:space="preserve">
-    <value>tabPage_FFmpeg</value>
   </data>
   <data name="&gt;&gt;toolStripMenuItem1.Type" xml:space="preserve">
     <value>System.Windows.Forms.ToolStripSeparator, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </data>
-  <data name="label21.Text" xml:space="preserve">
-    <value>Upload Bandwidth Limit</value>
+  <data name="&gt;&gt;splitContainer1.Panel1.Type" xml:space="preserve">
+    <value>System.Windows.Forms.SplitterPanel, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </data>
   <data name="&gt;&gt;button_LocalRemoteMatch.Type" xml:space="preserve">
     <value>System.Windows.Forms.Button, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
@@ -215,17 +218,14 @@
   <data name="&gt;&gt;label27.Name" xml:space="preserve">
     <value>label27</value>
   </data>
-  <data name="label8.Text" xml:space="preserve">
-    <value>UDP send packet size = 188 *</value>
+  <data name="statusStrip1.Text" xml:space="preserve">
+    <value>statusStrip1</value>
   </data>
   <data name="label6.Text" xml:space="preserve">
     <value>Start</value>
   </data>
   <data name="label19.Size" type="System.Drawing.Size, System.Drawing">
     <value>20, 12</value>
-  </data>
-  <data name="label24.ToolTip" xml:space="preserve">
-    <value />
   </data>
   <data name="&gt;&gt;textBox_keySendApp.Name" xml:space="preserve">
     <value>textBox_keySendApp</value>
@@ -242,8 +242,8 @@
   <data name="&gt;&gt;tabPage_UDPConfig.Type" xml:space="preserve">
     <value>System.Windows.Forms.TabPage, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </data>
-  <data name="&gt;&gt;textBox_newName.Type" xml:space="preserve">
-    <value>System.Windows.Forms.TextBox, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  <data name="button_Go.Size" type="System.Drawing.Size, System.Drawing">
+    <value>32, 23</value>
   </data>
   <data name="listToolStripMenuItem.Text" xml:space="preserve">
     <value>L&amp;ist</value>
@@ -251,8 +251,8 @@
   <data name="&gt;&gt;trackBar_FFplay_pos.ZOrder" xml:space="preserve">
     <value>8</value>
   </data>
-  <data name="&gt;&gt;radioButton_AbsTime.Name" xml:space="preserve">
-    <value>radioButton_AbsTime</value>
+  <data name="label26.Location" type="System.Drawing.Point, System.Drawing">
+    <value>8, 7</value>
   </data>
   <data name="checkBox_File.ToolTip" xml:space="preserve">
     <value>the files are the search target</value>
@@ -263,9 +263,6 @@
   <assembly alias="System.Windows.Forms" name="System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" />
   <data name="dateTimePicker_from.Anchor" type="System.Windows.Forms.AnchorStyles, System.Windows.Forms">
     <value>Top, Right</value>
-  </data>
-  <data name="button_FFplay_next.Size" type="System.Drawing.Size, System.Drawing">
-    <value>48, 20</value>
   </data>
   <data name="&gt;&gt;label12.Type" xml:space="preserve">
     <value>System.Windows.Forms.Label, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
@@ -315,8 +312,11 @@
   <data name="label27.TabIndex" type="System.Int32, mscorlib">
     <value>3</value>
   </data>
-  <data name="&gt;&gt;label13.Type" xml:space="preserve">
-    <value>System.Windows.Forms.Label, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  <data name="textBox_newName.Location" type="System.Drawing.Point, System.Drawing">
+    <value>13, 26</value>
+  </data>
+  <data name="&gt;&gt;toolStripMenuItem_Logout.Name" xml:space="preserve">
+    <value>toolStripMenuItem_Logout</value>
   </data>
   <data name="button_FFplay_next.ToolTip" xml:space="preserve">
     <value>If selected multiple files, move to next.</value>
@@ -326,9 +326,6 @@
   </data>
   <data name="&gt;&gt;textBox_SendRatebyTOTCount.Parent" xml:space="preserve">
     <value>tabPage_UDPConfig</value>
-  </data>
-  <data name="label25.Location" type="System.Drawing.Point, System.Drawing">
-    <value>138, 35</value>
   </data>
   <data name="tabPage_UDPConfig.ToolTip" xml:space="preserve">
     <value />
@@ -345,8 +342,8 @@
   <data name="&gt;&gt;tabControl1.ZOrder" xml:space="preserve">
     <value>0</value>
   </data>
-  <data name="button_reload.Location" type="System.Drawing.Point, System.Drawing">
-    <value>442, 31</value>
+  <data name="&gt;&gt;textBox_StartTime.Type" xml:space="preserve">
+    <value>System.Windows.Forms.TextBox, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </data>
   <data name="&gt;&gt;tabPage_Folder.ZOrder" xml:space="preserve">
     <value>2</value>
@@ -384,8 +381,8 @@
   <data name="&gt;&gt;label23.ZOrder" xml:space="preserve">
     <value>1</value>
   </data>
-  <data name="dateTimePicker_from.TabIndex" type="System.Int32, mscorlib">
-    <value>6</value>
+  <data name="listView1.Location" type="System.Drawing.Point, System.Drawing">
+    <value>0, 0</value>
   </data>
   <data name="splitContainer1.Orientation" type="System.Windows.Forms.Orientation, System.Windows.Forms">
     <value>Horizontal</value>
@@ -408,11 +405,14 @@
   <data name="&gt;&gt;button_stop.Type" xml:space="preserve">
     <value>System.Windows.Forms.Button, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </data>
+  <data name="&gt;&gt;tabPage_FFmpeg.Type" xml:space="preserve">
+    <value>System.Windows.Forms.TabPage, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
   <data name="treeView1.Dock" type="System.Windows.Forms.DockStyle, System.Windows.Forms">
     <value>Fill</value>
   </data>
-  <data name="&gt;&gt;textBox_SendRatebyTOTCount.ZOrder" xml:space="preserve">
-    <value>9</value>
+  <data name="checkBox_dateTo.AutoSize" type="System.Boolean, mscorlib">
+    <value>True</value>
   </data>
   <data name="&gt;&gt;checkBox_MD5.ZOrder" xml:space="preserve">
     <value>3</value>
@@ -435,14 +435,14 @@
   <data name="splitContainer1.SplitterDistance" type="System.Int32, mscorlib">
     <value>122</value>
   </data>
-  <data name="&gt;&gt;textBox_path.Name" xml:space="preserve">
-    <value>textBox_path</value>
+  <data name="label8.Text" xml:space="preserve">
+    <value>UDP send packet size = 188 *</value>
   </data>
   <data name="&gt;&gt;listView1.Name" xml:space="preserve">
     <value>listView1</value>
   </data>
-  <data name="&gt;&gt;textBox_Password.Type" xml:space="preserve">
-    <value>System.Windows.Forms.TextBox, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  <data name="label6.AutoSize" type="System.Boolean, mscorlib">
+    <value>True</value>
   </data>
   <data name="&gt;&gt;label_FFplay_sendname.Name" xml:space="preserve">
     <value>label_FFplay_sendname</value>
@@ -450,11 +450,8 @@
   <data name="&gt;&gt;languageToolStripMenuItem.Name" xml:space="preserve">
     <value>languageToolStripMenuItem</value>
   </data>
-  <data name="tabPage_UDPConfig.TabIndex" type="System.Int32, mscorlib">
-    <value>4</value>
-  </data>
-  <data name="&gt;&gt;textBox_VK.Parent" xml:space="preserve">
-    <value>tabPage_UDPConfig</value>
+  <data name="&gt;&gt;button_FFplay_stop.Parent" xml:space="preserve">
+    <value>tabPage_FFmpeg</value>
   </data>
   <data name="&gt;&gt;label23.Name" xml:space="preserve">
     <value>label23</value>
@@ -471,23 +468,23 @@
   <data name="&gt;&gt;label19.Type" xml:space="preserve">
     <value>System.Windows.Forms.Label, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </data>
-  <data name="label2.Text" xml:space="preserve">
-    <value>Find by DateTime</value>
+  <data name="textBox_SendDelay.ToolTip" xml:space="preserve">
+    <value>Additional wait time for send.</value>
   </data>
-  <data name="&gt;&gt;treeView1.Parent" xml:space="preserve">
-    <value>splitContainer2.Panel1</value>
+  <data name="&gt;&gt;label_sendname.Name" xml:space="preserve">
+    <value>label_sendname</value>
   </data>
   <data name="label6.ToolTip" xml:space="preserve">
     <value />
   </data>
-  <data name="&gt;&gt;listView1.Type" xml:space="preserve">
-    <value>System.Windows.Forms.ListView, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  <data name="checkBox_Folder.Text" xml:space="preserve">
+    <value>Folder</value>
   </data>
-  <data name="&gt;&gt;menuStrip1.ZOrder" xml:space="preserve">
-    <value>1</value>
+  <data name="tabPage_UDPConfig.TabIndex" type="System.Int32, mscorlib">
+    <value>4</value>
   </data>
-  <data name="&gt;&gt;comboBox_FindStr.Name" xml:space="preserve">
-    <value>comboBox_FindStr</value>
+  <data name="&gt;&gt;label16.Type" xml:space="preserve">
+    <value>System.Windows.Forms.Label, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </data>
   <data name="menuStrip1.Text" xml:space="preserve">
     <value>menuStrip1</value>
@@ -513,20 +510,20 @@
   <data name="button_mkdir.TabIndex" type="System.Int32, mscorlib">
     <value>0</value>
   </data>
-  <data name="tabPage_Find.Location" type="System.Drawing.Point, System.Drawing">
-    <value>4, 4</value>
+  <data name="&gt;&gt;listView_TaskList.ZOrder" xml:space="preserve">
+    <value>2</value>
   </data>
-  <data name="label2.Location" type="System.Drawing.Point, System.Drawing">
-    <value>553, 5</value>
+  <data name="label5.Location" type="System.Drawing.Point, System.Drawing">
+    <value>5, 41</value>
   </data>
   <data name="label2.ToolTip" xml:space="preserve">
     <value>filtered by the time attribute</value>
   </data>
-  <data name="&gt;&gt;label_stream.Name" xml:space="preserve">
-    <value>label_stream</value>
+  <data name="&gt;&gt;checkBox_crypt.ZOrder" xml:space="preserve">
+    <value>4</value>
   </data>
-  <data name="&gt;&gt;textBox_HostName.Name" xml:space="preserve">
-    <value>textBox_HostName</value>
+  <data name="textBox_SendDelay.Size" type="System.Drawing.Size, System.Drawing">
+    <value>45, 19</value>
   </data>
   <data name="&gt;&gt;checkBox_Folder.Type" xml:space="preserve">
     <value>System.Windows.Forms.CheckBox, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
@@ -534,11 +531,11 @@
   <data name="label3.Location" type="System.Drawing.Point, System.Drawing">
     <value>11, 11</value>
   </data>
-  <data name="&gt;&gt;label6.ZOrder" xml:space="preserve">
-    <value>15</value>
+  <data name="textBox_SendRatebySendCount.Size" type="System.Drawing.Size, System.Drawing">
+    <value>48, 19</value>
   </data>
-  <data name="tabPage_Bandwidth.TabIndex" type="System.Int32, mscorlib">
-    <value>6</value>
+  <data name="&gt;&gt;textBox_Password.Type" xml:space="preserve">
+    <value>System.Windows.Forms.TextBox, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </data>
   <data name="&gt;&gt;button_next.Name" xml:space="preserve">
     <value>button_next</value>
@@ -548,6 +545,9 @@
   </data>
   <data name="checkBox_dateTo.Size" type="System.Drawing.Size, System.Drawing">
     <value>37, 16</value>
+  </data>
+  <data name="listView1.Size" type="System.Drawing.Size, System.Drawing">
+    <value>696, 553</value>
   </data>
   <data name="label8.Location" type="System.Drawing.Point, System.Drawing">
     <value>17, 11</value>
@@ -561,17 +561,20 @@
   <data name="&gt;&gt;trashItemToolStripMenuItem.Type" xml:space="preserve">
     <value>System.Windows.Forms.ToolStripMenuItem, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </data>
-  <data name="&gt;&gt;splitContainer1.Name" xml:space="preserve">
-    <value>splitContainer1</value>
+  <data name="&gt;&gt;label21.Type" xml:space="preserve">
+    <value>System.Windows.Forms.Label, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </data>
   <data name="radioButton_modifiedDate.Size" type="System.Drawing.Size, System.Drawing">
     <value>90, 16</value>
+  </data>
+  <data name="tabControl1.Location" type="System.Drawing.Point, System.Drawing">
+    <value>0, 24</value>
   </data>
   <data name="&gt;&gt;label14.ZOrder" xml:space="preserve">
     <value>10</value>
   </data>
   <data name="button_breakall.Location" type="System.Drawing.Point, System.Drawing">
-    <value>649, 49</value>
+    <value>649, 43</value>
   </data>
   <data name="&gt;&gt;textBox_SendRatebySendCount.Name" xml:space="preserve">
     <value>textBox_SendRatebySendCount</value>
@@ -588,11 +591,8 @@
   <data name="button_FFplay_next.Location" type="System.Drawing.Point, System.Drawing">
     <value>818, 0</value>
   </data>
-  <data name="textBox_SendRatebyTOTCount.ImeMode" type="System.Windows.Forms.ImeMode, System.Windows.Forms">
-    <value>Off</value>
-  </data>
-  <data name="radioButton_createTime.ToolTip" xml:space="preserve">
-    <value>createdDate</value>
+  <data name="&gt;&gt;checkBox_File.Type" xml:space="preserve">
+    <value>System.Windows.Forms.CheckBox, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </data>
   <data name="textBox_Port.ToolTip" xml:space="preserve">
     <value>Target port</value>
@@ -609,8 +609,8 @@
   <data name="smallIconToolStripMenuItem.Size" type="System.Drawing.Size, System.Drawing">
     <value>126, 22</value>
   </data>
-  <data name="comboBox_DownloadLimitUnit.Items2" xml:space="preserve">
-    <value>MiB/s</value>
+  <data name="&gt;&gt;textBox_SendRatebyTOTCount.ZOrder" xml:space="preserve">
+    <value>9</value>
   </data>
   <data name="renameToolStripMenuItem.Text" xml:space="preserve">
     <value>&amp;Rename</value>
@@ -627,8 +627,8 @@
   <data name="tabPage_FFmpeg.Padding" type="System.Windows.Forms.Padding, System.Windows.Forms">
     <value>3, 3, 3, 3</value>
   </data>
-  <data name="label7.AutoSize" type="System.Boolean, mscorlib">
-    <value>True</value>
+  <data name="&gt;&gt;label26.Type" xml:space="preserve">
+    <value>System.Windows.Forms.Label, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </data>
   <data name="&gt;&gt;defaultToolStripMenuItem.Name" xml:space="preserve">
     <value>defaultToolStripMenuItem</value>
@@ -644,6 +644,9 @@
   </data>
   <data name="&gt;&gt;toolStripMenuItem4.Name" xml:space="preserve">
     <value>toolStripMenuItem4</value>
+  </data>
+  <data name="&gt;&gt;splitContainer2.Type" xml:space="preserve">
+    <value>System.Windows.Forms.SplitContainer, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </data>
   <data name="tabPage_Find.TabIndex" type="System.Int32, mscorlib">
     <value>1</value>
@@ -666,8 +669,11 @@
   <data name="statusStrip1.Location" type="System.Drawing.Point, System.Drawing">
     <value>0, 679</value>
   </data>
-  <data name="button_upload.Text" xml:space="preserve">
-    <value>upload</value>
+  <data name="button_LocalRemoteMatch.Location" type="System.Drawing.Point, System.Drawing">
+    <value>753, 24</value>
+  </data>
+  <data name="&gt;&gt;tabPage_FFmpeg.Name" xml:space="preserve">
+    <value>tabPage_FFmpeg</value>
   </data>
   <data name="&gt;&gt;listView_TaskList.Parent" xml:space="preserve">
     <value>tabPage_Navigation</value>
@@ -696,9 +702,6 @@
   <data name="&gt;&gt;button_mkdir.Type" xml:space="preserve">
     <value>System.Windows.Forms.Button, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </data>
-  <data name="&gt;&gt;toolStripStatusLabel1.Name" xml:space="preserve">
-    <value>toolStripStatusLabel1</value>
-  </data>
   <data name="&gt;&gt;textBox_SendDelay.Parent" xml:space="preserve">
     <value>tabPage_UDPConfig</value>
   </data>
@@ -720,17 +723,8 @@
   <data name="fileToolStripMenuItem.Size" type="System.Drawing.Size, System.Drawing">
     <value>37, 20</value>
   </data>
-  <data name="textBox_newName.Location" type="System.Drawing.Point, System.Drawing">
-    <value>13, 26</value>
-  </data>
-  <data name="comboBox_UploadLimitUnit.Items7" xml:space="preserve">
-    <value>GB/s</value>
-  </data>
   <data name="&gt;&gt;loginToolStripMenuItem.Type" xml:space="preserve">
     <value>System.Windows.Forms.ToolStripMenuItem, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
-  </data>
-  <data name="&gt;&gt;tabPage_UDPConfig.Name" xml:space="preserve">
-    <value>tabPage_UDPConfig</value>
   </data>
   <data name="&gt;&gt;textBox_StartTime.Parent" xml:space="preserve">
     <value>tabPage_SendUDP</value>
@@ -762,6 +756,9 @@
   <data name="&gt;&gt;splitContainer2.Name" xml:space="preserve">
     <value>splitContainer2</value>
   </data>
+  <data name="&gt;&gt;contextMenuStrip1.Name" xml:space="preserve">
+    <value>contextMenuStrip1</value>
+  </data>
   <data name="tabPage_Crypt.Text" xml:space="preserve">
     <value>Crypt</value>
   </data>
@@ -783,6 +780,9 @@
   <data name="label17.TabIndex" type="System.Int32, mscorlib">
     <value>14</value>
   </data>
+  <data name="menuStrip1.TabIndex" type="System.Int32, mscorlib">
+    <value>1</value>
+  </data>
   <data name="&gt;&gt;trackBar_FFplay_pos.Type" xml:space="preserve">
     <value>System.Windows.Forms.TrackBar, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </data>
@@ -795,20 +795,23 @@
   <data name="label_FFplay_sendname.AutoSize" type="System.Boolean, mscorlib">
     <value>True</value>
   </data>
+  <data name="listView1.TabIndex" type="System.Int32, mscorlib">
+    <value>0</value>
+  </data>
   <data name="contextMenuStrip1.ToolTip" xml:space="preserve">
     <value />
   </data>
-  <data name="&gt;&gt;checkBox_File.Type" xml:space="preserve">
-    <value>System.Windows.Forms.CheckBox, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  <data name="&gt;&gt;label_FFplay_sendname.Type" xml:space="preserve">
+    <value>System.Windows.Forms.Label, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </data>
   <data name="tabControl1.Size" type="System.Drawing.Size, System.Drawing">
     <value>874, 98</value>
   </data>
   <data name="&gt;&gt;button_LocalRemoteMatch.ZOrder" xml:space="preserve">
-    <value>0</value>
+    <value>1</value>
   </data>
-  <data name="label3.Text" xml:space="preserve">
-    <value> New Name</value>
+  <data name="&gt;&gt;label_FFplay_stream.ZOrder" xml:space="preserve">
+    <value>6</value>
   </data>
   <data name="&gt;&gt;button_LocalRemoteMatch.Parent" xml:space="preserve">
     <value>tabPage_Folder</value>
@@ -843,9 +846,6 @@
   <data name="&gt;&gt;button_stop.Name" xml:space="preserve">
     <value>button_stop</value>
   </data>
-  <data name="aboutToolStripMenuItem.Text" xml:space="preserve">
-    <value>&amp;About</value>
-  </data>
   <data name="textBox_FFplayStart.Size" type="System.Drawing.Size, System.Drawing">
     <value>69, 19</value>
   </data>
@@ -873,8 +873,8 @@
   <data name="&gt;&gt;checkBox_cryptfilename.Type" xml:space="preserve">
     <value>System.Windows.Forms.CheckBox, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </data>
-  <data name="&gt;&gt;label22.Type" xml:space="preserve">
-    <value>System.Windows.Forms.Label, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  <data name="tabPage_Find.ToolTipText" xml:space="preserve">
+    <value>Find items</value>
   </data>
   <data name="label26.Text" xml:space="preserve">
     <value>Key bindings for 
@@ -895,14 +895,17 @@ Player window</value>
   <data name="comboBox_UploadLimitUnit.Size" type="System.Drawing.Size, System.Drawing">
     <value>74, 20</value>
   </data>
-  <data name="&gt;&gt;treeView1.ZOrder" xml:space="preserve">
-    <value>0</value>
+  <data name="splitContainer1.Size" type="System.Drawing.Size, System.Drawing">
+    <value>874, 679</value>
+  </data>
+  <data name="&gt;&gt;label22.Type" xml:space="preserve">
+    <value>System.Windows.Forms.Label, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="label13.Location" type="System.Drawing.Point, System.Drawing">
+    <value>392, 28</value>
   </data>
   <data name="&gt;&gt;aboutToolStripMenuItem.Type" xml:space="preserve">
     <value>System.Windows.Forms.ToolStripMenuItem, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
-  </data>
-  <data name="&gt;&gt;checkBox_dateTo.Parent" xml:space="preserve">
-    <value>tabPage_Find</value>
   </data>
   <data name="&gt;&gt;textBox_DownloadBandwidthLimit.ZOrder" xml:space="preserve">
     <value>2</value>
@@ -919,20 +922,17 @@ Player window</value>
   <data name="label3.TabIndex" type="System.Int32, mscorlib">
     <value>1</value>
   </data>
-  <data name="tabPage_Find.Text" xml:space="preserve">
-    <value>Find</value>
-  </data>
   <data name="&gt;&gt;checkBox_Regex.Type" xml:space="preserve">
     <value>System.Windows.Forms.CheckBox, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </data>
-  <data name="&gt;&gt;textBox_StartTime.Type" xml:space="preserve">
-    <value>System.Windows.Forms.TextBox, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  <data name="label9.AutoSize" type="System.Boolean, mscorlib">
+    <value>True</value>
   </data>
   <data name="radioButton_modifiedDate.AutoSize" type="System.Boolean, mscorlib">
     <value>True</value>
   </data>
-  <data name="&gt;&gt;tabPage_Crypt.Type" xml:space="preserve">
-    <value>System.Windows.Forms.TabPage, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  <data name="dateTimePicker_from.TabIndex" type="System.Int32, mscorlib">
+    <value>6</value>
   </data>
   <data name="label7.ToolTip" xml:space="preserve">
     <value />
@@ -949,6 +949,9 @@ Player window</value>
   <data name="&gt;&gt;label16.ZOrder" xml:space="preserve">
     <value>7</value>
   </data>
+  <data name="&gt;&gt;viewToolStripMenuItem.Type" xml:space="preserve">
+    <value>System.Windows.Forms.ToolStripMenuItem, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
   <data name="&gt;&gt;splitContainer2.Panel2.Type" xml:space="preserve">
     <value>System.Windows.Forms.SplitterPanel, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </data>
@@ -958,17 +961,11 @@ Player window</value>
   <data name="&gt;&gt;label14.Parent" xml:space="preserve">
     <value>tabPage_UDPConfig</value>
   </data>
-  <data name="&gt;&gt;checkBox_dateFrom.Name" xml:space="preserve">
-    <value>checkBox_dateFrom</value>
-  </data>
   <data name="label23.AutoSize" type="System.Boolean, mscorlib">
     <value>True</value>
   </data>
   <data name="label8.TabIndex" type="System.Int32, mscorlib">
     <value>0</value>
-  </data>
-  <data name="&gt;&gt;label26.Type" xml:space="preserve">
-    <value>System.Windows.Forms.Label, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </data>
   <data name="&gt;&gt;tabControl1.Parent" xml:space="preserve">
     <value>splitContainer1.Panel1</value>
@@ -982,8 +979,11 @@ Player window</value>
   <data name="tabPage_Crypt.TabIndex" type="System.Int32, mscorlib">
     <value>7</value>
   </data>
-  <data name="label16.Size" type="System.Drawing.Size, System.Drawing">
-    <value>282, 12</value>
+  <data name="splitContainer2.ToolTip" xml:space="preserve">
+    <value />
+  </data>
+  <data name="&gt;&gt;splitContainer1.Panel1.ZOrder" xml:space="preserve">
+    <value>0</value>
   </data>
   <data name="&gt;&gt;label17.ZOrder" xml:space="preserve">
     <value>5</value>
@@ -994,14 +994,14 @@ Player window</value>
   <data name="label14.ToolTip" xml:space="preserve">
     <value />
   </data>
+  <data name="&gt;&gt;tabPage_FFmpeg.Parent" xml:space="preserve">
+    <value>tabControl1</value>
+  </data>
   <data name="checkBox_upSkip.ToolTip" xml:space="preserve">
     <value>Check for duplicate files at the time of upload. If there are duplicate ones,  will be skipped.</value>
   </data>
   <data name="&gt;&gt;tabPage_UDPConfig.Parent" xml:space="preserve">
     <value>tabControl1</value>
-  </data>
-  <data name="&gt;&gt;label_sendname.Name" xml:space="preserve">
-    <value>label_sendname</value>
   </data>
   <data name="tabPage_FFmpeg.Location" type="System.Drawing.Point, System.Drawing">
     <value>4, 4</value>
@@ -1009,8 +1009,8 @@ Player window</value>
   <data name="textBox_VK.TabIndex" type="System.Int32, mscorlib">
     <value>13</value>
   </data>
-  <data name="label9.AutoSize" type="System.Boolean, mscorlib">
-    <value>True</value>
+  <data name="$this.AutoScaleDimensions" type="System.Drawing.SizeF, System.Drawing">
+    <value>6, 12</value>
   </data>
   <data name="dateTimePicker_to.CustomFormat" xml:space="preserve">
     <value>yyyy-MM-dd (dddd) hh:mm:ss</value>
@@ -1019,13 +1019,13 @@ Player window</value>
     <value>Off</value>
   </data>
   <data name="&gt;&gt;label3.ZOrder" xml:space="preserve">
-    <value>2</value>
+    <value>3</value>
   </data>
   <data name="&gt;&gt;button_FFplay_next.ZOrder" xml:space="preserve">
     <value>7</value>
   </data>
-  <data name="&gt;&gt;tabPage_Crypt.Name" xml:space="preserve">
-    <value>tabPage_Crypt</value>
+  <data name="&gt;&gt;textBox_VK.Parent" xml:space="preserve">
+    <value>tabPage_UDPConfig</value>
   </data>
   <data name="label20.TabIndex" type="System.Int32, mscorlib">
     <value>17</value>
@@ -1033,8 +1033,8 @@ Player window</value>
   <data name="button_search.Anchor" type="System.Windows.Forms.AnchorStyles, System.Windows.Forms">
     <value>Top, Right</value>
   </data>
-  <data name="comboBox_DownloadLimitUnit.Items" xml:space="preserve">
-    <value>Infinity</value>
+  <data name="label19.Location" type="System.Drawing.Point, System.Drawing">
+    <value>234, 51</value>
   </data>
   <data name="imageList_Large.ImageSize" type="System.Drawing.Size, System.Drawing">
     <value>48, 48</value>
@@ -1066,20 +1066,23 @@ Player window</value>
   <data name="toolStripStatusLabel1.Size" type="System.Drawing.Size, System.Drawing">
     <value>757, 17</value>
   </data>
-  <data name="&gt;&gt;button_reload.Name" xml:space="preserve">
-    <value>button_reload</value>
+  <data name="button_FFmoduleConfig.Text" xml:space="preserve">
+    <value>Config</value>
   </data>
   <data name="&gt;&gt;textBox_SendPacketNum.ZOrder" xml:space="preserve">
     <value>18</value>
   </data>
-  <data name="&gt;&gt;$this.Type" xml:space="preserve">
-    <value>System.Windows.Forms.Form, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  <data name="&gt;&gt;splitContainer2.ZOrder" xml:space="preserve">
+    <value>0</value>
   </data>
   <data name="&gt;&gt;textBox_Password.Parent" xml:space="preserve">
     <value>tabPage_Crypt</value>
   </data>
   <data name="radioButton_DiffTime.AutoSize" type="System.Boolean, mscorlib">
     <value>True</value>
+  </data>
+  <data name="button_TestDownload.Text" xml:space="preserve">
+    <value>Test Download</value>
   </data>
   <data name="trackBar_Pos.ToolTip" xml:space="preserve">
     <value>The stream approximate current position.
@@ -1088,14 +1091,17 @@ Seeking is possible but not accurate.</value>
   <data name="textBox_DownloadBandwidthLimit.Size" type="System.Drawing.Size, System.Drawing">
     <value>100, 19</value>
   </data>
+  <data name="&gt;&gt;listView1.Type" xml:space="preserve">
+    <value>System.Windows.Forms.ListView, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
   <data name="&gt;&gt;checkBox_upSkip.Parent" xml:space="preserve">
     <value>tabPage_Navigation</value>
   </data>
   <data name="&gt;&gt;splitContainer2.Panel2.Name" xml:space="preserve">
     <value>splitContainer2.Panel2</value>
   </data>
-  <data name="&gt;&gt;menuStrip1.Name" xml:space="preserve">
-    <value>menuStrip1</value>
+  <data name="textBox_FFplayStart.ImeMode" type="System.Windows.Forms.ImeMode, System.Windows.Forms">
+    <value>Off</value>
   </data>
   <data name="&gt;&gt;label_FFplay_sendname.ZOrder" xml:space="preserve">
     <value>9</value>
@@ -1103,8 +1109,14 @@ Seeking is possible but not accurate.</value>
   <data name="radioButton_createTime.Location" type="System.Drawing.Point, System.Drawing">
     <value>679, 3</value>
   </data>
-  <data name="&gt;&gt;splitContainer1.ZOrder" xml:space="preserve">
-    <value>1</value>
+  <data name="comboBox_DownloadLimitUnit.Items2" xml:space="preserve">
+    <value>MiB/s</value>
+  </data>
+  <data name="trashItemToolStripMenuItem.ShortcutKeys" type="System.Windows.Forms.Keys, System.Windows.Forms">
+    <value>Del</value>
+  </data>
+  <data name="&gt;&gt;tabPage_Crypt.Type" xml:space="preserve">
+    <value>System.Windows.Forms.TabPage, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </data>
   <data name="&gt;&gt;label24.Parent" xml:space="preserve">
     <value>tabPage_FFmpeg</value>
@@ -1160,14 +1172,11 @@ Seeking is possible but not accurate.</value>
   <data name="textBox_FFplayStart.TabIndex" type="System.Int32, mscorlib">
     <value>18</value>
   </data>
-  <data name="checkBox_dateTo.AutoSize" type="System.Boolean, mscorlib">
-    <value>True</value>
+  <data name="&gt;&gt;button_stop.ZOrder" xml:space="preserve">
+    <value>13</value>
   </data>
-  <data name="&gt;&gt;textBox_SendPacketNum.Type" xml:space="preserve">
-    <value>System.Windows.Forms.TextBox, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
-  </data>
-  <data name="&gt;&gt;splitContainer1.Panel1.Parent" xml:space="preserve">
-    <value>splitContainer1</value>
+  <data name="label12.Location" type="System.Drawing.Point, System.Drawing">
+    <value>280, 28</value>
   </data>
   <data name="&gt;&gt;label12.ZOrder" xml:space="preserve">
     <value>13</value>
@@ -1175,8 +1184,8 @@ Seeking is possible but not accurate.</value>
   <data name="&gt;&gt;textBox_Port.Type" xml:space="preserve">
     <value>System.Windows.Forms.TextBox, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </data>
-  <data name="checkBox_Regex.Location" type="System.Drawing.Point, System.Drawing">
-    <value>18, 44</value>
+  <data name="button_FFplay_next.Anchor" type="System.Windows.Forms.AnchorStyles, System.Windows.Forms">
+    <value>Top, Right</value>
   </data>
   <data name="&gt;&gt;label25.Parent" xml:space="preserve">
     <value>tabPage_FFmpeg</value>
@@ -1190,9 +1199,6 @@ Seeking is possible but not accurate.</value>
   <data name="&gt;&gt;toolStripProgressBar1.Type" xml:space="preserve">
     <value>System.Windows.Forms.ToolStripProgressBar, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </data>
-  <data name="checkBox_File.TabIndex" type="System.Int32, mscorlib">
-    <value>3</value>
-  </data>
   <data name="&gt;&gt;japaneseToolStripMenuItem.Type" xml:space="preserve">
     <value>System.Windows.Forms.ToolStripMenuItem, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </data>
@@ -1202,8 +1208,8 @@ Seeking is possible but not accurate.</value>
   <data name="label15.Text" xml:space="preserve">
     <value>average</value>
   </data>
-  <data name="radioButton_createTime.AutoSize" type="System.Boolean, mscorlib">
-    <value>True</value>
+  <data name="label9.Size" type="System.Drawing.Size, System.Drawing">
+    <value>109, 12</value>
   </data>
   <data name="&gt;&gt;label12.Name" xml:space="preserve">
     <value>label12</value>
@@ -1217,11 +1223,11 @@ Seeking is possible but not accurate.</value>
   <data name="&gt;&gt;saveFileDialog1.Type" xml:space="preserve">
     <value>System.Windows.Forms.SaveFileDialog, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </data>
-  <data name="splitContainer2.TabIndex" type="System.Int32, mscorlib">
-    <value>0</value>
+  <data name="&gt;&gt;checkBox_upSkip.Name" xml:space="preserve">
+    <value>checkBox_upSkip</value>
   </data>
-  <data name="&gt;&gt;checkBox_MD5.Parent" xml:space="preserve">
-    <value>tabPage_Navigation</value>
+  <data name="&gt;&gt;label13.ZOrder" xml:space="preserve">
+    <value>11</value>
   </data>
   <data name="&gt;&gt;textBox_Port.ZOrder" xml:space="preserve">
     <value>10</value>
@@ -1247,10 +1253,6 @@ Seeking is possible but not accurate.</value>
   <data name="radioButton_AbsTime.AutoSize" type="System.Boolean, mscorlib">
     <value>True</value>
   </data>
-  <data name="textBox_Duration.ToolTip" xml:space="preserve">
-    <value>Specify the dulation of send.
-Send whole file if empty.</value>
-  </data>
   <data name="&gt;&gt;imageList_small.Name" xml:space="preserve">
     <value>imageList_small</value>
   </data>
@@ -1260,8 +1262,8 @@ Send whole file if empty.</value>
   <data name="label21.Location" type="System.Drawing.Point, System.Drawing">
     <value>8, 11</value>
   </data>
-  <data name="&gt;&gt;toolStripMenuItem3.Type" xml:space="preserve">
-    <value>System.Windows.Forms.ToolStripSeparator, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  <data name="splitContainer1.TabIndex" type="System.Int32, mscorlib">
+    <value>0</value>
   </data>
   <data name="dateTimePicker_from.Location" type="System.Drawing.Point, System.Drawing">
     <value>649, 25</value>
@@ -1269,8 +1271,8 @@ Send whole file if empty.</value>
   <data name="&gt;&gt;folderBrowserDialog1.Type" xml:space="preserve">
     <value>System.Windows.Forms.FolderBrowserDialog, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </data>
-  <data name="&gt;&gt;button_FFplay.ZOrder" xml:space="preserve">
-    <value>11</value>
+  <data name="label24.ToolTip" xml:space="preserve">
+    <value />
   </data>
   <data name="label22.Text" xml:space="preserve">
     <value>Download Bandwidth Limit</value>
@@ -1278,23 +1280,20 @@ Send whole file if empty.</value>
   <data name="&gt;&gt;textBox_VK.ZOrder" xml:space="preserve">
     <value>6</value>
   </data>
-  <data name="&gt;&gt;label13.Name" xml:space="preserve">
-    <value>label13</value>
+  <data name="&gt;&gt;tabPage_UDPConfig.Name" xml:space="preserve">
+    <value>tabPage_UDPConfig</value>
   </data>
   <data name="&gt;&gt;textBox_path.Type" xml:space="preserve">
     <value>System.Windows.Forms.TextBox, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </data>
-  <data name="&gt;&gt;splitContainer2.ZOrder" xml:space="preserve">
-    <value>0</value>
+  <data name="checkBox_File.TabIndex" type="System.Int32, mscorlib">
+    <value>3</value>
   </data>
   <data name="tileToolStripMenuItem.Size" type="System.Drawing.Size, System.Drawing">
     <value>126, 22</value>
   </data>
-  <data name="checkBox_File.Anchor" type="System.Windows.Forms.AnchorStyles, System.Windows.Forms">
-    <value>Top, Right</value>
-  </data>
-  <data name="&gt;&gt;label18.ZOrder" xml:space="preserve">
-    <value>4</value>
+  <data name="label26.Size" type="System.Drawing.Size, System.Drawing">
+    <value>92, 24</value>
   </data>
   <data name="button_upload.ToolTip" xml:space="preserve">
     <value>upload files to the current path</value>
@@ -1323,8 +1322,8 @@ Send whole file if empty.</value>
   <data name="&gt;&gt;button_Play.ZOrder" xml:space="preserve">
     <value>14</value>
   </data>
-  <data name="button_Go.Size" type="System.Drawing.Size, System.Drawing">
-    <value>32, 23</value>
+  <data name="checkBox_MD5.Text" xml:space="preserve">
+    <value>check MD5</value>
   </data>
   <data name="defaultToolStripMenuItem.Size" type="System.Drawing.Size, System.Drawing">
     <value>121, 22</value>
@@ -1338,9 +1337,6 @@ Send whole file if empty.</value>
   <data name="imageList_small.ImageSize" type="System.Drawing.Size, System.Drawing">
     <value>16, 16</value>
   </data>
-  <data name="label13.Location" type="System.Drawing.Point, System.Drawing">
-    <value>392, 28</value>
-  </data>
   <data name="button_FFplay_next.TabIndex" type="System.Int32, mscorlib">
     <value>15</value>
   </data>
@@ -1353,14 +1349,14 @@ Send whole file if empty.</value>
   <data name="&gt;&gt;label19.ZOrder" xml:space="preserve">
     <value>0</value>
   </data>
-  <data name="&gt;&gt;label20.Parent" xml:space="preserve">
-    <value>tabPage_UDPConfig</value>
+  <data name="label3.Text" xml:space="preserve">
+    <value> New Name</value>
   </data>
-  <data name="&gt;&gt;splitContainer1.Panel1.ZOrder" xml:space="preserve">
-    <value>0</value>
+  <data name="textBox_SendRatebySendCount.ImeMode" type="System.Windows.Forms.ImeMode, System.Windows.Forms">
+    <value>Off</value>
   </data>
-  <data name="textBox_SendRatebySendCount.Size" type="System.Drawing.Size, System.Drawing">
-    <value>48, 19</value>
+  <data name="&gt;&gt;toolStripStatusLabel1.Name" xml:space="preserve">
+    <value>toolStripStatusLabel1</value>
   </data>
   <data name="label27.Size" type="System.Drawing.Size, System.Drawing">
     <value>54, 12</value>
@@ -1380,17 +1376,14 @@ Send whole file if empty.</value>
   <data name="&gt;&gt;comboBox_FindStr.ZOrder" xml:space="preserve">
     <value>0</value>
   </data>
-  <data name="&gt;&gt;label13.ZOrder" xml:space="preserve">
-    <value>11</value>
+  <data name="splitContainer2.Panel1.ToolTip" xml:space="preserve">
+    <value />
   </data>
   <data name="&gt;&gt;trackBar_Pos.Name" xml:space="preserve">
     <value>trackBar_Pos</value>
   </data>
   <data name="&gt;&gt;label_FFplay_stream.Type" xml:space="preserve">
     <value>System.Windows.Forms.Label, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
-  </data>
-  <data name="toolStripMenuItem4.Size" type="System.Drawing.Size, System.Drawing">
-    <value>118, 6</value>
   </data>
   <data name="&gt;&gt;button_next.Parent" xml:space="preserve">
     <value>tabPage_SendUDP</value>
@@ -1443,8 +1436,8 @@ Send whole file if empty.</value>
   <data name="label1.ToolTip" xml:space="preserve">
     <value />
   </data>
-  <data name="&gt;&gt;button_stop.ZOrder" xml:space="preserve">
-    <value>13</value>
+  <data name="label21.Text" xml:space="preserve">
+    <value>Upload Bandwidth Limit</value>
   </data>
   <data name="textBox_path.Location" type="System.Drawing.Point, System.Drawing">
     <value>6, 6</value>
@@ -1463,6 +1456,12 @@ Send whole file if empty.</value>
   </data>
   <data name="checkBox_File.Location" type="System.Drawing.Point, System.Drawing">
     <value>451, 21</value>
+  </data>
+  <data name="tabControl1.Dock" type="System.Windows.Forms.DockStyle, System.Windows.Forms">
+    <value>Fill</value>
+  </data>
+  <data name="&gt;&gt;splitContainer1.ZOrder" xml:space="preserve">
+    <value>1</value>
   </data>
   <data name="&gt;&gt;label_stream.ZOrder" xml:space="preserve">
     <value>1</value>
@@ -1512,11 +1511,8 @@ Send whole file if empty.</value>
   <data name="tabPage_FFmpeg.ToolTipText" xml:space="preserve">
     <value>Play the selected items with internal player</value>
   </data>
-  <data name="statusStrip1.Text" xml:space="preserve">
-    <value>statusStrip1</value>
-  </data>
-  <data name="&gt;&gt;toolStripMenuItem_Logout.Name" xml:space="preserve">
-    <value>toolStripMenuItem_Logout</value>
+  <data name="&gt;&gt;label18.ZOrder" xml:space="preserve">
+    <value>4</value>
   </data>
   <data name="dateTimePicker_to.Size" type="System.Drawing.Size, System.Drawing">
     <value>209, 19</value>
@@ -1551,6 +1547,9 @@ Send whole file if empty.</value>
   <data name="textBox_VK.Size" type="System.Drawing.Size, System.Drawing">
     <value>100, 19</value>
   </data>
+  <data name="textBox_UploadBandwidthLimit.ImeMode" type="System.Windows.Forms.ImeMode, System.Windows.Forms">
+    <value>Disable</value>
+  </data>
   <data name="&gt;&gt;button_FFmoduleConfig.Type" xml:space="preserve">
     <value>System.Windows.Forms.Button, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </data>
@@ -1564,7 +1563,7 @@ Send whole file if empty.</value>
     <value>Password</value>
   </data>
   <data name="label23.Location" type="System.Drawing.Point, System.Drawing">
-    <value>643, 6</value>
+    <value>643, 3</value>
   </data>
   <data name="&gt;&gt;radioButton_createTime.ZOrder" xml:space="preserve">
     <value>3</value>
@@ -1596,8 +1595,8 @@ Send whole file if empty.</value>
   <data name="&gt;&gt;tabPage_Crypt.ZOrder" xml:space="preserve">
     <value>7</value>
   </data>
-  <data name="label19.Location" type="System.Drawing.Point, System.Drawing">
-    <value>234, 51</value>
+  <data name="button_reload.Location" type="System.Drawing.Point, System.Drawing">
+    <value>442, 31</value>
   </data>
   <data name="label5.TabIndex" type="System.Int32, mscorlib">
     <value>3</value>
@@ -1608,8 +1607,8 @@ Send whole file if empty.</value>
   <data name="textBox_FFplayDuration.Location" type="System.Drawing.Point, System.Drawing">
     <value>192, 32</value>
   </data>
-  <data name="listView1.Size" type="System.Drawing.Size, System.Drawing">
-    <value>696, 553</value>
+  <data name="&gt;&gt;checkBox_dateFrom.Name" xml:space="preserve">
+    <value>checkBox_dateFrom</value>
   </data>
   <data name="textBox_Duration.TabIndex" type="System.Int32, mscorlib">
     <value>3</value>
@@ -1644,8 +1643,8 @@ Send whole file if empty.</value>
   <data name="radioButton_modifiedDate.TabIndex" type="System.Int32, mscorlib">
     <value>11</value>
   </data>
-  <data name="&gt;&gt;tabPage_FFmpeg.Name" xml:space="preserve">
-    <value>tabPage_FFmpeg</value>
+  <data name="&gt;&gt;textBox_Port.Name" xml:space="preserve">
+    <value>textBox_Port</value>
   </data>
   <data name="&gt;&gt;dateTimePicker_from.Type" xml:space="preserve">
     <value>System.Windows.Forms.DateTimePicker, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
@@ -1653,8 +1652,8 @@ Send whole file if empty.</value>
   <data name="&gt;&gt;textBox_FFplayStart.Type" xml:space="preserve">
     <value>System.Windows.Forms.TextBox, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </data>
-  <data name="&gt;&gt;languageToolStripMenuItem.Type" xml:space="preserve">
-    <value>System.Windows.Forms.ToolStripMenuItem, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  <data name="tabPage_Find.Location" type="System.Drawing.Point, System.Drawing">
+    <value>4, 4</value>
   </data>
   <data name="button_FFplay_stop.TabIndex" type="System.Int32, mscorlib">
     <value>13</value>
@@ -1662,23 +1661,26 @@ Send whole file if empty.</value>
   <data name="&gt;&gt;textBox_UploadBandwidthLimit.ZOrder" xml:space="preserve">
     <value>3</value>
   </data>
-  <data name="&gt;&gt;largeIconToolStripMenuItem.Name" xml:space="preserve">
-    <value>largeIconToolStripMenuItem</value>
+  <data name="&gt;&gt;label13.Name" xml:space="preserve">
+    <value>label13</value>
   </data>
   <data name="&gt;&gt;label18.Parent" xml:space="preserve">
     <value>tabPage_UDPConfig</value>
   </data>
-  <data name="&gt;&gt;textBox_path.ZOrder" xml:space="preserve">
-    <value>8</value>
-  </data>
   <data name="tabPage_Find.ToolTip" xml:space="preserve">
     <value />
+  </data>
+  <data name="comboBox_DownloadLimitUnit.Items" xml:space="preserve">
+    <value>Infinity</value>
   </data>
   <data name="toolStripStatusLabel1.Text" xml:space="preserve">
     <value>toolStripStatusLabel1</value>
   </data>
   <data name="&gt;&gt;button_LocalRemoteMatch.Name" xml:space="preserve">
     <value>button_LocalRemoteMatch</value>
+  </data>
+  <data name="&gt;&gt;tabPage_Bandwidth.ZOrder" xml:space="preserve">
+    <value>6</value>
   </data>
   <data name="textBox_DownloadBandwidthLimit.Location" type="System.Drawing.Point, System.Drawing">
     <value>157, 39</value>
@@ -1692,11 +1694,11 @@ Send whole file if empty.</value>
   <data name="label22.Size" type="System.Drawing.Size, System.Drawing">
     <value>140, 12</value>
   </data>
-  <data name="textBox_UploadBandwidthLimit.ImeMode" type="System.Windows.Forms.ImeMode, System.Windows.Forms">
-    <value>Disable</value>
+  <data name="comboBox_DownloadLimitUnit.Items7" xml:space="preserve">
+    <value>GB/s</value>
   </data>
-  <data name="tabControl1.Location" type="System.Drawing.Point, System.Drawing">
-    <value>0, 24</value>
+  <data name="&gt;&gt;trackBar_FFplay_pos.Parent" xml:space="preserve">
+    <value>tabPage_FFmpeg</value>
   </data>
   <data name="label_sendname.TabIndex" type="System.Int32, mscorlib">
     <value>4</value>
@@ -1704,11 +1706,8 @@ Send whole file if empty.</value>
   <data name="tabPage_SendUDP.TabIndex" type="System.Int32, mscorlib">
     <value>3</value>
   </data>
-  <data name="label20.ToolTip" xml:space="preserve">
-    <value />
-  </data>
-  <data name="&gt;&gt;checkBox_Folder.Parent" xml:space="preserve">
-    <value>tabPage_Find</value>
+  <data name="&gt;&gt;comboBox_FindStr.Name" xml:space="preserve">
+    <value>comboBox_FindStr</value>
   </data>
   <data name="label13.TabIndex" type="System.Int32, mscorlib">
     <value>8</value>
@@ -1752,7 +1751,7 @@ Send whole file if empty.</value>
   <data name="viewToolStripMenuItem.Size" type="System.Drawing.Size, System.Drawing">
     <value>44, 20</value>
   </data>
-  <data name="&gt;&gt;dateTimePicker_to.Parent" xml:space="preserve">
+  <data name="&gt;&gt;checkBox_dateTo.Parent" xml:space="preserve">
     <value>tabPage_Find</value>
   </data>
   <data name="label1.Size" type="System.Drawing.Size, System.Drawing">
@@ -1779,11 +1778,11 @@ Send whole file if empty.</value>
   <data name="&gt;&gt;label6.Type" xml:space="preserve">
     <value>System.Windows.Forms.Label, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </data>
+  <data name="comboBox_UploadLimitUnit.Items7" xml:space="preserve">
+    <value>GB/s</value>
+  </data>
   <data name="&gt;&gt;label23.Parent" xml:space="preserve">
     <value>tabPage_Navigation</value>
-  </data>
-  <data name="&gt;&gt;tabPage_Bandwidth.Type" xml:space="preserve">
-    <value>System.Windows.Forms.TabPage, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </data>
   <data name="label8.AutoSize" type="System.Boolean, mscorlib">
     <value>True</value>
@@ -1800,9 +1799,6 @@ Send whole file if empty.</value>
   <data name="checkBox_Regex.Size" type="System.Drawing.Size, System.Drawing">
     <value>56, 16</value>
   </data>
-  <data name="checkBox_File.Text" xml:space="preserve">
-    <value>File</value>
-  </data>
   <data name="textBox_Port.Size" type="System.Drawing.Size, System.Drawing">
     <value>38, 19</value>
   </data>
@@ -1815,14 +1811,14 @@ Send whole file if empty.</value>
   <data name="&gt;&gt;label1.ZOrder" xml:space="preserve">
     <value>9</value>
   </data>
-  <data name="splitContainer2.Size" type="System.Drawing.Size, System.Drawing">
-    <value>874, 553</value>
+  <data name="&gt;&gt;textBox_SendPacketNum.Type" xml:space="preserve">
+    <value>System.Windows.Forms.TextBox, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </data>
   <data name="button_LocalRemoteMatch.TabIndex" type="System.Int32, mscorlib">
     <value>3</value>
   </data>
-  <data name="label12.Location" type="System.Drawing.Point, System.Drawing">
-    <value>280, 28</value>
+  <data name="label25.Location" type="System.Drawing.Point, System.Drawing">
+    <value>138, 35</value>
   </data>
   <data name="label20.Size" type="System.Drawing.Size, System.Drawing">
     <value>166, 12</value>
@@ -1838,6 +1834,9 @@ Send whole file if empty.</value>
   </data>
   <data name="label18.TabIndex" type="System.Int32, mscorlib">
     <value>15</value>
+  </data>
+  <data name="trackBar_FFplay_pos.ToolTip" xml:space="preserve">
+    <value>Seeking is available but use the keyboard command in play window for precise operation.</value>
   </data>
   <data name="&gt;&gt;label21.Parent" xml:space="preserve">
     <value>tabPage_Bandwidth</value>
@@ -1887,8 +1886,8 @@ Send whole file if empty.</value>
   <data name="&gt;&gt;tabPage_Bandwidth.Name" xml:space="preserve">
     <value>tabPage_Bandwidth</value>
   </data>
-  <data name="checkBox_Folder.Text" xml:space="preserve">
-    <value>Folder</value>
+  <data name="label16.Size" type="System.Drawing.Size, System.Drawing">
+    <value>282, 12</value>
   </data>
   <data name="textBox_SendLongOffset.Location" type="System.Drawing.Point, System.Drawing">
     <value>183, 48</value>
@@ -1914,8 +1913,11 @@ Send whole file if empty.</value>
   <data name="textBox_FFplayDuration.TabIndex" type="System.Int32, mscorlib">
     <value>19</value>
   </data>
-  <data name="&gt;&gt;contextMenuStrip1.Name" xml:space="preserve">
-    <value>contextMenuStrip1</value>
+  <data name="tabPage_Bandwidth.TabIndex" type="System.Int32, mscorlib">
+    <value>6</value>
+  </data>
+  <data name="&gt;&gt;largeIconToolStripMenuItem.Name" xml:space="preserve">
+    <value>largeIconToolStripMenuItem</value>
   </data>
   <data name="tabPage_FFmpeg.Text" xml:space="preserve">
     <value>FFmpeg</value>
@@ -1931,6 +1933,9 @@ Send whole file if empty.</value>
   </data>
   <data name="&gt;&gt;englishToolStripMenuItem.Name" xml:space="preserve">
     <value>englishToolStripMenuItem</value>
+  </data>
+  <data name="&gt;&gt;button_TestDownload.Parent" xml:space="preserve">
+    <value>tabPage_Folder</value>
   </data>
   <data name="tabPage_UDPConfig.Text" xml:space="preserve">
     <value>UDP Config</value>
@@ -1950,6 +1955,9 @@ Send whole file if empty.</value>
   <data name="&gt;&gt;textBox_SendRatebySendCount.Type" xml:space="preserve">
     <value>System.Windows.Forms.TextBox, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </data>
+  <data name="&gt;&gt;splitContainer1.Panel2.Name" xml:space="preserve">
+    <value>splitContainer1.Panel2</value>
+  </data>
   <data name="tabPage_SendUDP.Location" type="System.Drawing.Point, System.Drawing">
     <value>4, 4</value>
   </data>
@@ -1962,17 +1970,14 @@ Send whole file if empty.</value>
   <data name="label_FFplay_sendname.Location" type="System.Drawing.Point, System.Drawing">
     <value>267, 7</value>
   </data>
-  <data name="downloadItemToolStripMenuItem.Size" type="System.Drawing.Size, System.Drawing">
-    <value>166, 22</value>
-  </data>
   <data name="label5.Text" xml:space="preserve">
     <value>post</value>
   </data>
   <data name="&gt;&gt;label7.ZOrder" xml:space="preserve">
     <value>4</value>
   </data>
-  <data name="treeView1.Size" type="System.Drawing.Size, System.Drawing">
-    <value>174, 553</value>
+  <data name="button_TestDownload.Location" type="System.Drawing.Point, System.Drawing">
+    <value>625, 24</value>
   </data>
   <data name="tabPage_Navigation.ToolTip" xml:space="preserve">
     <value />
@@ -1985,9 +1990,6 @@ Send whole file if empty.</value>
   </data>
   <data name="&gt;&gt;button_stop.Parent" xml:space="preserve">
     <value>tabPage_SendUDP</value>
-  </data>
-  <data name="button_FFplay_next.Anchor" type="System.Windows.Forms.AnchorStyles, System.Windows.Forms">
-    <value>Top, Right</value>
   </data>
   <data name="label3.ToolTip" xml:space="preserve">
     <value />
@@ -2036,8 +2038,8 @@ Not cheched, find items with partial match retrieval.
   <data name="listView1.Dock" type="System.Windows.Forms.DockStyle, System.Windows.Forms">
     <value>Fill</value>
   </data>
-  <data name="checkBox_MD5.ToolTip" xml:space="preserve">
-    <value>Also uses MD5 hash value to check duplication</value>
+  <data name="textBox_SendRatebyTOTCount.ImeMode" type="System.Windows.Forms.ImeMode, System.Windows.Forms">
+    <value>Off</value>
   </data>
   <data name="&gt;&gt;button_search.Parent" xml:space="preserve">
     <value>tabPage_Find</value>
@@ -2057,9 +2059,6 @@ Not cheched, find items with partial match retrieval.
   <data name="button_Play.ToolTip" xml:space="preserve">
     <value>Start to send</value>
   </data>
-  <data name="&gt;&gt;label21.Type" xml:space="preserve">
-    <value>System.Windows.Forms.Label, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
-  </data>
   <data name="&gt;&gt;checkBox_Folder.ZOrder" xml:space="preserve">
     <value>11</value>
   </data>
@@ -2071,9 +2070,6 @@ Not cheched, find items with partial match retrieval.
   </data>
   <data name="label27.ToolTip" xml:space="preserve">
     <value />
-  </data>
-  <data name="&gt;&gt;button_FFplay_next.Type" xml:space="preserve">
-    <value>System.Windows.Forms.Button, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </data>
   <data name="&gt;&gt;tabPage_Find.ZOrder" xml:space="preserve">
     <value>1</value>
@@ -2108,8 +2104,8 @@ Not cheched, find items with partial match retrieval.
   <data name="&gt;&gt;tabPage_Bandwidth.Parent" xml:space="preserve">
     <value>tabControl1</value>
   </data>
-  <data name="textBox_SendRatebySendCount.ImeMode" type="System.Windows.Forms.ImeMode, System.Windows.Forms">
-    <value>Off</value>
+  <data name="&gt;&gt;button_FFplay_next.Type" xml:space="preserve">
+    <value>System.Windows.Forms.Button, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </data>
   <data name="comboBox_DownloadLimitUnit.TabIndex" type="System.Int32, mscorlib">
     <value>5</value>
@@ -2117,8 +2113,14 @@ Not cheched, find items with partial match retrieval.
   <data name="&gt;&gt;toolStripMenuItem_Logout.Type" xml:space="preserve">
     <value>System.Windows.Forms.ToolStripMenuItem, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </data>
+  <data name="&gt;&gt;button_FFmoduleConfig.Parent" xml:space="preserve">
+    <value>tabPage_FFmpeg</value>
+  </data>
   <data name="toolStripMenuItem_Logout.Text" xml:space="preserve">
     <value>Log&amp;out</value>
+  </data>
+  <data name="&gt;&gt;splitContainer1.Name" xml:space="preserve">
+    <value>splitContainer1</value>
   </data>
   <data name="dateTimePicker_to.ImeMode" type="System.Windows.Forms.ImeMode, System.Windows.Forms">
     <value>Off</value>
@@ -2151,17 +2153,17 @@ If empty, play whole file.</value>
   <data name="&gt;&gt;label3.Type" xml:space="preserve">
     <value>System.Windows.Forms.Label, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </data>
+  <data name="&gt;&gt;splitContainer1.Panel2.Type" xml:space="preserve">
+    <value>System.Windows.Forms.SplitterPanel, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
   <data name="label11.ToolTip" xml:space="preserve">
     <value />
   </data>
   <data name="button_mkdir.Location" type="System.Drawing.Point, System.Drawing">
     <value>207, 22</value>
   </data>
-  <data name="splitContainer1.TabIndex" type="System.Int32, mscorlib">
-    <value>0</value>
-  </data>
-  <data name="textBox_SendRatebyTOTCount.ToolTip" xml:space="preserve">
-    <value>To estimate of the bit rate of the file, specify the number of TOT frame.</value>
+  <data name="radioButton_createTime.AutoSize" type="System.Boolean, mscorlib">
+    <value>True</value>
   </data>
   <data name="toolStripMenuItem1.Size" type="System.Drawing.Size, System.Drawing">
     <value>109, 6</value>
@@ -2175,8 +2177,11 @@ If empty, play whole file.</value>
   <data name="&gt;&gt;radioButton_DiffTime.Parent" xml:space="preserve">
     <value>tabPage_SendUDP</value>
   </data>
-  <data name="&gt;&gt;menuStrip1.Type" xml:space="preserve">
-    <value>System.Windows.Forms.MenuStrip, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  <data name="&gt;&gt;radioButton_AbsTime.Name" xml:space="preserve">
+    <value>radioButton_AbsTime</value>
+  </data>
+  <data name="&gt;&gt;textBox_path.ZOrder" xml:space="preserve">
+    <value>8</value>
   </data>
   <data name="label_sendname.Size" type="System.Drawing.Size, System.Drawing">
     <value>80, 12</value>
@@ -2190,20 +2195,23 @@ If empty, play whole file.</value>
   <data name="label23.Text" xml:space="preserve">
     <value>Running Tasks</value>
   </data>
-  <data name="&gt;&gt;splitContainer1.Panel2.Name" xml:space="preserve">
-    <value>splitContainer1.Panel2</value>
+  <data name="&gt;&gt;textBox_newName.Type" xml:space="preserve">
+    <value>System.Windows.Forms.TextBox, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </data>
   <data name="button_LocalRemoteMatch.Size" type="System.Drawing.Size, System.Drawing">
     <value>75, 23</value>
   </data>
-  <data name="button_FFmoduleConfig.Text" xml:space="preserve">
-    <value>Config</value>
+  <data name="&gt;&gt;tabPage_Crypt.Name" xml:space="preserve">
+    <value>tabPage_Crypt</value>
+  </data>
+  <data name="label25.ToolTip" xml:space="preserve">
+    <value />
   </data>
   <data name="checkBox_cryptfilename.ToolTip" xml:space="preserve">
     <value>If checked, the file names are also encrypted.</value>
   </data>
-  <data name="&gt;&gt;tabPage_FFmpeg.Parent" xml:space="preserve">
-    <value>tabControl1</value>
+  <data name="checkBox_Regex.Location" type="System.Drawing.Point, System.Drawing">
+    <value>18, 44</value>
   </data>
   <data name="button_FFplay.ToolTip" xml:space="preserve">
     <value>Start to play with FFmpeg</value>
@@ -2226,8 +2234,8 @@ If empty, play whole file.</value>
   <data name="comboBox_UploadLimitUnit.Items6" xml:space="preserve">
     <value>MB/s</value>
   </data>
-  <data name="&gt;&gt;treeView1.Name" xml:space="preserve">
-    <value>treeView1</value>
+  <data name="&gt;&gt;label_FFplay_stream.Parent" xml:space="preserve">
+    <value>tabPage_FFmpeg</value>
   </data>
   <data name="&gt;&gt;radioButton_modifiedDate.ZOrder" xml:space="preserve">
     <value>2</value>
@@ -2241,8 +2249,8 @@ If empty, play whole file.</value>
   <data name="textBox_SendPacketNum.ToolTip" xml:space="preserve">
     <value>UDP packet size to send.</value>
   </data>
-  <data name="&gt;&gt;button_FFmoduleConfig.Parent" xml:space="preserve">
-    <value>tabPage_FFmpeg</value>
+  <data name="radioButton_DiffTime.Text" xml:space="preserve">
+    <value>Diff</value>
   </data>
   <data name="menuStrip1.Size" type="System.Drawing.Size, System.Drawing">
     <value>874, 24</value>
@@ -2268,8 +2276,8 @@ If empty, play whole file.</value>
   <data name="&gt;&gt;timer4.Name" xml:space="preserve">
     <value>timer4</value>
   </data>
-  <data name="listView1.Location" type="System.Drawing.Point, System.Drawing">
-    <value>0, 0</value>
+  <data name="textBox_SendRatebyTOTCount.ToolTip" xml:space="preserve">
+    <value>To estimate of the bit rate of the file, specify the number of TOT frame.</value>
   </data>
   <data name="label_FFplay_sendname.ToolTip" xml:space="preserve">
     <value />
@@ -2279,6 +2287,9 @@ If empty, play whole file.</value>
   </data>
   <data name="comboBox_UploadLimitUnit.Items3" xml:space="preserve">
     <value>KiB/s</value>
+  </data>
+  <data name="splitContainer2.TabIndex" type="System.Int32, mscorlib">
+    <value>0</value>
   </data>
   <data name="viewToolStripMenuItem.Text" xml:space="preserve">
     <value>&amp;View</value>
@@ -2292,8 +2303,8 @@ If empty, play whole file.</value>
   <data name="tabPage_Folder.Text" xml:space="preserve">
     <value>Folder</value>
   </data>
-  <data name="label4.TabIndex" type="System.Int32, mscorlib">
-    <value>1</value>
+  <data name="label14.AutoSize" type="System.Boolean, mscorlib">
+    <value>True</value>
   </data>
   <data name="checkBox_upSkip.TabIndex" type="System.Int32, mscorlib">
     <value>6</value>
@@ -2303,6 +2314,9 @@ If empty, play whole file.</value>
   </data>
   <data name="label12.Size" type="System.Drawing.Size, System.Drawing">
     <value>52, 12</value>
+  </data>
+  <data name="checkBox_MD5.ToolTip" xml:space="preserve">
+    <value>Also uses MD5 hash value to check duplication</value>
   </data>
   <data name="comboBox_DownloadLimitUnit.ToolTip" xml:space="preserve">
     <value />
@@ -2320,7 +2334,7 @@ If empty, play whole file.</value>
     <value>modifiedDate</value>
   </data>
   <data name="&gt;&gt;textBox_newName.ZOrder" xml:space="preserve">
-    <value>1</value>
+    <value>2</value>
   </data>
   <data name="checkBox_MD5.TabIndex" type="System.Int32, mscorlib">
     <value>7</value>
@@ -2336,9 +2350,6 @@ If empty, play whole file.</value>
   </data>
   <data name="label10.ToolTip" xml:space="preserve">
     <value />
-  </data>
-  <data name="&gt;&gt;label25.Name" xml:space="preserve">
-    <value>label25</value>
   </data>
   <data name="textBox_SendLongOffset.ToolTip" xml:space="preserve">
     <value>The offset time for send in advance, use to match the elapsed time of transmission and the time in the stream.</value>
@@ -2365,7 +2376,7 @@ If empty, play whole file.</value>
     <value>System.Windows.Forms.SplitContainer, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </data>
   <data name="button_breakone.Location" type="System.Drawing.Point, System.Drawing">
-    <value>649, 21</value>
+    <value>649, 18</value>
   </data>
   <data name="&gt;&gt;toolStripMenuItem3.Name" xml:space="preserve">
     <value>toolStripMenuItem3</value>
@@ -2376,8 +2387,8 @@ If empty, play whole file.</value>
   <data name="&gt;&gt;button_next.ZOrder" xml:space="preserve">
     <value>0</value>
   </data>
-  <data name="tabPage_FFmpeg.Size" type="System.Drawing.Size, System.Drawing">
-    <value>866, 72</value>
+  <data name="&gt;&gt;label6.ZOrder" xml:space="preserve">
+    <value>15</value>
   </data>
   <data name="textBox_keySendApp.Location" type="System.Drawing.Point, System.Drawing">
     <value>609, 48</value>
@@ -2390,6 +2401,9 @@ If empty, play whole file.</value>
   </data>
   <data name="&gt;&gt;label8.Name" xml:space="preserve">
     <value>label8</value>
+  </data>
+  <data name="&gt;&gt;splitContainer1.Panel1.Parent" xml:space="preserve">
+    <value>splitContainer1</value>
   </data>
   <data name="&gt;&gt;comboBox_DownloadLimitUnit.Name" xml:space="preserve">
     <value>comboBox_DownloadLimitUnit</value>
@@ -2412,14 +2426,14 @@ If empty, play whole file.</value>
   <data name="textBox_Port.TabIndex" type="System.Int32, mscorlib">
     <value>1</value>
   </data>
-  <data name="&gt;&gt;openFileDialog1.Type" xml:space="preserve">
-    <value>System.Windows.Forms.OpenFileDialog, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
-  </data>
   <data name="&gt;&gt;amazonDriveHistoryToolStripMenuItem.Name" xml:space="preserve">
     <value>amazonDriveHistoryToolStripMenuItem</value>
   </data>
   <data name="&gt;&gt;button_Go.Parent" xml:space="preserve">
     <value>tabPage_Navigation</value>
+  </data>
+  <data name="label2.Location" type="System.Drawing.Point, System.Drawing">
+    <value>553, 5</value>
   </data>
   <data name="splitContainer1.Panel1.ToolTip" xml:space="preserve">
     <value />
@@ -2430,8 +2444,8 @@ If empty, play whole file.</value>
   <data name="&gt;&gt;button_upload.Type" xml:space="preserve">
     <value>System.Windows.Forms.Button, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </data>
-  <data name="radioButton_DiffTime.TabIndex" type="System.Int32, mscorlib">
-    <value>7</value>
+  <data name="button_TestDownload.Size" type="System.Drawing.Size, System.Drawing">
+    <value>91, 23</value>
   </data>
   <data name="comboBox_UploadLimitUnit.ToolTip" xml:space="preserve">
     <value />
@@ -2442,8 +2456,8 @@ If empty, play whole file.</value>
   <data name="&gt;&gt;label8.Type" xml:space="preserve">
     <value>System.Windows.Forms.Label, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </data>
-  <data name="&gt;&gt;textBox_FFplayDuration.ZOrder" xml:space="preserve">
-    <value>4</value>
+  <data name="button_FFplay_next.Size" type="System.Drawing.Size, System.Drawing">
+    <value>48, 20</value>
   </data>
   <data name="button_LocalRemoteMatch.ToolTip" xml:space="preserve">
     <value>Matching the local(PC) files and the remote(Amazon Drive) items.</value>
@@ -2475,6 +2489,9 @@ If empty, play whole file.</value>
   <data name="checkBox_upSkip.Location" type="System.Drawing.Point, System.Drawing">
     <value>87, 31</value>
   </data>
+  <data name="&gt;&gt;label13.Type" xml:space="preserve">
+    <value>System.Windows.Forms.Label, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
   <data name="label25.Text" xml:space="preserve">
     <value>Duration</value>
   </data>
@@ -2487,14 +2504,14 @@ If empty, play whole file.</value>
   <data name="label17.Location" type="System.Drawing.Point, System.Drawing">
     <value>505, 29</value>
   </data>
-  <data name="radioButton_DiffTime.Text" xml:space="preserve">
-    <value>Diff</value>
+  <data name="&gt;&gt;label_stream.Name" xml:space="preserve">
+    <value>label_stream</value>
   </data>
   <data name="label11.Size" type="System.Drawing.Size, System.Drawing">
     <value>115, 12</value>
   </data>
-  <data name="textBox_SendDelay.ToolTip" xml:space="preserve">
-    <value>Additional wait time for send.</value>
+  <data name="&gt;&gt;textBox_FFplayDuration.ZOrder" xml:space="preserve">
+    <value>4</value>
   </data>
   <data name="&gt;&gt;button_breakone.ZOrder" xml:space="preserve">
     <value>0</value>
@@ -2518,8 +2535,8 @@ for example, use to clear the buffer of the other software.</value>
   <data name="&gt;&gt;timer4.Type" xml:space="preserve">
     <value>System.Windows.Forms.Timer, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </data>
-  <data name="&gt;&gt;button_reload.Parent" xml:space="preserve">
-    <value>tabPage_Navigation</value>
+  <data name="label13.AutoSize" type="System.Boolean, mscorlib">
+    <value>True</value>
   </data>
   <data name="&gt;&gt;toolStripStatusLabel1.Type" xml:space="preserve">
     <value>System.Windows.Forms.ToolStripStatusLabel, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
@@ -2530,6 +2547,9 @@ for example, use to clear the buffer of the other software.</value>
   <data name="logToolStripMenuItem.Size" type="System.Drawing.Size, System.Drawing">
     <value>39, 20</value>
   </data>
+  <data name="tabPage_Bandwidth.ToolTip" xml:space="preserve">
+    <value />
+  </data>
   <data name="textBox_Password.ToolTip" xml:space="preserve">
     <value />
   </data>
@@ -2539,8 +2559,8 @@ for example, use to clear the buffer of the other software.</value>
   <data name="dateTimePicker_from.ImeMode" type="System.Windows.Forms.ImeMode, System.Windows.Forms">
     <value>Off</value>
   </data>
-  <data name="&gt;&gt;splitContainer2.Type" xml:space="preserve">
-    <value>System.Windows.Forms.SplitContainer, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  <data name="treeView1.Size" type="System.Drawing.Size, System.Drawing">
+    <value>174, 553</value>
   </data>
   <data name="&gt;&gt;textBox_VK.Type" xml:space="preserve">
     <value>System.Windows.Forms.TextBox, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
@@ -2569,6 +2589,9 @@ for example, use to clear the buffer of the other software.</value>
   <data name="textBox_UploadBandwidthLimit.Location" type="System.Drawing.Point, System.Drawing">
     <value>157, 8</value>
   </data>
+  <data name="radioButton_DiffTime.TabIndex" type="System.Int32, mscorlib">
+    <value>7</value>
+  </data>
   <data name="helpToolStripMenuItem.Size" type="System.Drawing.Size, System.Drawing">
     <value>44, 20</value>
   </data>
@@ -2589,9 +2612,6 @@ for example, use to clear the buffer of the other software.</value>
   </data>
   <data name="checkBox_cryptfilename.TabIndex" type="System.Int32, mscorlib">
     <value>1</value>
-  </data>
-  <data name="label9.Size" type="System.Drawing.Size, System.Drawing">
-    <value>109, 12</value>
   </data>
   <data name="&gt;&gt;textBox_path.Parent" xml:space="preserve">
     <value>tabPage_Navigation</value>
@@ -2617,11 +2637,8 @@ for example, use to clear the buffer of the other software.</value>
   <data name="textBox_VK.ToolTip" xml:space="preserve">
     <value>Press any key here</value>
   </data>
-  <data name="&gt;&gt;label_FFplay_sendname.Type" xml:space="preserve">
-    <value>System.Windows.Forms.Label, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
-  </data>
-  <data name="tabPage_Crypt.Location" type="System.Drawing.Point, System.Drawing">
-    <value>4, 4</value>
+  <data name="&gt;&gt;checkBox_MD5.Parent" xml:space="preserve">
+    <value>tabPage_Navigation</value>
   </data>
   <data name="&gt;&gt;imageList_icon.Name" xml:space="preserve">
     <value>imageList_icon</value>
@@ -2632,8 +2649,8 @@ for example, use to clear the buffer of the other software.</value>
   <data name="radioButton_createTime.TabIndex" type="System.Int32, mscorlib">
     <value>10</value>
   </data>
-  <data name="logToFileToolStripMenuItem.Text" xml:space="preserve">
-    <value>Log to &amp;File</value>
+  <data name="&gt;&gt;openFileDialog1.Type" xml:space="preserve">
+    <value>System.Windows.Forms.OpenFileDialog, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </data>
   <data name="label18.ToolTip" xml:space="preserve">
     <value />
@@ -2650,14 +2667,11 @@ for example, use to clear the buffer of the other software.</value>
   <data name="&gt;&gt;textBox_SendRatebySendCount.Parent" xml:space="preserve">
     <value>tabPage_UDPConfig</value>
   </data>
-  <data name="&gt;&gt;statusStrip1.Type" xml:space="preserve">
-    <value>System.Windows.Forms.StatusStrip, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  <data name="label20.ToolTip" xml:space="preserve">
+    <value />
   </data>
   <data name="&gt;&gt;logToolStripMenuItem.Name" xml:space="preserve">
     <value>logToolStripMenuItem</value>
-  </data>
-  <data name="button_LocalRemoteMatch.Location" type="System.Drawing.Point, System.Drawing">
-    <value>753, 24</value>
   </data>
   <data name="&gt;&gt;timer2.Type" xml:space="preserve">
     <value>System.Windows.Forms.Timer, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
@@ -2686,8 +2700,8 @@ for example, use to clear the buffer of the other software.</value>
   <data name="label_FFplay_stream.AutoSize" type="System.Boolean, mscorlib">
     <value>True</value>
   </data>
-  <data name="tabPage_FFmpeg.TabIndex" type="System.Int32, mscorlib">
-    <value>5</value>
+  <data name="&gt;&gt;textBox_path.Name" xml:space="preserve">
+    <value>textBox_path</value>
   </data>
   <data name="dateTimePicker_from.ToolTip" xml:space="preserve">
     <value />
@@ -2703,12 +2717,6 @@ for example, use to clear the buffer of the other software.</value>
   </data>
   <data name="label21.TabIndex" type="System.Int32, mscorlib">
     <value>0</value>
-  </data>
-  <data name="&gt;&gt;checkBox_crypt.ZOrder" xml:space="preserve">
-    <value>4</value>
-  </data>
-  <data name="textBox_FFplayStart.ImeMode" type="System.Windows.Forms.ImeMode, System.Windows.Forms">
-    <value>Off</value>
   </data>
   <data name="button_breakone.Anchor" type="System.Windows.Forms.AnchorStyles, System.Windows.Forms">
     <value>Top, Right</value>
@@ -2733,6 +2741,9 @@ for example, use to clear the buffer of the other software.</value>
   </data>
   <data name="button_breakall.Size" type="System.Drawing.Size, System.Drawing">
     <value>75, 23</value>
+  </data>
+  <data name="&gt;&gt;button_reload.Parent" xml:space="preserve">
+    <value>tabPage_Navigation</value>
   </data>
   <data name="textBox_StartTime.ToolTip" xml:space="preserve">
     <value>Specify the start time.
@@ -2768,7 +2779,7 @@ When the absolute time selected, the format is normal datetime.</value>
   <data name="trackBar_FFplay_pos.TabIndex" type="System.Int32, mscorlib">
     <value>14</value>
   </data>
-  <data name="splitContainer2.ToolTip" xml:space="preserve">
+  <data name="button_TestDownload.ToolTip" xml:space="preserve">
     <value />
   </data>
   <data name="checkBox_dateFrom.Location" type="System.Drawing.Point, System.Drawing">
@@ -2792,14 +2803,14 @@ When the absolute time selected, the format is normal datetime.</value>
   <data name="tabPage_Bandwidth.Size" type="System.Drawing.Size, System.Drawing">
     <value>866, 72</value>
   </data>
-  <data name="tabControl1.Dock" type="System.Windows.Forms.DockStyle, System.Windows.Forms">
-    <value>Fill</value>
+  <data name="tabPage_Crypt.Location" type="System.Drawing.Point, System.Drawing">
+    <value>4, 4</value>
   </data>
-  <data name="trashItemToolStripMenuItem.ShortcutKeys" type="System.Windows.Forms.Keys, System.Windows.Forms">
-    <value>Del</value>
+  <data name="tabPage_Find.Text" xml:space="preserve">
+    <value>Find</value>
   </data>
-  <data name="label6.AutoSize" type="System.Boolean, mscorlib">
-    <value>True</value>
+  <data name="checkBox_File.Text" xml:space="preserve">
+    <value>File</value>
   </data>
   <data name="aboutToolStripMenuItem.Size" type="System.Drawing.Size, System.Drawing">
     <value>107, 22</value>
@@ -2812,6 +2823,9 @@ When the absolute time selected, the format is normal datetime.</value>
   </data>
   <data name="&gt;&gt;renameToolStripMenuItem.Type" xml:space="preserve">
     <value>System.Windows.Forms.ToolStripMenuItem, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;checkBox_Folder.Parent" xml:space="preserve">
+    <value>tabPage_Find</value>
   </data>
   <data name="&gt;&gt;checkBox_LockPassword.Parent" xml:space="preserve">
     <value>tabPage_Crypt</value>
@@ -2828,11 +2842,11 @@ When the absolute time selected, the format is normal datetime.</value>
   <data name="textBox_Duration.Size" type="System.Drawing.Size, System.Drawing">
     <value>69, 19</value>
   </data>
-  <data name="&gt;&gt;textBox_Port.Name" xml:space="preserve">
-    <value>textBox_Port</value>
+  <data name="button_upload.Text" xml:space="preserve">
+    <value>upload</value>
   </data>
-  <data name="&gt;&gt;label_FFplay_stream.ZOrder" xml:space="preserve">
-    <value>6</value>
+  <data name="toolStripMenuItem4.Size" type="System.Drawing.Size, System.Drawing">
+    <value>118, 6</value>
   </data>
   <data name="&gt;&gt;checkBox_cryptfilename.Name" xml:space="preserve">
     <value>checkBox_cryptfilename</value>
@@ -2846,11 +2860,8 @@ When the absolute time selected, the format is normal datetime.</value>
   <data name="treeView1.ToolTip" xml:space="preserve">
     <value />
   </data>
-  <data name="label10.TabIndex" type="System.Int32, mscorlib">
-    <value>4</value>
-  </data>
-  <data name="listView1.TabIndex" type="System.Int32, mscorlib">
-    <value>0</value>
+  <data name="&gt;&gt;button_FFplay.ZOrder" xml:space="preserve">
+    <value>11</value>
   </data>
   <data name="&gt;&gt;tabPage_SendUDP.Name" xml:space="preserve">
     <value>tabPage_SendUDP</value>
@@ -2873,8 +2884,11 @@ The format is seconds or HH:MM, HH:MM:SS.
   <data name="checkBox_Folder.ToolTip" xml:space="preserve">
     <value>The folders are the search target.</value>
   </data>
-  <data name="checkBox_MD5.Text" xml:space="preserve">
-    <value>check MD5</value>
+  <data name="&gt;&gt;toolStripMenuItem3.Type" xml:space="preserve">
+    <value>System.Windows.Forms.ToolStripSeparator, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="label10.TabIndex" type="System.Int32, mscorlib">
+    <value>4</value>
   </data>
   <data name="checkBox_crypt.TabIndex" type="System.Int32, mscorlib">
     <value>0</value>
@@ -3226,8 +3240,8 @@ The format is seconds or HH:MM, HH:MM:SS.
   <data name="contextMenuStrip1.Size" type="System.Drawing.Size, System.Drawing">
     <value>167, 126</value>
   </data>
-  <data name="&gt;&gt;checkBox_upSkip.Name" xml:space="preserve">
-    <value>checkBox_upSkip</value>
+  <data name="&gt;&gt;dateTimePicker_to.Parent" xml:space="preserve">
+    <value>tabPage_Find</value>
   </data>
   <data name="button_Play.TabIndex" type="System.Int32, mscorlib">
     <value>4</value>
@@ -3250,14 +3264,20 @@ The format is seconds or HH:MM, HH:MM:SS.
   <data name="label25.Size" type="System.Drawing.Size, System.Drawing">
     <value>48, 12</value>
   </data>
+  <data name="tabPage_FFmpeg.Size" type="System.Drawing.Size, System.Drawing">
+    <value>866, 72</value>
+  </data>
   <data name="label15.TabIndex" type="System.Int32, mscorlib">
     <value>11</value>
+  </data>
+  <data name="button_TestDownload.TabIndex" type="System.Int32, mscorlib">
+    <value>4</value>
   </data>
   <data name="&gt;&gt;label1.Name" xml:space="preserve">
     <value>label1</value>
   </data>
-  <data name="&gt;&gt;splitContainer1.Panel2.Type" xml:space="preserve">
-    <value>System.Windows.Forms.SplitterPanel, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  <data name="button_FFplay.Size" type="System.Drawing.Size, System.Drawing">
+    <value>24, 23</value>
   </data>
   <data name="helpToolStripMenuItem.Text" xml:space="preserve">
     <value>&amp;Help</value>
@@ -3274,9 +3294,6 @@ The format is seconds or HH:MM, HH:MM:SS.
   <data name="&gt;&gt;comboBox_FindStr.Type" xml:space="preserve">
     <value>System.Windows.Forms.ComboBox, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </data>
-  <data name="label14.AutoSize" type="System.Boolean, mscorlib">
-    <value>True</value>
-  </data>
   <data name="logWindowToolStripMenuItem.Text" xml:space="preserve">
     <value>Log &amp;Window</value>
   </data>
@@ -3285,9 +3302,6 @@ The format is seconds or HH:MM, HH:MM:SS.
   </data>
   <data name="tabPage_Find.Padding" type="System.Windows.Forms.Padding, System.Windows.Forms">
     <value>3, 3, 3, 3</value>
-  </data>
-  <data name="&gt;&gt;label14.Type" xml:space="preserve">
-    <value>System.Windows.Forms.Label, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </data>
   <data name="tabPage_Bandwidth.ToolTipText" xml:space="preserve">
     <value>Limit the bandwidth</value>
@@ -3304,6 +3318,9 @@ The format is seconds or HH:MM, HH:MM:SS.
   <data name="&gt;&gt;textBox_Port.Parent" xml:space="preserve">
     <value>tabPage_SendUDP</value>
   </data>
+  <data name="&gt;&gt;treeView1.Parent" xml:space="preserve">
+    <value>splitContainer2.Panel1</value>
+  </data>
   <data name="japaneseToolStripMenuItem.Size" type="System.Drawing.Size, System.Drawing">
     <value>121, 22</value>
   </data>
@@ -3311,7 +3328,10 @@ The format is seconds or HH:MM, HH:MM:SS.
     <value>265, 37</value>
   </data>
   <data name="&gt;&gt;button_mkdir.ZOrder" xml:space="preserve">
-    <value>3</value>
+    <value>4</value>
+  </data>
+  <data name="&gt;&gt;label20.Parent" xml:space="preserve">
+    <value>tabPage_UDPConfig</value>
   </data>
   <data name="tabPage_Navigation.Size" type="System.Drawing.Size, System.Drawing">
     <value>866, 72</value>
@@ -3325,8 +3345,8 @@ The format is seconds or HH:MM, HH:MM:SS.
   <data name="&gt;&gt;timer3.Type" xml:space="preserve">
     <value>System.Windows.Forms.Timer, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </data>
-  <data name="menuStrip1.TabIndex" type="System.Int32, mscorlib">
-    <value>1</value>
+  <data name="aboutToolStripMenuItem.Text" xml:space="preserve">
+    <value>&amp;About</value>
   </data>
   <data name="label12.TabIndex" type="System.Int32, mscorlib">
     <value>6</value>
@@ -3343,14 +3363,11 @@ The format is seconds or HH:MM, HH:MM:SS.
   <data name="textBox_Password.Size" type="System.Drawing.Size, System.Drawing">
     <value>177, 19</value>
   </data>
-  <data name="label26.Size" type="System.Drawing.Size, System.Drawing">
-    <value>92, 24</value>
-  </data>
   <data name="checkBox_dateTo.ToolTip" xml:space="preserve">
     <value>If checked, search the items before this time.</value>
   </data>
-  <data name="&gt;&gt;tabPage_FFmpeg.Type" xml:space="preserve">
-    <value>System.Windows.Forms.TabPage, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  <data name="checkBox_File.Anchor" type="System.Windows.Forms.AnchorStyles, System.Windows.Forms">
+    <value>Top, Right</value>
   </data>
   <data name="label20.Location" type="System.Drawing.Point, System.Drawing">
     <value>17, 51</value>
@@ -3379,9 +3396,6 @@ The format is seconds or HH:MM, HH:MM:SS.
   <data name="&gt;&gt;trashItemToolStripMenuItem.Name" xml:space="preserve">
     <value>trashItemToolStripMenuItem</value>
   </data>
-  <data name="label5.Location" type="System.Drawing.Point, System.Drawing">
-    <value>5, 41</value>
-  </data>
   <data name="textBox_FFplayStart.Location" type="System.Drawing.Point, System.Drawing">
     <value>192, 7</value>
   </data>
@@ -3396,6 +3410,9 @@ The format is seconds or HH:MM, HH:MM:SS.
   </data>
   <data name="&gt;&gt;checkBox_dateFrom.ZOrder" xml:space="preserve">
     <value>5</value>
+  </data>
+  <data name="&gt;&gt;treeView1.Name" xml:space="preserve">
+    <value>treeView1</value>
   </data>
   <data name="&gt;&gt;label22.Name" xml:space="preserve">
     <value>label22</value>
@@ -3457,8 +3474,8 @@ The format is seconds or HH:MM, HH:MM:SS.
   <data name="tabPage_Navigation.ToolTipText" xml:space="preserve">
     <value>Change the current folder, Upload files, Task Control</value>
   </data>
-  <data name="tabPage_Bandwidth.ToolTip" xml:space="preserve">
-    <value />
+  <data name="splitContainer2.Size" type="System.Drawing.Size, System.Drawing">
+    <value>874, 553</value>
   </data>
   <data name="&gt;&gt;label3.Name" xml:space="preserve">
     <value>label3</value>
@@ -3517,9 +3534,6 @@ The format is seconds or HH:MM, HH:MM:SS.
   <data name="button_upload.Size" type="System.Drawing.Size, System.Drawing">
     <value>75, 23</value>
   </data>
-  <data name="$this.AutoScaleDimensions" type="System.Drawing.SizeF, System.Drawing">
-    <value>6, 12</value>
-  </data>
   <data name="label23.ToolTip" xml:space="preserve">
     <value />
   </data>
@@ -3529,8 +3543,14 @@ The format is seconds or HH:MM, HH:MM:SS.
   <data name="label11.Text" xml:space="preserve">
     <value>Bitrate calculation by</value>
   </data>
+  <data name="&gt;&gt;languageToolStripMenuItem.Type" xml:space="preserve">
+    <value>System.Windows.Forms.ToolStripMenuItem, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
   <data name="&gt;&gt;tabPage_SendUDP.ZOrder" xml:space="preserve">
     <value>3</value>
+  </data>
+  <data name="&gt;&gt;treeView1.ZOrder" xml:space="preserve">
+    <value>0</value>
   </data>
   <data name="label25.TabIndex" type="System.Int32, mscorlib">
     <value>21</value>
@@ -3544,20 +3564,23 @@ The format is seconds or HH:MM, HH:MM:SS.
   <data name="label_FFplay_sendname.TabIndex" type="System.Int32, mscorlib">
     <value>11</value>
   </data>
-  <data name="label26.Location" type="System.Drawing.Point, System.Drawing">
-    <value>8, 7</value>
+  <data name="&gt;&gt;$this.Type" xml:space="preserve">
+    <value>System.Windows.Forms.Form, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </data>
-  <data name="textBox_SendDelay.Size" type="System.Drawing.Size, System.Drawing">
-    <value>45, 19</value>
+  <data name="logToFileToolStripMenuItem.Text" xml:space="preserve">
+    <value>Log to &amp;File</value>
   </data>
-  <data name="&gt;&gt;tabPage_Bandwidth.ZOrder" xml:space="preserve">
-    <value>6</value>
+  <data name="&gt;&gt;label14.Type" xml:space="preserve">
+    <value>System.Windows.Forms.Label, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </data>
   <data name="logToolStripMenuItem.Text" xml:space="preserve">
     <value>&amp;Log</value>
   </data>
   <data name="&gt;&gt;toolStripMenuItem5.Name" xml:space="preserve">
     <value>toolStripMenuItem5</value>
+  </data>
+  <data name="&gt;&gt;menuStrip1.Name" xml:space="preserve">
+    <value>menuStrip1</value>
   </data>
   <data name="&gt;&gt;tabPage_Navigation.Type" xml:space="preserve">
     <value>System.Windows.Forms.TabPage, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
@@ -3574,8 +3597,9 @@ The format is seconds or HH:MM, HH:MM:SS.
   <data name="&gt;&gt;radioButton_modifiedDate.Name" xml:space="preserve">
     <value>radioButton_modifiedDate</value>
   </data>
-  <data name="&gt;&gt;splitContainer1.Panel1.Type" xml:space="preserve">
-    <value>System.Windows.Forms.SplitterPanel, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  <data name="textBox_Duration.ToolTip" xml:space="preserve">
+    <value>Specify the dulation of send.
+Send whole file if empty.</value>
   </data>
   <data name="&gt;&gt;imageList_Large.Name" xml:space="preserve">
     <value>imageList_Large</value>
@@ -3598,11 +3622,11 @@ The format is seconds or HH:MM, HH:MM:SS.
   <data name="checkBox_Regex.TabIndex" type="System.Int32, mscorlib">
     <value>5</value>
   </data>
-  <data name="button_FFplay.Size" type="System.Drawing.Size, System.Drawing">
-    <value>24, 23</value>
-  </data>
   <data name="tabPage_Crypt.Size" type="System.Drawing.Size, System.Drawing">
     <value>866, 72</value>
+  </data>
+  <data name="&gt;&gt;menuStrip1.ZOrder" xml:space="preserve">
+    <value>1</value>
   </data>
   <data name="&gt;&gt;button_mkdir.Parent" xml:space="preserve">
     <value>tabPage_Folder</value>
@@ -3619,8 +3643,8 @@ The format is seconds or HH:MM, HH:MM:SS.
   <data name="checkBox_LockPassword.AutoSize" type="System.Boolean, mscorlib">
     <value>True</value>
   </data>
-  <data name="&gt;&gt;viewToolStripMenuItem.Type" xml:space="preserve">
-    <value>System.Windows.Forms.ToolStripMenuItem, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  <data name="&gt;&gt;tabPage_Bandwidth.Type" xml:space="preserve">
+    <value>System.Windows.Forms.TabPage, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </data>
   <data name="textBox_SendRatebySendCount.Location" type="System.Drawing.Point, System.Drawing">
     <value>338, 25</value>
@@ -3637,9 +3661,6 @@ The format is seconds or HH:MM, HH:MM:SS.
   <data name="&gt;&gt;checkBox_crypt.Name" xml:space="preserve">
     <value>checkBox_crypt</value>
   </data>
-  <data name="&gt;&gt;trackBar_FFplay_pos.Parent" xml:space="preserve">
-    <value>tabPage_FFmpeg</value>
-  </data>
   <data name="checkBox_upSkip.Size" type="System.Drawing.Size, System.Drawing">
     <value>162, 16</value>
   </data>
@@ -3648,9 +3669,6 @@ The format is seconds or HH:MM, HH:MM:SS.
   </data>
   <data name="button_search.TabIndex" type="System.Int32, mscorlib">
     <value>1</value>
-  </data>
-  <data name="splitContainer2.Panel1.ToolTip" xml:space="preserve">
-    <value />
   </data>
   <data name="&gt;&gt;defaultToolStripMenuItem.Type" xml:space="preserve">
     <value>System.Windows.Forms.ToolStripMenuItem, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
@@ -3676,8 +3694,8 @@ The format is seconds or HH:MM, HH:MM:SS.
   <data name="listView_TaskList.Anchor" type="System.Windows.Forms.AnchorStyles, System.Windows.Forms">
     <value>Top, Right</value>
   </data>
-  <data name="label13.AutoSize" type="System.Boolean, mscorlib">
-    <value>True</value>
+  <data name="&gt;&gt;statusStrip1.Type" xml:space="preserve">
+    <value>System.Windows.Forms.StatusStrip, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </data>
   <data name="&gt;&gt;exitToolStripMenuItem.Name" xml:space="preserve">
     <value>exitToolStripMenuItem</value>
@@ -3718,8 +3736,8 @@ The format is seconds or HH:MM, HH:MM:SS.
   <data name="label14.TabIndex" type="System.Int32, mscorlib">
     <value>9</value>
   </data>
-  <data name="trackBar_FFplay_pos.ToolTip" xml:space="preserve">
-    <value>Seeking is available but use the keyboard command in play window for precise operation.</value>
+  <data name="&gt;&gt;button_TestDownload.Type" xml:space="preserve">
+    <value>System.Windows.Forms.Button, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </data>
   <data name="sendUDPToolStripMenuItem.Text" xml:space="preserve">
     <value>&amp;Send UDP</value>
@@ -3745,14 +3763,14 @@ The format is seconds or HH:MM, HH:MM:SS.
   <data name="label11.Location" type="System.Drawing.Point, System.Drawing">
     <value>248, 11</value>
   </data>
-  <data name="&gt;&gt;splitContainer2.Panel2.Parent" xml:space="preserve">
-    <value>splitContainer2</value>
+  <data name="downloadItemToolStripMenuItem.Size" type="System.Drawing.Size, System.Drawing">
+    <value>166, 22</value>
   </data>
   <data name="button_Play.Size" type="System.Drawing.Size, System.Drawing">
     <value>24, 23</value>
   </data>
-  <data name="splitContainer1.Size" type="System.Drawing.Size, System.Drawing">
-    <value>874, 679</value>
+  <data name="&gt;&gt;label25.Name" xml:space="preserve">
+    <value>label25</value>
   </data>
   <data name="&gt;&gt;textBox_SendPacketNum.Parent" xml:space="preserve">
     <value>tabPage_UDPConfig</value>
@@ -3783,6 +3801,9 @@ The format is seconds or HH:MM, HH:MM:SS.
   </data>
   <data name="label15.Size" type="System.Drawing.Size, System.Drawing">
     <value>45, 12</value>
+  </data>
+  <data name="&gt;&gt;textBox_HostName.Name" xml:space="preserve">
+    <value>textBox_HostName</value>
   </data>
   <data name="&gt;&gt;checkBox_LockPassword.Type" xml:space="preserve">
     <value>System.Windows.Forms.CheckBox, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
@@ -3826,8 +3847,8 @@ The format is seconds or HH:MM, HH:MM:SS.
   <data name="button_breakall.TabIndex" type="System.Int32, mscorlib">
     <value>5</value>
   </data>
-  <data name="comboBox_DownloadLimitUnit.Items7" xml:space="preserve">
-    <value>GB/s</value>
+  <data name="label4.TabIndex" type="System.Int32, mscorlib">
+    <value>1</value>
   </data>
   <data name="textBox_StartTime.ImeMode" type="System.Windows.Forms.ImeMode, System.Windows.Forms">
     <value>Off</value>
@@ -3835,8 +3856,11 @@ The format is seconds or HH:MM, HH:MM:SS.
   <data name="label4.ToolTip" xml:space="preserve">
     <value />
   </data>
-  <data name="label25.ToolTip" xml:space="preserve">
-    <value />
+  <data name="&gt;&gt;splitContainer2.Panel2.Parent" xml:space="preserve">
+    <value>splitContainer2</value>
+  </data>
+  <data name="&gt;&gt;button_TestDownload.Name" xml:space="preserve">
+    <value>button_TestDownload</value>
   </data>
   <data name="englishToolStripMenuItem.Text" xml:space="preserve">
     <value>&amp;English</value>
@@ -3895,11 +3919,11 @@ The format is seconds or HH:MM, HH:MM:SS.
   <data name="&gt;&gt;textBox_VK.Name" xml:space="preserve">
     <value>textBox_VK</value>
   </data>
-  <data name="&gt;&gt;button_FFplay_stop.Parent" xml:space="preserve">
-    <value>tabPage_FFmpeg</value>
-  </data>
   <data name="comboBox_UploadLimitUnit.Items2" xml:space="preserve">
     <value>MiB/s</value>
+  </data>
+  <data name="&gt;&gt;button_TestDownload.ZOrder" xml:space="preserve">
+    <value>0</value>
   </data>
   <data name="label24.Location" type="System.Drawing.Point, System.Drawing">
     <value>159, 14</value>
@@ -3916,8 +3940,8 @@ The format is seconds or HH:MM, HH:MM:SS.
   <data name="checkBox_cryptfilename.Size" type="System.Drawing.Size, System.Drawing">
     <value>113, 16</value>
   </data>
-  <data name="tabPage_Find.ToolTipText" xml:space="preserve">
-    <value>Find items</value>
+  <data name="label7.AutoSize" type="System.Boolean, mscorlib">
+    <value>True</value>
   </data>
   <data name="label12.Text" xml:space="preserve">
     <value>UDPsend</value>
@@ -3925,8 +3949,8 @@ The format is seconds or HH:MM, HH:MM:SS.
   <data name="logToFileToolStripMenuItem.Size" type="System.Drawing.Size, System.Drawing">
     <value>188, 22</value>
   </data>
-  <data name="&gt;&gt;label16.Type" xml:space="preserve">
-    <value>System.Windows.Forms.Label, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  <data name="radioButton_createTime.ToolTip" xml:space="preserve">
+    <value>createdDate</value>
   </data>
   <data name="button_stop.Size" type="System.Drawing.Size, System.Drawing">
     <value>24, 23</value>
@@ -3982,8 +4006,8 @@ The format is seconds or HH:MM, HH:MM:SS.
   <data name="&gt;&gt;label17.Type" xml:space="preserve">
     <value>System.Windows.Forms.Label, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </data>
-  <data name="&gt;&gt;listView_TaskList.ZOrder" xml:space="preserve">
-    <value>2</value>
+  <data name="&gt;&gt;button_reload.Name" xml:space="preserve">
+    <value>button_reload</value>
   </data>
   <data name="listView_TaskList.Location" type="System.Drawing.Point, System.Drawing">
     <value>730, 3</value>
@@ -4005,6 +4029,9 @@ The format is seconds or HH:MM, HH:MM:SS.
   </data>
   <data name="textBox_SendRatebySendCount.ToolTip" xml:space="preserve">
     <value>Calculate the send bitrate by the specified times average.</value>
+  </data>
+  <data name="&gt;&gt;menuStrip1.Type" xml:space="preserve">
+    <value>System.Windows.Forms.MenuStrip, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </data>
   <data name="&gt;&gt;toolStripMenuItem5.Type" xml:space="preserve">
     <value>System.Windows.Forms.ToolStripSeparator, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
