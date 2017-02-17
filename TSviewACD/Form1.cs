@@ -176,7 +176,6 @@ namespace TSviewACD
             private SortOrder _SortOrder = System.Windows.Forms.SortOrder.Ascending;
             private bool _SortKind = false;
 
-
             private Func<IEnumerable<ItemInfo>, IOrderedEnumerable<ItemInfo>> SortFunction
             {
                 get
@@ -256,7 +255,22 @@ namespace TSviewACD
                     Sort();
                 }
             }
+            public bool IsSearchResult
+            {
+                get; private set;
+            }
 
+            public ItemInfo[] SearchResult
+            {
+                get { return _Items; }
+                set
+                {
+                    _Root = null;
+                    _Parent = null;
+                    _Items = SortFunction(value).ToArray();
+                    IsSearchResult = true;
+                }
+            }
 
             public IEnumerable<ItemInfo> GetItems(ListView.SelectedIndexCollection indecies)
             {
@@ -285,12 +299,6 @@ namespace TSviewACD
             public ItemInfo[] Items
             {
                 get { return _Items; }
-                set
-                {
-                    Root = null;
-                    _Items = value;
-                    Sort();
-                }
             }
             public ItemInfo Parent
             {
@@ -301,6 +309,7 @@ namespace TSviewACD
                 get { return _Root; }
                 set
                 {
+                    IsSearchResult = false;
                     if(value == null)
                     {
                         _Root = null;
@@ -395,7 +404,7 @@ namespace TSviewACD
                         upitem.ToolTipText = Resource_text.UpFolder_str;
                         return upitem;
                     }
-                    if (index - 2 < Items.Length)
+                    if (index > 1 && index - 2 < Items.Length)
                     {
                         return ConvertNormalItem(Items[index - 2]);
                     }
@@ -1010,8 +1019,8 @@ namespace TSviewACD
 
                     if (done_files?.Select(x => x.name.ToLower()).Contains(uploadfilename.ToLower()) ?? false)
                     {
-                        var target = done_files.First(x => x.name.ToLower() == uploadfilename.ToLower());
-                        if (filesize == target.contentProperties?.size)
+                        var target = done_files.FirstOrDefault(x => x.name == uploadfilename);
+                        if (filesize == target?.contentProperties?.size)
                         {
                             if (!checkBox_MD5.Checked)
                                 continue;
@@ -1042,13 +1051,17 @@ namespace TSviewACD
                         Config.Log.LogOut("remove item...");
                         try
                         {
+                            checkpoint = DriveData.ChangeCheckpoint;
                             foreach (var conflicts in done_files.Where(x => x.name.ToLower() == uploadfilename.ToLower()))
                             {
                                 await Drive.TrashItem(conflicts.id, ct);
                             }
                             await Task.Delay(TimeSpan.FromSeconds(5), ct);
-                            checkpoint = DriveData.ChangeCheckpoint;
-                            done_files = DriveData.AmazonDriveTree[parent_id].children.Values.Select(x => x.info).ToArray();
+                            await DriveData.GetChanges(checkpoint, ct);
+                            using (await DriveData.DriveLock.LockAsync())
+                            {
+                                done_files = DriveData.AmazonDriveTree[parent_id].children.Values.Select(x => x.info).ToArray();
+                            }
                         }
                         catch (OperationCanceledException)
                         {
@@ -1088,6 +1101,9 @@ namespace TSviewACD
                                             toolStripProgressBar1.Value = (int)((double)eo.Position / eo.Length * 10000);
                                         }, evnt);
                                 }, ct: ct);
+                            var tmpDone = done_files.ToList();
+                            tmpDone.Add(ret);
+                            done_files = tmpDone.ToArray();
                             break;
                         }
                         catch (HttpRequestException ex)
@@ -1119,6 +1135,10 @@ namespace TSviewACD
                                 if (children.Where(x => x.name.Contains(uploadfilename)).LastOrDefault()?.status == "AVAILABLE")
                                 {
                                     Config.Log.LogOut("Upload : child found.");
+                                    using (await DriveData.DriveLock.LockAsync())
+                                    {
+                                        done_files = DriveData.AmazonDriveTree[parent_id].children.Values.Select(x => x.info).ToArray();
+                                    }
                                     break;
                                 }
                             }
@@ -1226,7 +1246,6 @@ namespace TSviewACD
                                 throw;
                             }
                         }
-                        await DriveData.GetChanges(checkpoint, ct);
                     }
 
                     f_cur = await DoFileUpload(Directory.EnumerateFiles(filename), newdir.id, f_all, f_cur, ct);
@@ -1315,7 +1334,7 @@ namespace TSviewACD
 
                 toolStripProgressBar1.Style = ProgressBarStyle.Marquee;
                 await Task.Delay(TimeSpan.FromSeconds(5));
-                await ReloadItems(target?.info.id);
+                await ReloadItems(target?.info.id, true);
                 Config.Log.LogOut("Trash : done.");
             }
             catch (OperationCanceledException)
@@ -1434,6 +1453,8 @@ namespace TSviewACD
             var ct = task.cts.Token;
             try
             {
+                listView1.VirtualListSize = 0;
+
                 // Load Changed items
                 if (getchange)
                 {
@@ -1481,13 +1502,20 @@ namespace TSviewACD
                 }
                 treeView1.SelectedNode?.Expand();
 
-                //// display listview Root
-                listviewitem.Root = DriveData.AmazonDriveTree[display_id];
-                listView1.VirtualListSize = listviewitem.Count;
+                if (listviewitem.IsSearchResult)
+                {
+                    await DoSearch();
+                }
+                else
+                {
+                    //// display listview Root
+                    listviewitem.Root = DriveData.AmazonDriveTree[display_id];
+                    listView1.VirtualListSize = listviewitem.Count;
 
-                toolStripProgressBar1.Style = ProgressBarStyle.Continuous;
-                toolStripProgressBar1.Value = toolStripProgressBar1.Minimum;
-                toolStripStatusLabel1.Text = "done.";
+                    toolStripProgressBar1.Style = ProgressBarStyle.Continuous;
+                    toolStripProgressBar1.Value = toolStripProgressBar1.Minimum;
+                    toolStripStatusLabel1.Text = "done.";
+                }
             }
             catch (OperationCanceledException)
             {
@@ -1722,71 +1750,88 @@ namespace TSviewACD
             await PlayFiles(PlayOneTSFile, "Send UDP");
         }
 
-        private void button_search_Click(object sender, EventArgs e)
+        private async Task DoSearch()
         {
-            if (!initialized) return;
-            if(comboBox_FindStr.Items.IndexOf(comboBox_FindStr.Text) < 0)
-                comboBox_FindStr.Items.Add(comboBox_FindStr.Text);
+            string search_str = comboBox_FindStr.Text;
+            IEnumerable<ItemInfo> selection = DriveData.AmazonDriveTree.Values;
 
-            ItemInfo[] selection = DriveData.AmazonDriveTree.Values.ToArray();
-
-            if (!checkBox_File.Checked && !checkBox_Folder.Checked)
-            {
-                //nothing
-            }
+            if (checkBox_File.Checked && checkBox_Folder.Checked)
+                selection = selection.Where(x => x.info.kind != "ASSET");
+            else if (checkBox_Folder.Checked)
+                selection = selection.Where(x => x.info.kind == "FOLDER");
+            else if (checkBox_File.Checked)
+                selection = selection.Where(x => x.info.kind != "FOLDER" && x.info.kind != "ASSET");
             else
             {
-                if (!checkBox_File.Checked)
-                    selection = selection.Where(x => x.info.kind == "FOLDER").ToArray();
-                if (!checkBox_Folder.Checked)
-                    selection = selection.Where(x => x.info.kind != "FOLDER").ToArray();
+                // all item selected
             }
 
             if (checkBox_Regex.Checked)
             {
-                selection = selection.Where(x => Regex.IsMatch(x.info.name, comboBox_FindStr.Text)).ToArray();
+                if (checkBox_findCaseSensitive.Checked)
+                    selection = selection.Where(x => Regex.IsMatch(x.info.name ?? "", search_str));
+                else
+                    selection = selection.Where(x => Regex.IsMatch(x.info.name ?? "", search_str, RegexOptions.IgnoreCase));
             }
             else
             {
-                if(checkBox_findCaseSensitive.Checked)
-                    selection = selection.Where(x => (x.info.name?.IndexOf(comboBox_FindStr.Text) >= 0)).ToArray();
+                if (checkBox_findCaseSensitive.Checked)
+                    selection = selection.Where(x => (x.info.name?.IndexOf(search_str) >= 0));
                 else
                     selection = selection.Where(x => (
                     System.Globalization.CultureInfo.CurrentCulture.CompareInfo.IndexOf(
-                        x.info.name ?? "", 
-                        comboBox_FindStr.Text, 
+                        x.info.name ?? "",
+                        search_str,
                         System.Globalization.CompareOptions.IgnoreCase | System.Globalization.CompareOptions.IgnoreKanaType | System.Globalization.CompareOptions.IgnoreWidth
                         | System.Globalization.CompareOptions.IgnoreNonSpace | System.Globalization.CompareOptions.IgnoreSymbols
-                        ) >= 0)).ToArray();
+                        ) >= 0));
             }
 
             if (checkBox_sizeOver.Checked)
-                selection = selection.Where(x => (x.info.contentProperties?.size ?? 0) > numericUpDown_sizeOver.Value).ToArray();
+                selection = selection.Where(x => (x.info.contentProperties?.size ?? 0) > numericUpDown_sizeOver.Value);
             if (checkBox_sizeUnder.Checked)
-                selection = selection.Where(x => (x.info.contentProperties?.size ?? 0) < numericUpDown_sizeUnder.Value).ToArray();
+                selection = selection.Where(x => (x.info.contentProperties?.size ?? 0) < numericUpDown_sizeUnder.Value);
 
 
             if (radioButton_createTime.Checked)
             {
                 if (checkBox_dateFrom.Checked)
-                    selection = selection.Where(x => x.info.createdDate > dateTimePicker_from.Value).ToArray();
+                    selection = selection.Where(x => x.info.createdDate > dateTimePicker_from.Value);
                 if (checkBox_dateTo.Checked)
-                    selection = selection.Where(x => x.info.createdDate < dateTimePicker_to.Value).ToArray();
+                    selection = selection.Where(x => x.info.createdDate < dateTimePicker_to.Value);
             }
             if (radioButton_modifiedDate.Checked)
             {
                 if (checkBox_dateFrom.Checked)
-                    selection = selection.Where(x => x.info.modifiedDate > dateTimePicker_from.Value).ToArray();
+                    selection = selection.Where(x => x.info.modifiedDate > dateTimePicker_from.Value);
                 if (checkBox_dateTo.Checked)
-                    selection = selection.Where(x => x.info.modifiedDate < dateTimePicker_to.Value).ToArray();
+                    selection = selection.Where(x => x.info.modifiedDate < dateTimePicker_to.Value);
             }
+
+            toolStripProgressBar1.Style = ProgressBarStyle.Marquee;
+            toolStripStatusLabel1.Text = "Searching...";
+
+            ItemInfo[] result = null;
+            await Task.Run(() =>
+            {
+                result = selection.ToArray();
+            });
 
             toolStripProgressBar1.Style = ProgressBarStyle.Continuous;
             toolStripProgressBar1.Value = toolStripProgressBar1.Minimum;
-            toolStripStatusLabel1.Text = "Found : " + selection.Length.ToString();
+            toolStripStatusLabel1.Text = "Found : " + result.Length.ToString();
 
-            listviewitem.Items = selection;
+            listviewitem.SearchResult = result;
             listView1.VirtualListSize = listviewitem.Count;
+        }
+
+        private async void button_search_Click(object sender, EventArgs e)
+        {
+            if (!initialized) return;
+            if(comboBox_FindStr.Items.IndexOf(comboBox_FindStr.Text) < 0)
+                comboBox_FindStr.Items.Add(comboBox_FindStr.Text);
+
+            await DoSearch();
         }
 
         private async void button_mkdir_Click(object sender, EventArgs e)
@@ -3370,9 +3415,16 @@ namespace TSviewACD
             {
                 FinishTask(task);
             }
-            var logform = new FormTemplink();
-            logform.TempLinks = templinks;
-            logform.ShowDialog();
+            if (templinks.Count > 1)
+            {
+                var logform = new FormTemplink();
+                logform.TempLinks = templinks;
+                logform.ShowDialog();
+            }
+            else if(templinks.Count == 1)
+            {
+                Clipboard.SetText(templinks[0].tempLink);
+            }
         }
 
         private async void makeTemporaryLinkToolStripMenuItem_Click(object sender, EventArgs e)

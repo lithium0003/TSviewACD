@@ -120,6 +120,7 @@ namespace TSviewACD
                     Config.Log.LogOut("\t[" + LogPrefix + "] " + error_str);
 
                     if (ex.Message.Contains("401 (Unauthorized)") ||
+                        ex.Message.Contains("429 (Too Many Requests)") ||
                         ex.Message.Contains("500 (Internal Server Error)") ||
                         ex.Message.Contains("503 (Service Unavailable)"))
                     {

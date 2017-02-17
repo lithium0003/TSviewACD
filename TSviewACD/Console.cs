@@ -863,9 +863,9 @@ namespace TSviewACD
                     var checkpoint = DriveData.ChangeCheckpoint;
                     var filesize = new FileInfo(localpath).Length;
 
-                    if (done_files?.Select(x => x.name).Contains(uploadfilename) ?? false)
+                    if (done_files?.Select(x => x.name.ToLower()).Contains(uploadfilename.ToLower()) ?? false)
                     {
-                        var target = done_files.First(x => x.name == uploadfilename);
+                        var target = done_files.FirstOrDefault(x => x.name == uploadfilename);
                         if (filesize == target.contentProperties?.size)
                         {
                             if (!hashflag)
@@ -902,7 +902,10 @@ namespace TSviewACD
                         Console.Error.WriteLine("remove item...");
                         try
                         {
-                            await Drive.TrashItem(target.id, ct).ConfigureAwait(false);
+                            foreach (var conflicts in done_files.Where(x => x.name.ToLower() == uploadfilename.ToLower()))
+                            {
+                                await Drive.TrashItem(conflicts.id, ct).ConfigureAwait(false);
+                            }
                             await Task.Delay(TimeSpan.FromSeconds(5), ct).ConfigureAwait(false);
                         }
                         catch (OperationCanceledException)
