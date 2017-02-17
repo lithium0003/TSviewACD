@@ -40,7 +40,28 @@ namespace TSviewACD
             Console.Error.WriteLine("");
 
             Console.CancelKeyPress += new ConsoleCancelEventHandler(CtrlC_Handler);
-            switch (args[0])
+
+            var paramArgsList = new List<string>();
+            var targetArgsList = new List<string>();
+            bool skipparam = false;
+            foreach (var p in args)
+            {
+                if (skipparam) targetArgsList.Add(p);
+                else
+                {
+                    if (p == "-")
+                    {
+                        skipparam = true;
+                        continue;
+                    }
+                    if (p.StartsWith("--")) paramArgsList.Add(p.Substring(2));
+                    else targetArgsList.Add(p);
+                }
+            }
+            var paramArgs = paramArgsList.ToArray();
+            var targetArgs = targetArgsList.ToArray();
+
+            switch (targetArgs[0])
             {
                 case "help":
                     Console.WriteLine("usage");
@@ -51,13 +72,13 @@ namespace TSviewACD
                     break;
                 case "list":
                     Console.Error.WriteLine("list...");
-                    return await ListItems(args).ConfigureAwait(false);
+                    return await ListItems(targetArgs, paramArgs).ConfigureAwait(false);
                 case "download":
                     Console.Error.WriteLine("download...");
-                    return await Download(args).ConfigureAwait(false);
+                    return await Download(targetArgs, paramArgs).ConfigureAwait(false);
                 case "upload":
                     Console.Error.WriteLine("upload...");
-                    return await Upload(args);
+                    return await Upload(targetArgs, paramArgs).ConfigureAwait(false);
             }
             return 0;
         }
@@ -180,14 +201,14 @@ namespace TSviewACD
             return null;
         }
 
-        static async Task<int> ListItems(string[] args)
+        static async Task<int> ListItems(string[] targetArgs, string[] paramArgs)
         {
             string remotepath = null;
             FileMetadata_Info[] target = null;
 
-            if (args.Length > 1)
+            if (targetArgs.Length > 1)
             {
-                remotepath = args[1];
+                remotepath = targetArgs[1];
                 remotepath = remotepath.Replace('\\', '/');
             }
 
@@ -218,17 +239,17 @@ namespace TSviewACD
             }
         }
 
-        static async Task<int> Download(string[] args)
+        static async Task<int> Download(string[] targetArgs, string[] paramArgs)
         {
             string remotepath = null;
             string localpath = null;
             FileMetadata_Info[] target = null;
 
-            if (args.Length > 2)
-                localpath = args[2];
-            if (args.Length > 1)
+            if (targetArgs.Length > 2)
+                localpath = targetArgs[2];
+            if (targetArgs.Length > 1)
             {
-                remotepath = args[1];
+                remotepath = targetArgs[1];
                 remotepath = remotepath.Replace('\\', '/');
             }
 
@@ -236,6 +257,19 @@ namespace TSviewACD
             {
                 return 0;
             }
+
+            bool hashflag = false;
+            foreach (var p in paramArgs)
+            {
+                switch (p)
+                {
+                    case "md5":
+                        Console.Error.WriteLine("(--md5: hash check mode)");
+                        hashflag = true;
+                        break;
+                }
+            }
+
             try
             {
                 Drive = new AmazonDrive();
@@ -310,7 +344,7 @@ namespace TSviewACD
                     while (--retry > 0)
                         try
                         {
-                            using (var outfile = File.OpenWrite(savefilename))
+                            using (var outfile = File.Open(savefilename, FileMode.Create, FileAccess.Write, FileShare.Read))
                             {
                                 Console.Error.WriteLine("");
                                 if (downitem.contentProperties.size > 10 * 1024 * 1024 * 1024L)
@@ -344,6 +378,28 @@ namespace TSviewACD
                                 }
                             }
                             Console.Error.WriteLine("\r\nDownload : done.");
+
+                            if (hashflag && downitem.contentProperties?.md5 != null)
+                            {
+                                using (var md5calc = new System.Security.Cryptography.MD5CryptoServiceProvider())
+                                using (var hfile = File.Open(savefilename, FileMode.Open, FileAccess.Read, FileShare.Read))
+                                {
+                                    byte[] md5 = null;
+                                    Console.Error.WriteLine("Hash check start...");
+                                    await Task.Run(() => { md5 = md5calc.ComputeHash(hfile); }, Drive.ct);
+                                    Console.Error.WriteLine("Hash done.");
+                                    var md5string = BitConverter.ToString(md5).ToLower().Replace("-", "");
+                                    if (md5string == downitem.contentProperties.md5)
+                                    {
+                                        Console.Error.WriteLine("Hash check is OK.");
+                                    }
+                                    else
+                                    {
+                                        Console.Error.WriteLine("Hash check failed. retry..." + retry.ToString());
+                                        continue;
+                                    }
+                                }
+                            }
                             break;
                         }
                         catch (OperationCanceledException)
@@ -377,20 +433,32 @@ namespace TSviewACD
             }
         }
 
-        static async Task<int> Upload(string[] args)
+        static async Task<int> Upload(string[] targetArgs, string[] paramArgs)
         {
             string remotepath = null;
             string localpath = null;
             string target_id = null;
 
-            if (args.Length > 2)
+            bool hashflag = false;
+            foreach (var p in paramArgs)
             {
-                remotepath = args[2];
+                switch (p)
+                {
+                    case "md5":
+                        Console.Error.WriteLine("(--md5: hash check mode)");
+                        hashflag = true;
+                        break;
+                }
+            }
+
+            if (targetArgs.Length > 2)
+            {
+                remotepath = targetArgs[2];
                 remotepath = remotepath.Replace('\\', '/');
 
             }
-            if (args.Length > 1)
-                localpath = args[1];
+            if (targetArgs.Length > 1)
+                localpath = targetArgs[1];
 
             if (string.IsNullOrEmpty(remotepath) || string.IsNullOrEmpty(localpath))
             {
@@ -426,19 +494,48 @@ namespace TSviewACD
 
                 var upload_str = "Upload...";
                 var short_filename = Path.GetFileName(localpath);
+                string md5string = null;
 
                 if (done_files?.Select(x => x.name).Contains(short_filename) ?? false)
                 {
                     var target = done_files.First(x => x.name == short_filename);
                     if (new FileInfo(localpath).Length == target.contentProperties?.size)
                     {
-                        Console.Error.WriteLine("Item is already uploaded.");
-                        return 99;
+                        if (!hashflag)
+                        {
+                            Console.Error.WriteLine("Item is already uploaded.");
+                            return 99;
+                        }
+                        using (var md5calc = new System.Security.Cryptography.MD5CryptoServiceProvider())
+                        using (var hfile = File.Open(localpath, FileMode.Open, FileAccess.Read, FileShare.Read))
+                        {
+                            byte[] md5 = null;
+                            Console.Error.WriteLine("Hash check start...");
+                            await Task.Run(() => { md5 = md5calc.ComputeHash(hfile); }, Drive.ct);
+                            Console.Error.WriteLine("Hash done.");
+                            md5string = BitConverter.ToString(md5).ToLower().Replace("-", "");
+                            if (md5string == target.contentProperties?.md5)
+                            {
+                                Console.Error.WriteLine("Item is already uploaded and same Hash.");
+                                return 999;
+                            }
+                        }
+                    }
+                }
+                if(hashflag && md5string == null)
+                {
+                    using (var md5calc = new System.Security.Cryptography.MD5CryptoServiceProvider())
+                    using (var hfile = File.Open(localpath, FileMode.Open, FileAccess.Read, FileShare.Read))
+                    {
+                        byte[] md5 = null;
+                        Console.Error.WriteLine("Hash check start...");
+                        await Task.Run(() => { md5 = md5calc.ComputeHash(hfile); }, Drive.ct);
+                        Console.Error.WriteLine("Hash done.");
+                        md5string = BitConverter.ToString(md5).ToLower().Replace("-", "");
                     }
                 }
                 Console.Error.WriteLine("ok. Upload...");
                 Console.Error.WriteLine("");
-
 
                 int retry = 6;
                 while (--retry > 0)
@@ -453,10 +550,21 @@ namespace TSviewACD
                             {
                                 Console.Error.Write("\r{0,-79}", upload_str + evnt.Log);
                             });
-                        break;
+                        if(!hashflag || ret.contentProperties.md5 == md5string)
+                            break;
+
+                        Console.Error.WriteLine("");
+                        Console.Error.WriteLine("MD5 hash not match. retry...");
+
+                        Console.Error.WriteLine("remove item...");
+                        await Drive.TrashItem(ret.id);
+                        await Task.Delay(TimeSpan.FromSeconds(5), Drive.ct);
+                        Console.Error.WriteLine("retry to upload..." + retry.ToString());
+                        continue;
                     }
                     catch (HttpRequestException ex)
                     {
+                        Console.Error.WriteLine("");
                         if (ex.Message.Contains("408 (REQUEST_TIMEOUT)")) checkretry = 6 * 5 + 1;
                         if (ex.Message.Contains("409 (Conflict)")) checkretry = 6 * 5 + 1;
                         if (ex.Message.Contains("504 (GATEWAY_TIMEOUT)")) checkretry = 6 * 5 + 1;
@@ -468,6 +576,7 @@ namespace TSviewACD
                     }
                     catch (Exception ex)
                     {
+                        Console.Error.WriteLine("");
                         checkretry = 3 + 1;
                         Console.Error.WriteLine("Error: " + ex.Message);
                     }
@@ -485,6 +594,14 @@ namespace TSviewACD
                             if (children.data.Select(x => x.name).Contains(short_filename))
                             {
                                 Console.Error.WriteLine("Upload : child found.");
+                                if (!hashflag)
+                                    break;
+                                var uploadeditem = children.data.Where(x => x.name == short_filename).First();
+                                if (uploadeditem.contentProperties.md5 != md5string)
+                                {
+                                    Console.Error.WriteLine("Upload : but hash is not match. retry..."+retry.ToString());
+                                    checkretry = 0;
+                                }
                                 break;
                             }
                         }
@@ -505,6 +622,7 @@ namespace TSviewACD
                     return -1;
                 }
 
+                Console.Error.WriteLine("");
                 Console.Error.WriteLine("Upload : done.");
 
                 return 0;

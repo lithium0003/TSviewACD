@@ -457,21 +457,17 @@ namespace TSviewACD
                             waitskipforDelay -= slp;
                             DelayforSend -= TimeSpan.FromMilliseconds(slp);
                             slp = 0;
-                            System.Diagnostics.Debug.WriteLine("sleep-skip1 {2:0.00} {3:0.00} {4}", rate, bytePerSec, slp, waitskipforDelay, DelayforSend);
                         }
                         else
                         {
                             slp -= waitskipforDelay;
                             DelayforSend -= TimeSpan.FromMilliseconds(waitskipforDelay);
                             waitskipforDelay = 0;
-                            System.Diagnostics.Debug.WriteLine("sleep-skip2 {2:0.00} {3:0.00} {4}", rate, bytePerSec, slp, waitskipforDelay, DelayforSend);
                         }
                     }
                     if (slp > 0)
                     {
                         Thread.Sleep((int)slp);
-                        //await Task.Delay((int)slp, ct).ConfigureAwait(false);
-                        //System.Diagnostics.Debug.WriteLine("sleep1 {0:0.00}->{1:0.00} {2:0.00} {3:0.00} {4}", rate, bytePerSec, slp, waitskipforDelay, DelayforSend);
                     }
                 }
 
@@ -497,8 +493,6 @@ namespace TSviewACD
                         if (slp.TotalMilliseconds > 0)
                         {
                             Thread.Sleep(slp);
-                            //await Task.Delay(slp, ct).ConfigureAwait(false);
-                            System.Diagnostics.Debug.WriteLine("++sleep2 {0} {1:0.00} {2}", slp, waitskipforDelay, DelayforSend);
                         }
                     }
                 }

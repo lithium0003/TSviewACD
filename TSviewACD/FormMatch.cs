@@ -80,7 +80,7 @@ namespace TSviewACD
                     var filename = listBox1.Items[i] as string;
                     var name = Path.GetFileName(filename);
 
-                    var matchitem = SelectedRemoteFiles?.Select(x => (x.Tag as TreeNode).Tag as FileMetadata_Info).Where(x => x.kind != "FOLDER" && x.name == name);
+                    var matchitem = SelectedRemoteFiles?.Select(x => (x.Tag as ItemInfo).info).Where(x => x.kind != "FOLDER" && x.name == name);
                     if (matchitem.Count() > 0)
                     {
                         bool match = false;

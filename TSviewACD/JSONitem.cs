@@ -28,9 +28,12 @@ namespace TSviewACD
         public string status;
     }
 
+    [Serializable()]
     [DataContract]
     public class FileMetadata_Info
     {
+        [DataMember]
+        public string eTagResponse;
         [DataMember]
         public string id;
         [DataMember]
@@ -86,6 +89,7 @@ namespace TSviewACD
         public contentProperties_Info contentProperties;
     }
 
+    [Serializable()]
     [DataContract]
     public class contentProperties_Info
     {
@@ -110,5 +114,21 @@ namespace TSviewACD
         public string nextToken;
         [DataMember]
         public FileMetadata_Info[] data;
+    }
+
+
+    [DataContract]
+    public class Changes_Info
+    {
+        [DataMember]
+        public string checkpoint;
+        [DataMember]
+        public bool? end;
+        [DataMember]
+        public bool? reset;
+        [DataMember]
+        public int? statusCode;
+        [DataMember]
+        public FileMetadata_Info[] nodes;
     }
 }

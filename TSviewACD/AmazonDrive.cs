@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Runtime.Serialization;
@@ -241,46 +242,66 @@ namespace TSviewACD
             throw new SystemException("GetFileMetadata Failed. " + error_str);
         }
 
-        public async Task<FileListdata_Info> ListMetadata(string filters, string startToken = null)
+        public async Task<FileListdata_Info> ListMetadata(string filters = null, string startToken = null)
         {
             Config.Log.LogOut("\t[ListMetadata]");
-            string error_str;
+            string error_str = "";
             using (var client = new HttpClient())
             {
-                try
+                Random rnd = new Random();
+                var retry = 0;
+                while (++retry > 0)
                 {
-                    client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", Authkey.access_token);
-                    var response = await client.GetAsync(
-                        metadataUrl + "nodes?filters=" + filters + (string.IsNullOrEmpty(startToken) ? "" : "&startToken=" + startToken),
-                        ct
-                    ).ConfigureAwait(false);
-                    response.EnsureSuccessStatusCode();
-                    string responseBody = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
-                    // Above three lines can be replaced with new helper method in following line
-                    // string body = await client.GetStringAsync(uri);
-                    var info = ParseResponse<FileListdata_Info>(responseBody);
-                    if (!string.IsNullOrEmpty(info.nextToken))
+                    try
                     {
-                        var next_info = await ListMetadata(filters, info.nextToken).ConfigureAwait(false);
-                        info.data = info.data.Concat(next_info.data).ToArray();
+                        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", Authkey.access_token);
+                        var url = metadataUrl + "nodes?";
+                        if (!string.IsNullOrEmpty(filters)) url += "filters=" + filters + '&';
+                        if (!string.IsNullOrEmpty(startToken)) url += "startToken=" + startToken + '&';
+                        url = url.Trim('?', '&');
+                        var response = await client.GetAsync(
+                            url,
+                            ct
+                        ).ConfigureAwait(false);
+                        response.EnsureSuccessStatusCode();
+                        string responseBody = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
+                        // Above three lines can be replaced with new helper method in following line
+                        // string body = await client.GetStringAsync(uri);
+                        var info = ParseResponse<FileListdata_Info>(responseBody);
+                        if (!string.IsNullOrEmpty(info.nextToken))
+                        {
+                            var next_info = await ListMetadata(filters, info.nextToken).ConfigureAwait(false);
+                            info.data = info.data.Concat(next_info.data).ToArray();
+                        }
+                        return info;
                     }
-                    return info;
-                }
-                catch (HttpRequestException ex)
-                {
-                    error_str = ex.Message;
-                    Config.Log.LogOut("\t[ListMetadata] " + error_str);
-                    System.Diagnostics.Debug.WriteLine(error_str);
-                }
-                catch (OperationCanceledException)
-                {
-                    throw;
-                }
-                catch (Exception ex)
-                {
-                    error_str = ex.ToString();
-                    Config.Log.LogOut("\t[ListMetadata] " + error_str);
-                    System.Diagnostics.Debug.WriteLine(error_str);
+                    catch (HttpRequestException ex)
+                    {
+                        error_str = ex.Message;
+                        Config.Log.LogOut("\t[ListMetadata] " + error_str);
+                        System.Diagnostics.Debug.WriteLine(error_str);
+
+                        if (ex.Message.Contains("500 (Internal Server Error)") ||
+                            ex.Message.Contains("503 (Service Unavailable)"))
+                        {
+                            var waitsec = rnd.Next((int)Math.Pow(2, Math.Min(retry - 1, 8)));
+                            Config.Log.LogOut("\t[ListMetadata] wait " + waitsec.ToString() + " sec");
+                            System.Diagnostics.Debug.WriteLine("{0} sec wait", waitsec);
+                            await Task.Delay(waitsec * 1000);
+                        }
+                        else { break; }
+                    }
+                    catch (OperationCanceledException)
+                    {
+                        throw;
+                    }
+                    catch (Exception ex)
+                    {
+                        error_str = ex.ToString();
+                        Config.Log.LogOut("\t[ListMetadata] " + error_str);
+                        System.Diagnostics.Debug.WriteLine(error_str);
+                        break;
+                    }
                 }
             }
             throw new SystemException("ListMetadata Failed. " + error_str);
@@ -347,7 +368,6 @@ namespace TSviewACD
         public async Task<FileMetadata_Info> uploadFile(string filename, string parent_id = null, PoschangeEventHandler process = null)
         {
             Config.Log.LogOut("\t[uploadFile] " + filename);
-            await EnsureToken().ConfigureAwait(false);
             string error_str;
             using (var client = new HttpClient())
             {
@@ -420,7 +440,6 @@ namespace TSviewACD
         public async Task<bool> TrashItem(string id)
         {
             Config.Log.LogOut("\t[Trash] " + id);
-            await EnsureToken().ConfigureAwait(false);
             string error_str;
             using (var client = new HttpClient())
             {
@@ -477,7 +496,6 @@ namespace TSviewACD
         public async Task<Stream> downloadFile(string id, long? from = null, long? to = null)
         {
             Config.Log.LogOut("\t[downloadFile] " + id);
-            await EnsureToken().ConfigureAwait(false);
             string error_str;
             var client = new HttpClient();
             client.Timeout = TimeSpan.FromDays(1);
@@ -518,7 +536,6 @@ namespace TSviewACD
         public async Task<FileMetadata_Info> renameItem(string id, string newname)
         {
             Config.Log.LogOut("\t[rename] " + id + ' ' + newname);
-            await EnsureToken().ConfigureAwait(false);
             string error_str;
             using (var client = new HttpClient())
             {
@@ -562,7 +579,6 @@ namespace TSviewACD
         public async Task<FileMetadata_Info> createFolder(string foldername, string parent_id = null)
         {
             Config.Log.LogOut("\t[createFolder] " + foldername);
-            await EnsureToken().ConfigureAwait(false);
             string error_str;
             using (var client = new HttpClient())
             {
@@ -629,7 +645,6 @@ namespace TSviewACD
         public async Task<bool> moveChild(string childid, string fromParentId, string toParentId)
         {
             Config.Log.LogOut("\t[move]");
-            await EnsureToken().ConfigureAwait(false);
             string error_str;
             using (var client = new HttpClient())
             {
@@ -665,7 +680,7 @@ namespace TSviewACD
                 catch (HttpRequestException ex)
                 {
                     error_str = ex.Message;
-                    Config.Log.LogOut("\t[move] "+ error_str);
+                    Config.Log.LogOut("\t[move] " + error_str);
                     System.Diagnostics.Debug.WriteLine(error_str);
                 }
                 catch (OperationCanceledException)
