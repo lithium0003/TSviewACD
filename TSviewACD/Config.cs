@@ -14,6 +14,7 @@ namespace TSviewACD
 {
     static class Config
     {
+        public const long SmallFileSize = 10 * 1024 * 1024;
         private static string GetFileSystemPath(Environment.SpecialFolder folder)
         {
             // パスを取得

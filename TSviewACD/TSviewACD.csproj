@@ -117,6 +117,7 @@
     </Compile>
     <Compile Include="AmazonDrive.cs" />
     <Compile Include="AmazonDriveStream.cs" />
+    <Compile Include="Clipboard.cs" />
     <Compile Include="Config.cs" />
     <Compile Include="Console.cs" />
     <Compile Include="CryptStream.cs" />
@@ -170,6 +171,12 @@
     <Compile Include="FormMatchResult.Designer.cs">
       <DependentUpon>FormMatchResult.cs</DependentUpon>
     </Compile>
+    <Compile Include="FormTemplink.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="FormTemplink.Designer.cs">
+      <DependentUpon>FormTemplink.cs</DependentUpon>
+    </Compile>
     <Compile Include="FormTestDownload.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -189,7 +196,6 @@
       <DesignTime>True</DesignTime>
       <DependentUpon>Resource_text.ja.resx</DependentUpon>
     </Compile>
-    <Compile Include="Sort.cs" />
     <Compile Include="FormLogin.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -246,6 +252,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="FormMatchResult.resx">
       <DependentUpon>FormMatchResult.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="FormTemplink.resx">
+      <DependentUpon>FormTemplink.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="FormTestDownload.resx">
       <DependentUpon>FormTestDownload.cs</DependentUpon>

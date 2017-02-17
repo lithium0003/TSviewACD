@@ -714,8 +714,28 @@ namespace TSviewACD
             {
                 Console.Error.WriteLine("createFolder: " + path_str[0]);
                 var checkpoint = DriveData.ChangeCheckpoint;
-                targetchild = await Drive.createFolder(path_str[0], parent.id, ct).ConfigureAwait(false);
-                await Task.Delay(5000, ct).ConfigureAwait(false);
+                int retry = 6;
+                while (--retry > 0)
+                {
+                    try
+                    {
+                        targetchild = await Drive.createFolder(path_str[0], parent.id, ct).ConfigureAwait(false);
+                        var children2 = await DriveData.GetChanges(checkpoint, ct);
+                        if (children2.Where(x => x.name.Contains(path_str[0])).LastOrDefault()?.status == "AVAILABLE")
+                        {
+                            break;
+                        }
+                        await Task.Delay(2000, ct).ConfigureAwait(false);
+                    }
+                    catch (HttpRequestException)
+                    {
+                        // retry
+                    }
+                    catch (OperationCanceledException)
+                    {
+                        throw;
+                    }
+                }
                 var newitems = (await DriveData.GetChanges(checkpoint, ct).ConfigureAwait(false));
             }
             return await CreateDirs(path_str.Skip(1).ToArray(), targetchild, ct).ConfigureAwait(false);
@@ -841,11 +861,12 @@ namespace TSviewACD
                     string md5string = null;
 
                     var checkpoint = DriveData.ChangeCheckpoint;
+                    var filesize = new FileInfo(localpath).Length;
 
                     if (done_files?.Select(x => x.name).Contains(uploadfilename) ?? false)
                     {
                         var target = done_files.First(x => x.name == uploadfilename);
-                        if (new FileInfo(localpath).Length == target.contentProperties?.size)
+                        if (filesize == target.contentProperties?.size)
                         {
                             if (!hashflag)
                             {
@@ -957,6 +978,7 @@ namespace TSviewACD
                             if (ex.Message.Contains("408 (REQUEST_TIMEOUT)")) checkretry = 6 * 5 + 1;
                             if (ex.Message.Contains("409 (Conflict)")) checkretry = 6 * 5 + 1;
                             if (ex.Message.Contains("504 (GATEWAY_TIMEOUT)")) checkretry = 6 * 5 + 1;
+                            if (filesize < Config.SmallFileSize) checkretry = 3;
                             Console.Error.WriteLine("Error: " + ex.Message);
                         }
                         catch (OperationCanceledException)

@@ -3,10 +3,14 @@ using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
+using System.Net.Http;
+using System.Runtime.Serialization;
 using System.Runtime.Serialization.Formatters.Binary;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Windows.Forms;
+using System.Xml;
 
 namespace TSviewACD
 {
@@ -21,16 +25,32 @@ namespace TSviewACD
         static List<FileMetadata_Info> historydata = new List<FileMetadata_Info>();
         static string checkpoint;
 
-        static DriveData_Info AmazonDriveData
+        [Serializable()]
+        [DataContract]
+        public class RecordData
         {
-            get
+            [DataMember]
+            public string checkpoint;
+            [DataMember]
+            public Dictionary<string, ItemInfo> DriveTree;
+
+            public RecordData()
             {
-                var ret = new DriveData_Info();
-                ret.checkpoint = checkpoint;
-                ret.nodes = historydata.ToArray();
-                return ret;
+                checkpoint = DriveData.checkpoint;
+                DriveTree = DriveData.DriveTree;
             }
         }
+
+        //static DriveData_Info AmazonDriveData
+        //{
+        //    get
+        //    {
+        //        var ret = new DriveData_Info();
+        //        ret.checkpoint = checkpoint;
+        //        ret.nodes = historydata.ToArray();
+        //        return ret;
+        //    }
+        //}
 
         static public IDictionary<string, ItemInfo> AmazonDriveTree
         {
@@ -49,7 +69,7 @@ namespace TSviewACD
             get { return historydata; }
         }
 
-        public static bool SaveToBinaryFile(object obj, string path)
+        public static bool SaveToBinaryFile(RecordData obj, string path)
         {
             try
             {
@@ -57,11 +77,13 @@ namespace TSviewACD
                     FileMode.Create,
                     FileAccess.Write,
                     FileShare.None))
-                using (var ds = new GZipStream(fs, CompressionLevel.Optimal))
+                using (var ds = new GZipStream(fs, CompressionLevel.Fastest))
+                using (var writer = XmlDictionaryWriter.CreateBinaryWriter(ds))
                 {
-                    var bf = new BinaryFormatter();
+                    var s = new DataContractSerializer(typeof(RecordData), new DataContractSerializerSettings() { MaxItemsInObjectGraph = int.MaxValue });
                     //シリアル化して書き込む
-                    bf.Serialize(ds, obj);
+                    s.WriteObject(writer, obj);
+                    writer.Flush();
                 }
                 return true;
             }
@@ -71,16 +93,17 @@ namespace TSviewACD
             }
         }
 
-        public static object LoadFromBinaryFile(string path)
+        public static RecordData LoadFromBinaryFile(string path)
         {
             using (var fs = new FileStream(path,
                 FileMode.Open,
                 FileAccess.Read))
             using (var ds = new GZipStream(fs, CompressionMode.Decompress))
+            using (var reader = XmlDictionaryReader.CreateBinaryReader(ds, new XmlDictionaryReaderQuotas()))
             {
-                BinaryFormatter f = new BinaryFormatter();
+                var s = new DataContractSerializer(typeof(RecordData), new DataContractSerializerSettings() { MaxItemsInObjectGraph = int.MaxValue });
                 //読み込んで逆シリアル化する
-                return f.Deserialize(ds);
+                return (RecordData)s.ReadObject(reader);
             }
         }
 
@@ -95,7 +118,7 @@ namespace TSviewACD
                 try
                 {
                     File.Delete(cachefile);
-                    historydata.Clear();
+                    //historydata.Clear();
                     DriveTree.Clear();
                     checkpoint = null;
                     root_id = null;
@@ -118,15 +141,16 @@ namespace TSviewACD
                 inprogress?.Invoke("Loading Cache...");
                 using (await DriveLock.LockAsync())
                 {
+                    DriveTree.Clear();
+                    RecordData cache = null;
                     await Task.Run(() =>
                     {
-                        historydata.Clear();
-                        DriveTree.Clear();
-                        var cache = (DriveData_Info)LoadFromBinaryFile(cachefile);
-                        checkpoint = cache.checkpoint;
-                        historydata.AddRange(cache.nodes);
-                        if (historydata.Count == 0) checkpoint = null;
-                        ConstructDriveTree(historydata);
+                        cache = LoadFromBinaryFile(cachefile);
+                    }, ct);
+                    inprogress?.Invoke("Restore tree...");
+                    await Task.Run(() =>
+                    {
+                        ConstructDriveTree(cache);
                     }, ct);
                 }
                 await GetChanges(checkpoint: checkpoint, ct: ct, inprogress: inprogress, done: done);
@@ -152,15 +176,30 @@ namespace TSviewACD
                 if (checkpoint == null)
                 {
                     DriveTree.Clear();
-                    historydata.Clear();
                 }
+                historydata.Clear();
+                bool updated = false;
                 while (!ct.IsCancellationRequested)
                 {
-                    var history = await Drive.changes(checkpoint: checkpoint, ct: ct);
-                    foreach(var h in history)
+                    Changes_Info[] history = null;
+                    int retry = 6;
+                    while (--retry > 0)
+                    {
+                        try
+                        {
+                            history = await Drive.changes(checkpoint: checkpoint, ct: ct);
+                            break;
+                        }
+                        catch (HttpRequestException ex)
+                        {
+                            Config.Log.LogOut("[GetChanges] " + ex.Message);
+                        }
+                    }
+                    foreach (var h in history)
                     {
                         if(!(h.end ?? false))
                         {
+                            if (h.nodes.Count() > 0) updated = true;
                             ConstructDriveTree(h.nodes);
                             ret.AddRange(h.nodes);
                             historydata.AddRange(h.nodes);
@@ -170,10 +209,21 @@ namespace TSviewACD
                     if (history.LastOrDefault()?.end ?? false) break;
                 }
                 done?.Invoke("Changes Loaded.");
-                while (!ct.IsCancellationRequested)
+                if (updated)
                 {
-                    if (SaveToBinaryFile(AmazonDriveData, cachefile))
-                        break;
+                    while (!ct.IsCancellationRequested)
+                    {
+                        if (await Task.Run(() =>
+                        {
+                            if (SaveToBinaryFile(new RecordData(), cachefile))
+                                return true;
+                            else
+                                return false;
+                        }, ct))
+                        {
+                            break;
+                        }
+                    }
                 }
                 return ret.ToArray();
             }
@@ -184,6 +234,39 @@ namespace TSviewACD
             foreach (var item in newdata)
             {
                 AddNewDriveItem(item);
+            }
+        }
+
+        static private void ConstructDriveTree(RecordData saveddata)
+        {
+            checkpoint = saveddata.checkpoint;
+            DriveTree = saveddata.DriveTree;
+            foreach (var key in saveddata.DriveTree.Keys)
+            {
+                var newdata = saveddata.DriveTree[key].info;
+                if (newdata.status == "AVAILABLE")
+                {
+                    foreach (var p in newdata.parents)
+                    {
+                        ItemInfo value;
+                        if (DriveTree.TryGetValue(p, out value))
+                        {
+                            value.children[newdata.id] = DriveTree[newdata.id];
+                        }
+                        else
+                        {
+                            DriveTree[p] = new ItemInfo(null);
+                            DriveTree[p].children[newdata.id] = DriveTree[newdata.id];
+                        }
+                    }
+                    if (newdata.isRoot ?? false)
+                        root_id = newdata.id;
+                }
+                else
+                {
+                    // deleted item
+                    DeleteDriveItem(newdata);
+                }
             }
         }
 
@@ -355,6 +438,60 @@ namespace TSviewACD
                     return Encoding.UTF8.GetString(plain);
                 }
             }
+        }
+    }
+
+    [Serializable()]
+    [DataContract]
+    public class ItemInfo
+    {
+        [DataMember]
+        public FileMetadata_Info info;
+        public TreeNode tree;
+        public Dictionary<string, ItemInfo> children = new Dictionary<string, ItemInfo>();
+
+        public ItemInfo(FileMetadata_Info thisdata)
+        {
+            info = thisdata;
+        }
+
+        [OnDeserialized()]
+        internal void OnDeserializedMethod(StreamingContext context)
+        {
+            children = new Dictionary<string, ItemInfo>();
+        }
+    }
+
+
+    public sealed class AsyncLock
+    {
+        private readonly System.Threading.SemaphoreSlim m_semaphore
+          = new System.Threading.SemaphoreSlim(1, 1);
+        private readonly Task<IDisposable> m_releaser;
+
+        public AsyncLock()
+        {
+            m_releaser = Task.FromResult((IDisposable)new Releaser(this));
+        }
+
+        public Task<IDisposable> LockAsync()
+        {
+            var wait = m_semaphore.WaitAsync();
+            return wait.IsCompleted ?
+                    m_releaser :
+                    wait.ContinueWith(
+                      (_, state) => (IDisposable)state,
+                      m_releaser.Result,
+                      System.Threading.CancellationToken.None,
+                      TaskContinuationOptions.ExecuteSynchronously,
+                      TaskScheduler.Default
+                    );
+        }
+        private sealed class Releaser : IDisposable
+        {
+            private readonly AsyncLock m_toRelease;
+            internal Releaser(AsyncLock toRelease) { m_toRelease = toRelease; }
+            public void Dispose() { m_toRelease.m_semaphore.Release(); }
         }
     }
 }

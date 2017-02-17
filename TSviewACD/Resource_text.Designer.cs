@@ -430,6 +430,15 @@ namespace TSviewACD {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Do you want to rename multiple items?.
+        /// </summary>
+        internal static string RenameMulti_str {
+            get {
+                return ResourceManager.GetString("RenameMulti_str", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Select Upload File(s).
         /// </summary>
         internal static string SelectUploadFiles_str {
@@ -453,6 +462,15 @@ namespace TSviewACD {
         internal static string UpFolder_str {
             get {
                 return ResourceManager.GetString("UpFolder_str", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Drag item contains some Folder. Do you want to continue to upload?.
+        /// </summary>
+        internal static string UploadFolder_str {
+            get {
+                return ResourceManager.GetString("UploadFolder_str", resourceCulture);
             }
         }
     }

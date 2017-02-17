@@ -5,6 +5,7 @@ using System.Data;
 using System.Drawing;
 using System.IO;
 using System.Linq;
+using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
@@ -310,12 +311,32 @@ namespace TSviewACD
                                 }
                                 else
                                 {
-                                    var checkpoint = DriveData.ChangeCheckpoint;
-                                    // make subdirectory
-                                    var newdir = await DriveData.Drive.createFolder(p, parentID);
-                                    await Task.Delay(2000, ct);
-                                    await DriveData.GetChanges(checkpoint, ct);
-                                    parentID = newdir.id;
+                                    int retry = 6;
+                                    while (--retry > 0)
+                                    {
+                                        try
+                                        {
+                                            var checkpoint = DriveData.ChangeCheckpoint;
+                                            // make subdirectory
+                                            var newdir = await DriveData.Drive.createFolder(p, parentID, ct);
+                                            var children = await DriveData.GetChanges(checkpoint, ct);
+                                            if (children.Where(x => x.name.Contains(p)).LastOrDefault()?.status == "AVAILABLE")
+                                            {
+                                                Config.Log.LogOut("createFolder : child found.");
+                                                parentID = newdir.id;
+                                                break;
+                                            }
+                                            await Task.Delay(2000, ct);
+                                        }
+                                        catch (HttpRequestException)
+                                        {
+                                            //retry
+                                        }
+                                        catch (OperationCanceledException)
+                                        {
+                                            throw;
+                                        }
+                                    }
                                 }
                             }
                         }

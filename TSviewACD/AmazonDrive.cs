@@ -613,6 +613,7 @@ namespace TSviewACD
                 {
                     error_str = ex.Message;
                     Config.Log.LogOut("\t[createFolder] " + error_str);
+                    throw;
                 }
                 catch (OperationCanceledException)
                 {

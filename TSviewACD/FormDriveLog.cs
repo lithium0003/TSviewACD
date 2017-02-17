@@ -34,7 +34,8 @@ namespace TSviewACD
                         node.createdDate,
                         node.modifiedDate,
                         node.contentProperties?.size,
-                        node.contentProperties?.md5));
+                        node.contentProperties?.md5
+                        ));
                 }
                 textBox1.Lines = buf.ToArray();
             }

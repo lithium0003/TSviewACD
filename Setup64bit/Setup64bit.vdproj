@@ -39,12 +39,6 @@
         }
         "Entry"
         {
-        "MsmKey" = "8:_5E4257A4CB80406191E9D3E8AC2DF28F"
-        "OwnerKey" = "8:_F2CC19CFEBF44648AEA35821DE165D77"
-        "MsmSig" = "8:_UNDEFINED"
-        }
-        "Entry"
-        {
         "MsmKey" = "8:_65432A5FB20D4ED09FC6B8F3F9F8FD2D"
         "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
@@ -59,6 +53,12 @@
         {
         "MsmKey" = "8:_81A9D0128E1A5163C562043C4B894E9E"
         "OwnerKey" = "8:_9EF8E958004C4CB4B65E85A6A271BB16"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
+        "MsmKey" = "8:_81A9D0128E1A5163C562043C4B894E9E"
+        "OwnerKey" = "8:_F2CC19CFEBF44648AEA35821DE165D77"
         "MsmSig" = "8:_UNDEFINED"
         }
         "Entry"
@@ -160,19 +160,13 @@
         "Entry"
         {
         "MsmKey" = "8:_UNDEFINED"
+        "OwnerKey" = "8:_95CCDE694D904C9395197843B4D8AAFE"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
+        "MsmKey" = "8:_UNDEFINED"
         "OwnerKey" = "8:_9EF8E958004C4CB4B65E85A6A271BB16"
-        "MsmSig" = "8:_UNDEFINED"
-        }
-        "Entry"
-        {
-        "MsmKey" = "8:_UNDEFINED"
-        "OwnerKey" = "8:_F2CC19CFEBF44648AEA35821DE165D77"
-        "MsmSig" = "8:_UNDEFINED"
-        }
-        "Entry"
-        {
-        "MsmKey" = "8:_UNDEFINED"
-        "OwnerKey" = "8:_5E4257A4CB80406191E9D3E8AC2DF28F"
         "MsmSig" = "8:_UNDEFINED"
         }
         "Entry"
@@ -190,7 +184,7 @@
         "Entry"
         {
         "MsmKey" = "8:_UNDEFINED"
-        "OwnerKey" = "8:_95CCDE694D904C9395197843B4D8AAFE"
+        "OwnerKey" = "8:_F2CC19CFEBF44648AEA35821DE165D77"
         "MsmSig" = "8:_UNDEFINED"
         }
     }
@@ -376,37 +370,6 @@
             "Register" = "3:1"
             "Exclude" = "11:FALSE"
             "IsDependency" = "11:FALSE"
-            "IsolateTo" = "8:"
-            }
-            "{9F6F8455-1EF1-4B85-886A-4223BCC8E7F7}:_5E4257A4CB80406191E9D3E8AC2DF28F"
-            {
-            "AssemblyRegister" = "3:1"
-            "AssemblyIsInGAC" = "11:FALSE"
-            "AssemblyAsmDisplayName" = "8:ffmodule_conf, Version=1.0.0.0, Culture=neutral, processorArchitecture=AMD64"
-                "ScatterAssemblies"
-                {
-                    "_5E4257A4CB80406191E9D3E8AC2DF28F"
-                    {
-                    "Name" = "8:ffmodule_conf.DLL"
-                    "Attributes" = "3:512"
-                    }
-                }
-            "SourcePath" = "8:ffmodule_conf.DLL"
-            "TargetName" = "8:"
-            "Tag" = "8:"
-            "Folder" = "8:_8D9756B685E142D791ACF2E5FDFC53C4"
-            "Condition" = "8:"
-            "Transitive" = "11:FALSE"
-            "Vital" = "11:TRUE"
-            "ReadOnly" = "11:FALSE"
-            "Hidden" = "11:FALSE"
-            "System" = "11:FALSE"
-            "Permanent" = "11:FALSE"
-            "SharedLegacy" = "11:FALSE"
-            "PackageAs" = "3:1"
-            "Register" = "3:1"
-            "Exclude" = "11:TRUE"
-            "IsDependency" = "11:TRUE"
             "IsolateTo" = "8:"
             }
             "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_65432A5FB20D4ED09FC6B8F3F9F8FD2D"
@@ -849,15 +812,15 @@
         {
         "Name" = "8:Microsoft Visual Studio"
         "ProductName" = "8:TSviewACD"
-        "ProductCode" = "8:{D5F18085-7901-4789-B030-DE959403E2F1}"
-        "PackageCode" = "8:{509A0720-13CB-4FA7-B89A-BA7B845DE6F8}"
+        "ProductCode" = "8:{14ADE75A-9117-46DC-A6F3-0FE23BE7EAF3}"
+        "PackageCode" = "8:{96516114-BFC2-4CD2-8DFE-838928A415FE}"
         "UpgradeCode" = "8:{35BB5569-D1AC-4F9A-861C-2B676D50BCC7}"
         "AspNetVersion" = "8:4.0.30319.0"
         "RestartWWWService" = "11:FALSE"
         "RemovePreviousVersions" = "11:TRUE"
         "DetectNewerInstalledVersion" = "11:TRUE"
         "InstallAllUsers" = "11:FALSE"
-        "ProductVersion" = "8:4.1.12"
+        "ProductVersion" = "8:5.0.0"
         "Manufacturer" = "8:lithium03"
         "ARPHELPTELEPHONE" = "8:"
         "ARPHELPLINK" = "8:"

@@ -11,6 +11,7 @@ using System.Linq;
 using System.Net.Http;
 using System.Reflection;
 using System.Runtime.InteropServices;
+using System.Runtime.InteropServices.ComTypes;
 using System.Runtime.Serialization;
 using System.Runtime.Serialization.Formatters.Binary;
 using System.Text;
@@ -78,28 +79,19 @@ namespace TSviewACD
 
         private void listView1_ColumnClick(object sender, ColumnClickEventArgs e)
         {
-            // Determine if clicked column is already the column that is being sorted.
-            if (e.Column == lvwColumnSorter.SortColumn)
+            if ((int)listviewitem.SortColum == e.Column)
             {
-                // Reverse the current sort direction for this column.
-                if (lvwColumnSorter.Order == SortOrder.Ascending)
-                {
-                    lvwColumnSorter.Order = SortOrder.Descending;
-                }
+                if (listviewitem.SortOrder == SortOrder.Ascending)
+                    listviewitem.SortOrder = SortOrder.Descending;
                 else
-                {
-                    lvwColumnSorter.Order = SortOrder.Ascending;
-                }
+                    listviewitem.SortOrder = SortOrder.Ascending;
             }
             else
             {
-                // Set the column number that is to be sorted; default to ascending.
-                lvwColumnSorter.SortColumn = e.Column;
-                lvwColumnSorter.Order = SortOrder.Ascending;
+                listviewitem.SortColum = (ListColums)e.Column;
+                listviewitem.SortOrder = SortOrder.Ascending;
             }
-
-            // Perform the sort with these new sort options.
-            listView1.Sort();
+            listView1.Refresh();
         }
 
         private void LoadImage()
@@ -158,12 +150,270 @@ namespace TSviewACD
         }
 
         private readonly SynchronizationContext synchronizationContext;
-        private ListViewColumnSorter lvwColumnSorter;
         bool initialized = false;
         bool supressListviewRefresh = false;
         private int CriticalCount = 0;
 
         AmazonDrive Drive = DriveData.Drive;
+
+        enum ListColums
+        {
+            Name = 0,
+            Size = 1,
+            modifiedDate = 2,
+            createdDate = 3,
+            path = 4,
+            id = 5,
+            MD5 = 6,
+        };
+
+        class AmazonListViewItem
+        {
+            private ItemInfo[] _Items = new ItemInfo[0];
+            private ItemInfo _Parent = null;
+            private ItemInfo _Root = null;
+            private ListColums _SortColum = ListColums.Name;
+            private SortOrder _SortOrder = System.Windows.Forms.SortOrder.Ascending;
+            private bool _SortKind = false;
+
+
+            private Func<IEnumerable<ItemInfo>, IOrderedEnumerable<ItemInfo>> SortFunction
+            {
+                get
+                {
+                    if (_SortOrder != SortOrder.Descending)
+                    {
+                        switch (_SortColum)
+                        {
+                            case ListColums.Name:
+                                return (IEnumerable<ItemInfo> x) => x.SortByKind(_SortKind).ThenBy(y => y.info.name);
+                            case ListColums.Size:
+                                return (IEnumerable<ItemInfo> x) => x.SortByKind(_SortKind).ThenBy(y => y.info.contentProperties?.size ?? 0);
+                            case ListColums.modifiedDate:
+                                return (IEnumerable<ItemInfo> x) => x.SortByKind(_SortKind).ThenBy(y => y.info.modifiedDate);
+                            case ListColums.createdDate:
+                                return (IEnumerable<ItemInfo> x) => x.SortByKind(_SortKind).ThenBy(y => y.info.createdDate);
+                            case ListColums.path:
+                                return (IEnumerable<ItemInfo> x) => x.SortByKind(_SortKind).ThenBy(y => DriveData.GetFullPathfromItem(y));
+                            case ListColums.MD5:
+                                return (IEnumerable<ItemInfo> x) => x.SortByKind(_SortKind).ThenBy(y => y.info.contentProperties?.md5 ?? "");
+                            default:
+                                return (IEnumerable<ItemInfo> x) => x.SortByKind(_SortKind).ThenBy(y => y.info.name);
+                        }
+                    }
+                    else
+                    {
+                        switch (_SortColum)
+                        {
+                            case ListColums.Name:
+                                return (IEnumerable<ItemInfo> x) => x.SortByKind(_SortKind).ThenByDescending(y => y.info.name);
+                            case ListColums.Size:
+                                return (IEnumerable<ItemInfo> x) => x.SortByKind(_SortKind).ThenByDescending(y => y.info.contentProperties?.size ?? 0);
+                            case ListColums.modifiedDate:
+                                return (IEnumerable<ItemInfo> x) => x.SortByKind(_SortKind).ThenByDescending(y => y.info.modifiedDate);
+                            case ListColums.createdDate:
+                                return (IEnumerable<ItemInfo> x) => x.SortByKind(_SortKind).ThenByDescending(y => y.info.createdDate);
+                            case ListColums.path:
+                                return (IEnumerable<ItemInfo> x) => x.SortByKind(_SortKind).ThenByDescending(y => DriveData.GetFullPathfromItem(y));
+                            case ListColums.MD5:
+                                return (IEnumerable<ItemInfo> x) => x.SortByKind(_SortKind).ThenByDescending(y => y.info.contentProperties?.md5 ?? "");
+                            default:
+                                return (IEnumerable<ItemInfo> x) => x.SortByKind(_SortKind).ThenByDescending(y => y.info.name);
+                        }
+                    }
+                }
+            }
+
+            private void Sort()
+            {
+                _Items = SortFunction(_Items).ToArray();
+            }
+
+            public ListColums SortColum
+            {
+                get { return _SortColum; }
+                set
+                {
+                    _SortColum = value;
+                    Sort();
+                }
+            }
+            public SortOrder SortOrder
+            {
+                get { return _SortOrder; }
+                set
+                {
+                    _SortOrder = value;
+                    Sort();
+                }
+            }
+            public bool SortKind
+            {
+                get { return _SortKind; }
+                set
+                {
+                    _SortKind = value;
+                    Sort();
+                }
+            }
+
+
+            public IEnumerable<ItemInfo> GetItems(ListView.SelectedIndexCollection indecies)
+            {
+                List<ItemInfo> ret = new List<ItemInfo>();
+                foreach(int i in indecies)
+                {
+                    if(Root == null)
+                    {
+                        if (i >= 0 && i < Items.Length) ret.Add(Items[i]);
+                    }
+                    else
+                    {
+                        if (i == 0) ret.Add(Root);
+                        else if (i == 1) ret.Add(Parent);
+                        else if (i >= 2 && i - 2 < Items.Length) ret.Add(Items[i - 2]);
+                    }
+                }
+                return ret;
+            }
+
+            public void Clear()
+            {
+                Root = null;
+            }
+
+            public ItemInfo[] Items
+            {
+                get { return _Items; }
+                set
+                {
+                    Root = null;
+                    _Items = value;
+                    Sort();
+                }
+            }
+            public ItemInfo Parent
+            {
+                get { return _Parent; }
+            }
+            public ItemInfo Root
+            {
+                get { return _Root; }
+                set
+                {
+                    if(value == null)
+                    {
+                        _Root = null;
+                        _Parent = null;
+                        _Items = new ItemInfo[0];
+                    }
+                    else
+                    {
+                        _Root = value;
+                        if(_Root.info.id == DriveData.AmazonDriveRootID)
+                        {
+                            _Parent = _Root;
+                        }
+                        else
+                        {
+                            _Parent = DriveData.AmazonDriveTree[_Root.info.parents[0]];
+                        }
+                        _Items = SortFunction(_Root.children.Values).ToArray();
+                    }
+                }
+            }
+            public int Count
+            {
+                get { return (_Root == null) ? _Items.Length : _Items.Length + 2; }
+            }
+
+
+            private ListViewItem ConvertNormalItem(ItemInfo x)
+            {
+                var item = new ListViewItem(
+                    new string[] {
+                            x.info.name,
+                            x.info.contentProperties?.size?.ToString("#,0"),
+                            x.info.modifiedDate.ToString(),
+                            x.info.createdDate.ToString(),
+                            DriveData.GetFullPathfromItem(x),
+                            x.info.id,
+                            x.info.contentProperties?.md5,
+                    }, (x.info.kind == "FOLDER") ? 0 : 2);
+                item.Name = x.info.name;
+                item.Tag = x;
+                item.ToolTipText = item.Name;
+                return item;
+            }
+
+            public ListViewItem this[int index]
+            {
+                get
+                {
+                    if(_Root == null)
+                    {
+                        if (index < Items.Length)
+                        {
+                            return ConvertNormalItem(Items[index]);
+                        }
+                        else
+                            return new ListViewItem(new string[7]);
+                    }
+                    if (index == 0)
+                    {
+                        var root = Root;
+                        var rootitem = new ListViewItem(
+                            new string[] {
+                            ".",
+                            "",
+                            root.info.modifiedDate.ToString(),
+                            root.info.createdDate.ToString(),
+                            DriveData.GetFullPathfromItem(root),
+                            root.info.id,
+                            "",
+                            }, 0);
+                        rootitem.Tag = root;
+                        rootitem.Name = (root.info.id == DriveData.AmazonDriveRootID) ? "/" : ".";
+                        rootitem.ToolTipText = Resource_text.CurrentFolder_str;
+                        return rootitem;
+                    }
+                    if(index == 1)
+                    {
+                        var up = Parent;
+                        var upitem = new ListViewItem(
+                            new string[] {
+                            "..",
+                            "",
+                            up.info.modifiedDate.ToString(),
+                            up.info.createdDate.ToString(),
+                            DriveData.GetFullPathfromItem(up),
+                            up.info.id,
+                            "",
+                            }, 0);
+                        upitem.Tag = up;
+                        upitem.Name = (up.info.id == DriveData.AmazonDriveRootID) ? "/" : "..";
+                        upitem.ToolTipText = Resource_text.UpFolder_str;
+                        return upitem;
+                    }
+                    if (index - 2 < Items.Length)
+                    {
+                        return ConvertNormalItem(Items[index - 2]);
+                    }
+                    else
+                        return new ListViewItem(new string[7]);
+                }
+            }
+            public bool Contains(string id)
+            {
+                return (Root?.info.id == id) || (Parent?.info.id == id) || (Items.Select(x => x.info.id).Contains(id));
+            }
+            public bool Contains(IEnumerable<string> id)
+            {
+                return id.Select(x => Contains(x)).Any();
+            }
+        }
+
+        AmazonListViewItem listviewitem = new AmazonListViewItem();
 
         private async Task Login()
         {
@@ -224,7 +474,8 @@ namespace TSviewACD
             Config.refresh_token = "";
             Config.Save();
             treeView1.Nodes.Clear();
-            listView1.Items.Clear();
+            listviewitem.Clear();
+            listView1.VirtualListSize = listviewitem.Count;
             loginToolStripMenuItem.Enabled = true;
             toolStripMenuItem_Logout.Enabled = false;
         }
@@ -293,100 +544,13 @@ namespace TSviewACD
             }).ToArray();
         }
 
-        private ListViewItem[] GenerateListViewItem(ItemInfo root)
-        {
-            List<ListViewItem> ret = new List<ListViewItem>();
-
-            var path = DriveData.GetFullPathfromItem(root);
-            var rootitem = new ListViewItem(
-                new string[] {
-                            ".",
-                            "",
-                            root.info.modifiedDate.ToString(),
-                            root.info.createdDate.ToString(),
-                            path,
-                            root.info.id,
-                            "",
-                }, 0);
-            rootitem.Tag = root;
-            rootitem.Name = (root.info.id == DriveData.AmazonDriveRootID) ? "/" : ".";
-            rootitem.ToolTipText = Resource_text.CurrentFolder_str;
-            ret.Add(rootitem);
-
-            var up = (root.info.id == DriveData.AmazonDriveRootID) ? DriveData.AmazonDriveTree[root.info.id] : DriveData.AmazonDriveTree[root.info.parents[0]];
-            path = DriveData.GetFullPathfromItem(up);
-            var upitem = new ListViewItem(
-                new string[] {
-                            "..",
-                            "",
-                            up.info.modifiedDate.ToString(),
-                            up.info.createdDate.ToString(),
-                            path,
-                            up.info.id,
-                            "",
-                }, 0);
-            upitem.Tag = up;
-            upitem.Name = (up.info.id == DriveData.AmazonDriveRootID) ? "/" : "..";
-            upitem.ToolTipText = Resource_text.UpFolder_str;
-            ret.Add(upitem);
-
-            var childitem = root.children.Values.Select(x =>
-            {
-                path = DriveData.GetFullPathfromItem(x);
-                var item = new ListViewItem(
-                    new string[] {
-                            x.info.name,
-                            x.info.contentProperties?.size?.ToString("#,0"),
-                            x.info.modifiedDate.ToString(),
-                            x.info.createdDate.ToString(),
-                            path,
-                            x.info.id,
-                            x.info.contentProperties?.md5,
-                    }, (x.info.kind == "FOLDER") ? 0 : 2);
-                item.Name = x.info.name;
-                item.Tag = x;
-                item.ToolTipText = item.Name;
-                return item;
-            });
-            ret.AddRange(childitem);
-
-            return ret.ToArray();
-        }
-
-        private ListViewItem[] GenerateListViewItem(ItemInfo[] Items)
-        {
-            List<ListViewItem> ret = new List<ListViewItem>();
-
-            var childitem = Items.Select(x =>
-            {
-                var path = DriveData.GetFullPathfromItem(x);
-                var item = new ListViewItem(
-                    new string[] {
-                            x.info.name,
-                            x.info.contentProperties?.size?.ToString("#,0"),
-                            x.info.modifiedDate.ToString(),
-                            x.info.createdDate.ToString(),
-                            path,
-                            x.info.id,
-                            x.info.contentProperties?.md5,
-                    }, (x.info.kind == "FOLDER") ? 0 : 2);
-                item.Name = x.info.name;
-                item.Tag = x;
-                item.ToolTipText = item.Name;
-                return item;
-            });
-            ret.AddRange(childitem);
-
-            return ret.ToArray();
-        }
-
         private async Task InitView()
         {
             // Load Drive Tree
             await InitAlltree();
 
             // Refresh Drive Tree
-            await ReloadItems(DriveData.AmazonDriveRootID);
+            await ReloadItems(DriveData.AmazonDriveRootID, false);
         }
 
         private void InitializeListView()
@@ -406,21 +570,6 @@ namespace TSviewACD
             listView1.Columns.Add("MD5");
 
             listView1.Columns[1].TextAlign = HorizontalAlignment.Right;
-
-            lvwColumnSorter = new ListViewColumnSorter();
-            lvwColumnSorter.ColumnModes = new ListViewColumnSorter.ComparerMode[]
-            {
-                ListViewColumnSorter.ComparerMode.String,
-                ListViewColumnSorter.ComparerMode.Integer,
-                ListViewColumnSorter.ComparerMode.DateTime,
-                ListViewColumnSorter.ComparerMode.DateTime,
-                ListViewColumnSorter.ComparerMode.String,
-                ListViewColumnSorter.ComparerMode.String,
-                ListViewColumnSorter.ComparerMode.String,
-            };
-            lvwColumnSorter.Order = SortOrder.Ascending;
-            listView1.ListViewItemSorter = lvwColumnSorter;
-            listView1.Sort();
         }
 
         private void LoadTreeItem(TreeNode node)
@@ -464,9 +613,8 @@ namespace TSviewACD
             }
 
             //// display listview Root
-            listView1.Items.Clear();
-            listView1.Items.AddRange(GenerateListViewItem(DriveData.AmazonDriveTree[target_id]));
-            listView1.Sort();
+            listviewitem.Root = DriveData.AmazonDriveTree[target_id];
+            listView1.VirtualListSize = listviewitem.Count;
         }
 
         private async void Form1_Load(object sender, EventArgs e)
@@ -720,9 +868,8 @@ namespace TSviewACD
             {
                 if (e.Node == null)
                 {
-                    listView1.Items.Clear();
-                    listView1.Items.AddRange(GenerateListViewItem(DriveData.AmazonDriveTree[DriveData.AmazonDriveRootID]));
-                    listView1.Sort();
+                    listviewitem.Root = DriveData.AmazonDriveTree[DriveData.AmazonDriveRootID];
+                    listView1.VirtualListSize = listviewitem.Count;
                     return;
                 }
 
@@ -731,15 +878,13 @@ namespace TSviewACD
 
                 if (selectdata.info.kind == "FOLDER")
                 {
-                    listView1.Items.Clear();
-                    listView1.Items.AddRange(GenerateListViewItem(selectdata));
-                    listView1.Sort();
+                    listviewitem.Root = selectdata;
+                    listView1.VirtualListSize = listviewitem.Count;
                 }
                 else
                 {
-                    listView1.Items.Clear();
-                    listView1.Items.AddRange(GenerateListViewItem(DriveData.AmazonDriveTree[selectdata.info.parents[0]]));
-                    listView1.Sort();
+                    listviewitem.Root = DriveData.AmazonDriveTree[selectdata.info.parents[0]];
+                    listView1.VirtualListSize = listviewitem.Count;
                 }
             }
         }
@@ -750,7 +895,6 @@ namespace TSviewACD
             largeIconToolStripMenuItem.Checked = true;
             smallIconToolStripMenuItem.Checked = false;
             listToolStripMenuItem.Checked = false;
-            tileToolStripMenuItem.Checked = false;
             detailToolStripMenuItem.Checked = false;
         }
 
@@ -760,7 +904,6 @@ namespace TSviewACD
             largeIconToolStripMenuItem.Checked = false;
             smallIconToolStripMenuItem.Checked = true;
             listToolStripMenuItem.Checked = false;
-            tileToolStripMenuItem.Checked = false;
             detailToolStripMenuItem.Checked = false;
         }
 
@@ -770,17 +913,6 @@ namespace TSviewACD
             largeIconToolStripMenuItem.Checked = false;
             smallIconToolStripMenuItem.Checked = false;
             listToolStripMenuItem.Checked = true;
-            tileToolStripMenuItem.Checked = false;
-            detailToolStripMenuItem.Checked = false;
-        }
-
-        private void tileToolStripMenuItem_Click(object sender, EventArgs e)
-        {
-            listView1.View = View.Tile;
-            largeIconToolStripMenuItem.Checked = false;
-            smallIconToolStripMenuItem.Checked = false;
-            listToolStripMenuItem.Checked = false;
-            tileToolStripMenuItem.Checked = true;
             detailToolStripMenuItem.Checked = false;
         }
 
@@ -790,45 +922,39 @@ namespace TSviewACD
             largeIconToolStripMenuItem.Checked = false;
             smallIconToolStripMenuItem.Checked = false;
             listToolStripMenuItem.Checked = false;
-            tileToolStripMenuItem.Checked = false;
             detailToolStripMenuItem.Checked = true;
         }
 
         private async void listView1_DoubleClick(object sender, EventArgs e)
         {
-            if (listView1.SelectedItems.Count == 0) return;
-            var selectitem = listView1.SelectedItems[0];
+            if (listView1.SelectedIndices.Count == 0) return;
+            var selectdata = listviewitem.GetItems(listView1.SelectedIndices).FirstOrDefault();
 
-            selectitem.Selected = false;
-            selectitem.Focused = false;
-
-            var selectdata = selectitem.Tag as ItemInfo;
             if (selectdata == null) return;
             if (selectdata.info.kind == "FOLDER")
             {
-                listView1.Items.Clear();
-                listView1.Items.AddRange(GenerateListViewItem(selectdata));
-                listView1.Sort();
+                listviewitem.Root = selectdata;
+                listView1.VirtualListSize = listviewitem.Count;
+                listView1.SelectedIndices.Clear();
+                listView1.Refresh();
             }
             else if (tabControl1.SelectedTab.Name == "tabPage_SendUDP")
             {
-                selectitem.Selected = true;
                 await CancelTask("play");
                 await PlayFiles(PlayOneTSFile, "Send UDP");
             }
             else if (tabControl1.SelectedTab.Name == "tabPage_FFmpeg")
             {
-                selectitem.Selected = true;
                 await PlayWithFFmpeg();
             }
         }
 
         private void listView1_SelectedIndexChanged(object sender, EventArgs e)
         {
-            if (listView1.SelectedItems.Count == 0) return;
-            var selectitem = listView1.SelectedItems[0];
-
-            var tree = (selectitem.Tag as ItemInfo)?.tree;
+            if (listView1.SelectedIndices.Count == 0) return;
+            if (listView1.SelectedIndices.Count > 1) return;
+            var selectdata = listviewitem.GetItems(listView1.SelectedIndices).FirstOrDefault();
+            var tree = selectdata?.tree;
             if (tree == null) return;
 
             supressListviewRefresh = true;
@@ -880,11 +1006,12 @@ namespace TSviewACD
                     if (Config.UseFilenameEncryption)
                         uploadfilename = Path.GetRandomFileName();
                     var checkpoint = DriveData.ChangeCheckpoint;
+                    var filesize = new FileInfo(filename).Length;
 
-                    if (done_files?.Select(x => x.name).Contains(uploadfilename) ?? false)
+                    if (done_files?.Select(x => x.name.ToLower()).Contains(uploadfilename.ToLower()) ?? false)
                     {
-                        var target = done_files.First(x => x.name == uploadfilename);
-                        if (new System.IO.FileInfo(filename).Length == target.contentProperties?.size)
+                        var target = done_files.First(x => x.name.ToLower() == uploadfilename.ToLower());
+                        if (filesize == target.contentProperties?.size)
                         {
                             if (!checkBox_MD5.Checked)
                                 continue;
@@ -910,6 +1037,25 @@ namespace TSviewACD
                                 if (BitConverter.ToString(md5).ToLower().Replace("-", "") == target.contentProperties?.md5)
                                     continue;
                             }
+                        }
+                        Config.Log.LogOut("conflict. " + uploadfilename);
+                        Config.Log.LogOut("remove item...");
+                        try
+                        {
+                            foreach (var conflicts in done_files.Where(x => x.name.ToLower() == uploadfilename.ToLower()))
+                            {
+                                await Drive.TrashItem(conflicts.id, ct);
+                            }
+                            await Task.Delay(TimeSpan.FromSeconds(5), ct);
+                            checkpoint = DriveData.ChangeCheckpoint;
+                            done_files = DriveData.AmazonDriveTree[parent_id].children.Values.Select(x => x.info).ToArray();
+                        }
+                        catch (OperationCanceledException)
+                        {
+                            throw;
+                        }
+                        catch (Exception)
+                        {
                         }
                     }
 
@@ -949,6 +1095,7 @@ namespace TSviewACD
                             if (ex.Message.Contains("408 (REQUEST_TIMEOUT)")) checkretry = 6 * 5 + 1;
                             if (ex.Message.Contains("409 (Conflict)")) checkretry = 6 * 5 + 1;
                             if (ex.Message.Contains("504 (GATEWAY_TIMEOUT)")) checkretry = 6 * 5 + 1;
+                            if (filesize < Config.SmallFileSize) checkretry = 3;
                         }
                         catch (OperationCanceledException)
                         {
@@ -1048,15 +1195,37 @@ namespace TSviewACD
                     var short_name = Path.GetFullPath(filename).Split(new char[] { '\\', '/' }).Last();
 
                     FileMetadata_Info newdir = null;
-                    if (done_files?.Where(x => x.kind == "FOLDER").Select(x => x.name).Contains(short_name) ?? false)
+                    if (done_files?.Where(x => x.kind == "FOLDER").Select(x => x.name.ToLower()).Contains(short_name.ToLower()) ?? false)
                     {
-                        newdir = done_files.First(x => x.name == short_name && x.kind == "FOLDER");
+                        newdir = done_files.First(x => x.name.ToLower() == short_name.ToLower() && x.kind == "FOLDER");
                     }
                     if (newdir == null)
                     {
                         var checkpoint = DriveData.ChangeCheckpoint;
                         // make subdirectory
-                        newdir = await Drive.createFolder(short_name, parent_id);
+                        int retry = 30;
+                        while (--retry > 0)
+                        {
+                            try
+                            {
+                                newdir = await Drive.createFolder(short_name, parent_id, ct);
+                                var children = await DriveData.GetChanges(checkpoint, ct);
+                                if (children.Where(x => x.name.Contains(short_name)).LastOrDefault()?.status == "AVAILABLE")
+                                {
+                                    Config.Log.LogOut("createFolder : child found.");
+                                    break;
+                                }
+                                await Task.Delay(2000);
+                            }
+                            catch (HttpRequestException)
+                            {
+                                // retry
+                            }
+                            catch (OperationCanceledException)
+                            {
+                                throw;
+                            }
+                        }
                         await DriveData.GetChanges(checkpoint, ct);
                     }
 
@@ -1079,6 +1248,11 @@ namespace TSviewACD
             Config.Log.LogOut("Upload Start.");
             toolStripStatusLabel1.Text = "unable to upload.";
             if (!initialized) return;
+
+            string parent_id = listviewitem.Root?.info.id;
+            ItemInfo target = listviewitem.Root;
+            if (parent_id == null) return;
+
             toolStripStatusLabel1.Text = "Upload...";
             openFileDialog1.Title = Resource_text.SelectUploadFiles_str;
             if (openFileDialog1.ShowDialog() != DialogResult.OK)
@@ -1091,25 +1265,11 @@ namespace TSviewACD
             {
                 int f_all = openFileDialog1.FileNames.Count();
                 int f_cur = 0;
-                string parent_id = null;
-                ItemInfo target = null;
-                try
-                {
-                    var current = listView1.Items.Find(".", false);
-                    if (current.Length == 0)
-                    {
-                        current = listView1.Items.Find("/", false);
-                        if (current.Length == 0) return;
-                    }
-                    target = (current[0].Tag as ItemInfo);
-                    parent_id = target.info.id;
-                }
-                catch { }
 
                 if (await DoFileUpload(openFileDialog1.FileNames, parent_id, f_all, f_cur) < 0) return;
 
                 toolStripProgressBar1.Style = ProgressBarStyle.Marquee;
-                await Task.Delay(TimeSpan.FromSeconds(5));
+                await Task.Delay(TimeSpan.FromSeconds(2));
                 await ReloadItems(parent_id);
             }
             catch (OperationCanceledException)
@@ -1139,13 +1299,7 @@ namespace TSviewACD
                 toolStripProgressBar1.Maximum = trushids.Count();
                 toolStripProgressBar1.Step = 1;
 
-                ItemInfo target = null;
-                try
-                {
-                    var currect = listView1.Items.Find(".", false);
-                    target = (currect[0].Tag as ItemInfo);
-                }
-                catch { }
+                ItemInfo target = listviewitem.Root;
 
                 foreach (var item in trushids)
                 {
@@ -1179,7 +1333,7 @@ namespace TSviewACD
                 toolStripProgressBar1.Style = ProgressBarStyle.Continuous;
                 toolStripProgressBar1.Value = toolStripProgressBar1.Minimum;
                 toolStripStatusLabel1.Text = "Error detected.";
-                MessageBox.Show("Rename : ERROR\r\n" + ex.Message);
+                MessageBox.Show("Trash : ERROR\r\n" + ex.Message);
             }
             finally
             {
@@ -1191,9 +1345,9 @@ namespace TSviewACD
         {
             Config.Log.LogOut("Trash Start.");
             if (!initialized) return;
-            var select = listView1.SelectedItems;
+            var select = listviewitem.GetItems(listView1.SelectedIndices);
 
-            await DoTrashItem(select.Cast<ListViewItem>().Select(x => (x.Tag as ItemInfo).info.id));
+            await DoTrashItem(select.Select(x => x.info.id));
         }
 
         private async Task ForceReloadItems(string display_id)
@@ -1206,6 +1360,7 @@ namespace TSviewACD
             var ct = task.cts.Token;
             try
             {
+                listView1.VirtualListSize = 0;
 
                 // Load Root
                 var changes = await DriveData.GetChanges(ct: ct, 
@@ -1246,9 +1401,8 @@ namespace TSviewACD
                 treeView1.SelectedNode?.Expand();
 
                 //// display listview Root
-                listView1.Items.Clear();
-                listView1.Items.AddRange(GenerateListViewItem(DriveData.AmazonDriveTree[display_id]));
-                listView1.Sort();
+                listviewitem.Root = DriveData.AmazonDriveTree[display_id];
+                listView1.VirtualListSize = listviewitem.Count;
 
                 toolStripProgressBar1.Style = ProgressBarStyle.Continuous;
                 toolStripProgressBar1.Value = toolStripProgressBar1.Minimum;
@@ -1269,7 +1423,7 @@ namespace TSviewACD
             }
         }
 
-        private async Task ReloadItems(string display_id)
+        private async Task ReloadItems(string display_id, bool getchange = true)
         {
             if (string.IsNullOrEmpty(display_id))
                 display_id = DriveData.AmazonDriveRootID;
@@ -1281,17 +1435,22 @@ namespace TSviewACD
             try
             {
                 // Load Changed items
-                var checkpoint = DriveData.ChangeCheckpoint;
-                await DriveData.GetChanges(
-                    checkpoint: checkpoint, 
-                    ct: ct,
-                    inprogress: (str) => {
-                        toolStripProgressBar1.Style = ProgressBarStyle.Marquee;
-                        toolStripStatusLabel1.Text = str;
-                    },
-                    done: (str) => {
-                        toolStripStatusLabel1.Text = str;
-                    });
+                if (getchange)
+                {
+                    var checkpoint = DriveData.ChangeCheckpoint;
+                    await DriveData.GetChanges(
+                        checkpoint: checkpoint,
+                        ct: ct,
+                        inprogress: (str) =>
+                        {
+                            toolStripProgressBar1.Style = ProgressBarStyle.Marquee;
+                            toolStripStatusLabel1.Text = str;
+                        },
+                        done: (str) =>
+                        {
+                            toolStripStatusLabel1.Text = str;
+                        });
+                }
 
                 // load tree
                 var items = GenerateTreeNode(DriveData.AmazonDriveTree[DriveData.AmazonDriveRootID].children.Values, 1);
@@ -1323,9 +1482,8 @@ namespace TSviewACD
                 treeView1.SelectedNode?.Expand();
 
                 //// display listview Root
-                listView1.Items.Clear();
-                listView1.Items.AddRange(GenerateListViewItem(DriveData.AmazonDriveTree[display_id]));
-                listView1.Sort();
+                listviewitem.Root = DriveData.AmazonDriveTree[display_id];
+                listView1.VirtualListSize = listviewitem.Count;
 
                 toolStripProgressBar1.Style = ProgressBarStyle.Continuous;
                 toolStripProgressBar1.Value = toolStripProgressBar1.Minimum;
@@ -1349,9 +1507,8 @@ namespace TSviewACD
         private async void button_reload_Click(object sender, EventArgs e)
         {
             if (!initialized) return;
-            var currect = listView1.Items.Find(".", false);
             string target_id = DriveData.AmazonDriveRootID;
-            if (currect.Length > 0) target_id = (currect[0].Tag as ItemInfo).info.id;
+            target_id = listviewitem.Root?.info.id ?? target_id;
 
             if ((ModifierKeys & Keys.Shift) == Keys.Shift ||
                 (ModifierKeys & Keys.Control) == Keys.Control)
@@ -1556,7 +1713,7 @@ namespace TSviewACD
         private async void downloadItemToolStripMenuItem_Click(object sender, EventArgs e)
         {
             if (!initialized) return;
-            await downloadItems(listView1.SelectedItems.OfType<ListViewItem>().Select(x => (x.Tag as ItemInfo).info));
+            await downloadItems(listviewitem.GetItems(listView1.SelectedIndices).Select(x => x.info));
         }
 
         private async void sendUDPToolStripMenuItem_Click(object sender, EventArgs e)
@@ -1568,7 +1725,8 @@ namespace TSviewACD
         private void button_search_Click(object sender, EventArgs e)
         {
             if (!initialized) return;
-            comboBox_FindStr.Items.Add(comboBox_FindStr.Text);
+            if(comboBox_FindStr.Items.IndexOf(comboBox_FindStr.Text) < 0)
+                comboBox_FindStr.Items.Add(comboBox_FindStr.Text);
 
             ItemInfo[] selection = DriveData.AmazonDriveTree.Values.ToArray();
 
@@ -1585,9 +1743,28 @@ namespace TSviewACD
             }
 
             if (checkBox_Regex.Checked)
+            {
                 selection = selection.Where(x => Regex.IsMatch(x.info.name, comboBox_FindStr.Text)).ToArray();
+            }
             else
-                selection = selection.Where(x => (x.info.name?.IndexOf(comboBox_FindStr.Text) >= 0)).ToArray();
+            {
+                if(checkBox_findCaseSensitive.Checked)
+                    selection = selection.Where(x => (x.info.name?.IndexOf(comboBox_FindStr.Text) >= 0)).ToArray();
+                else
+                    selection = selection.Where(x => (
+                    System.Globalization.CultureInfo.CurrentCulture.CompareInfo.IndexOf(
+                        x.info.name ?? "", 
+                        comboBox_FindStr.Text, 
+                        System.Globalization.CompareOptions.IgnoreCase | System.Globalization.CompareOptions.IgnoreKanaType | System.Globalization.CompareOptions.IgnoreWidth
+                        | System.Globalization.CompareOptions.IgnoreNonSpace | System.Globalization.CompareOptions.IgnoreSymbols
+                        ) >= 0)).ToArray();
+            }
+
+            if (checkBox_sizeOver.Checked)
+                selection = selection.Where(x => (x.info.contentProperties?.size ?? 0) > numericUpDown_sizeOver.Value).ToArray();
+            if (checkBox_sizeUnder.Checked)
+                selection = selection.Where(x => (x.info.contentProperties?.size ?? 0) < numericUpDown_sizeUnder.Value).ToArray();
+
 
             if (radioButton_createTime.Checked)
             {
@@ -1608,8 +1785,8 @@ namespace TSviewACD
             toolStripProgressBar1.Value = toolStripProgressBar1.Minimum;
             toolStripStatusLabel1.Text = "Found : " + selection.Length.ToString();
 
-            listView1.Items.Clear();
-            listView1.Items.AddRange(GenerateListViewItem(selection));
+            listviewitem.Items = selection;
+            listView1.VirtualListSize = listviewitem.Count;
         }
 
         private async void button_mkdir_Click(object sender, EventArgs e)
@@ -1617,20 +1794,17 @@ namespace TSviewACD
             Config.Log.LogOut("make Folder Start.");
             toolStripStatusLabel1.Text = "unable to mkFolder.";
             if (!initialized) return;
+
+            string parent_id = listviewitem.Root?.info.id;
+            if (parent_id == null) return;
+
             toolStripStatusLabel1.Text = "mkFolder...";
             toolStripProgressBar1.Style = ProgressBarStyle.Marquee;
 
             try
             {
-                string parent_id = null;
-                try
-                {
-                    var currect = listView1.Items.Find(".", false);
-                    parent_id = (currect[0].Tag as ItemInfo).info.id;
-                }
-                catch { }
-
                 var newdir = await Drive.createFolder(textBox_newName.Text, parent_id);
+                await Task.Delay(2000);
 
                 toolStripProgressBar1.Style = ProgressBarStyle.Marquee;
                 await Task.Delay(TimeSpan.FromSeconds(5));
@@ -1660,16 +1834,14 @@ namespace TSviewACD
             Config.Log.LogOut("rename Start.");
             toolStripStatusLabel1.Text = "unable to download.";
             if (!initialized) return;
-            var select = listView1.SelectedItems;
-            if (select.Count == 0) return;
 
-            var selectItem = select.OfType<ListViewItem>().Select(x => (x.Tag as ItemInfo).info).ToArray();
+            var selectItem = listviewitem.GetItems(listView1.SelectedIndices).Select(x => x.info);
 
             int f_all = selectItem.Count();
             if (f_all == 0) return;
 
             if (f_all > 1)
-                if (MessageBox.Show("Do you want to rename multiple items?", "Rename Items", MessageBoxButtons.OKCancel) != DialogResult.OK) return;
+                if (MessageBox.Show(Resource_text.RenameMulti_str, "Rename Items", MessageBoxButtons.OKCancel) != DialogResult.OK) return;
 
             toolStripStatusLabel1.Text = "Rename...";
             toolStripProgressBar1.Style = ProgressBarStyle.Marquee;
@@ -1677,13 +1849,7 @@ namespace TSviewACD
             var ct = task.cts.Token;
             try
             {
-                string parent_id = null;
-                try
-                {
-                    var currect = listView1.Items.Find(".", false);
-                    parent_id = (currect[0].Tag as ItemInfo).info.id;
-                }
-                catch { }
+                string parent_id = listviewitem.Root?.info.id;
 
                 foreach (var downitem in selectItem)
                 {
@@ -1731,36 +1897,54 @@ namespace TSviewACD
 
         private void listView1_ItemDrag(object sender, ItemDragEventArgs e)
         {
-            if (listView1.SelectedItems.OfType<ListViewItem>().Count(x => x.Text == "." || x.Text == "..") > 0)
+            if (listviewitem.Root != null && (listView1.SelectedIndices.Contains(0) || listView1.SelectedIndices.Contains(1)))
                 return;
-            listView1.DoDragDrop(listView1.SelectedItems, DragDropEffects.Move);
+            listView1.DoDragDrop(new ClipboardAmazonDrive(listviewitem.GetItems(listView1.SelectedIndices)), DragDropEffects.Copy | DragDropEffects.Move);
+        }
+
+        private FileMetadata_Info[] GetSelectedItemsFromDataObject(System.Windows.Forms.IDataObject data)
+        {
+            object ret = null;
+            FORMATETC fmt = new FORMATETC { cfFormat = ClipboardAmazonDrive.CF_AMAZON_DRIVE_ITEMS, dwAspect = DVASPECT.DVASPECT_CONTENT, lindex = -2, ptd = IntPtr.Zero, tymed = TYMED.TYMED_ISTREAM };
+            STGMEDIUM media = new STGMEDIUM();
+            (data as System.Runtime.InteropServices.ComTypes.IDataObject).GetData(ref fmt, out media);
+            var st = new IStreamWrapper(Marshal.GetTypedObjectForIUnknown(media.unionmember, typeof(IStream)) as IStream);
+            st.Position = 0;
+            var bf = new BinaryFormatter();
+            ret = bf.Deserialize(st);
+            ClipboardAmazonDrive.ReleaseStgMedium(ref media);
+            return ret as FileMetadata_Info[];
         }
 
         private void listView1_DragOver(object sender, DragEventArgs e)
         {
-            if (e.Data.GetDataPresent(typeof(ListView.SelectedListViewItemCollection)) ||
+            if (e.Data.GetDataPresent(ClipboardAmazonDrive.CFSTR_AMAZON_DRIVE_ITEMS) ||
                 e.Data.GetDataPresent(DataFormats.FileDrop))
             {
                 Point p = listView1.PointToClient(new Point(e.X, e.Y));
                 ListViewItem item = listView1.GetItemAt(p.X, p.Y);
-                var current = listView1.Items.Find(".", false);
+                var droptarget = item?.Tag as ItemInfo;
+                var current = listviewitem.Root;
 
-                if (listView1.Items.IndexOf(item) < 0 || (item.Name != "/" && (item?.Tag as ItemInfo).info.kind != "FOLDER"))
+                if (!listviewitem.Contains(droptarget?.info.id) || droptarget?.info.kind != "FOLDER")
                 {
-                    if (current.Length > 0) item = current[0];
+                    // display root is target
+                }
+                else
+                {
+                    current = droptarget;
                 }
 
-                if (item != null)
+                if (current != null)
                 {
-                    if (item.Tag == null || item.Name == "/" || (item.Tag as ItemInfo).info.kind == "FOLDER")
+                    if (current.info.kind == "FOLDER")
                     {
                         if (e.Data.GetDataPresent(DataFormats.FileDrop))
                             e.Effect = DragDropEffects.Copy;
                         else
                         {
-                            if (item != ((current.Length > 0) ? current[0] : null) &&
-                                ((item.Name == "/" && ((current.Length > 0) ? current[0] : null).Name != "/") ||
-                                !(((ListView.SelectedListViewItemCollection)e.Data.GetData(typeof(ListView.SelectedListViewItemCollection)))?.Contains(item) ?? false)))
+                            var selectedItems = GetSelectedItemsFromDataObject(e.Data);
+                            if (!current.children.Keys.Intersect(selectedItems?.Select(x => x.id)).Any())
                             {
                                 e.Effect = DragDropEffects.Move;
                             }
@@ -1771,135 +1955,151 @@ namespace TSviewACD
                     else
                         e.Effect = DragDropEffects.None;
                 }
+                else
+                    e.Effect = DragDropEffects.None;
             }
+        }
+
+        private async Task listView_DragDrop_AmazonItem(System.Windows.Forms.IDataObject data, string toParent)
+        {
+            Config.Log.LogOut("move(listview) Start.");
+            toolStripStatusLabel1.Text = "Move Item...";
+            toolStripProgressBar1.Style = ProgressBarStyle.Marquee;
+
+            string parent_id = listviewitem.Root?.info.id;
+            try
+            {
+                var selects = GetSelectedItemsFromDataObject(data);
+                int count = 0;
+                toolStripProgressBar1.Style = ProgressBarStyle.Continuous;
+                toolStripProgressBar1.Value = toolStripProgressBar1.Minimum;
+                toolStripStatusLabel1.Text = "Move Item...";
+                toolStripProgressBar1.Maximum = selects.Length;
+                toolStripProgressBar1.Step = 1;
+
+                foreach (var aItem in selects)
+                {
+                    var fromParent = aItem.parents[0];
+                    var childid = aItem.id;
+
+                    toolStripStatusLabel1.Text = string.Format("Move Item... {0}/{1} {2}", ++count, selects.Length, aItem.name);
+
+                    await Drive.moveChild(childid, fromParent, toParent);
+                    toolStripProgressBar1.PerformStep();
+                }
+
+                toolStripProgressBar1.Style = ProgressBarStyle.Continuous;
+                toolStripProgressBar1.Value = toolStripProgressBar1.Minimum;
+                toolStripStatusLabel1.Text = "Move Item done.";
+                toolStripProgressBar1.Maximum = 100;
+                toolStripProgressBar1.Step = 10;
+
+                toolStripProgressBar1.Style = ProgressBarStyle.Marquee;
+                await Task.Delay(TimeSpan.FromSeconds(2));
+                await ReloadItems(parent_id);
+                Config.Log.LogOut("move(listview) : done.");
+            }
+            catch (OperationCanceledException)
+            {
+                throw;
+            }
+            catch (Exception ex)
+            {
+                Config.Log.LogOut("move(listview) : Error");
+                toolStripProgressBar1.Style = ProgressBarStyle.Continuous;
+                toolStripProgressBar1.Value = toolStripProgressBar1.Minimum;
+                toolStripStatusLabel1.Text = "Error detected.";
+                MessageBox.Show("Move Item : ERROR\r\n" + ex.Message);
+            }
+        }
+
+        private async Task DragDrop_FileDrop(string[] drags, string parent_id, string logprefix = "")
+        {
+            var task = CreateTask(string.Format("upload({0})", logprefix));
+            string disp_id = listviewitem.Root?.info.id;
+            try
+            {
+                string[] dir_drags = null;
+                int f_all = 0;
+                await Task.Run(() =>
+                {
+                    dir_drags = drags.Where(x => Directory.Exists(x)).ToArray();
+                    drags = drags.Where(x => File.Exists(x)).ToArray();
+                    f_all = drags.Length + dir_drags.Select(x => Directory.EnumerateFiles(x, "*", SearchOption.AllDirectories)).SelectMany(i => i).Distinct().Count();
+                }, task.cts.Token);
+
+                int f_cur = 0;
+
+                try
+                {
+                    f_cur = await DoFileUpload(drags, parent_id, f_all, f_cur, task.cts.Token);
+                    if (f_cur >= 0)
+                        f_cur = await DoDirectoryUpload(dir_drags, parent_id, f_all, f_cur, task.cts.Token);
+
+                    toolStripProgressBar1.Style = ProgressBarStyle.Marquee;
+                    await ReloadItems(disp_id);
+                    Config.Log.LogOut(string.Format("upload({0}) : done.", logprefix));
+                }
+                catch (OperationCanceledException)
+                {
+                    throw;
+                }
+                catch (Exception ex)
+                {
+                    Config.Log.LogOut(string.Format("upload({0}) : Error",logprefix));
+                    toolStripProgressBar1.Style = ProgressBarStyle.Continuous;
+                    toolStripProgressBar1.Value = toolStripProgressBar1.Minimum;
+                    toolStripStatusLabel1.Text = "Error detected.";
+                    MessageBox.Show("Upload Items : ERROR\r\n" + ex.Message);
+                }
+            }
+            finally
+            {
+                FinishTask(task);
+            }
+        }
+
+        private async Task listView_DragDrop_FileDrop(System.Windows.Forms.IDataObject data, string parent_id)
+        {
+            Config.Log.LogOut("upload(listview) Start.");
+            string[] drags = (string[])data.GetData(DataFormats.FileDrop);
+
+            if (drags.Where(x => Directory.Exists(x)).Count() > 0)
+                if (MessageBox.Show(Resource_text.UploadFolder_str, "Folder upload", MessageBoxButtons.OKCancel) != DialogResult.OK) return;
+
+            await DragDrop_FileDrop(drags, parent_id, "listview");
         }
 
         private async void listView1_DragDrop(object sender, DragEventArgs e)
         {
-            if (e.Data.GetDataPresent(typeof(ListView.SelectedListViewItemCollection)) ||
+            if (e.Data.GetDataPresent(ClipboardAmazonDrive.CFSTR_AMAZON_DRIVE_ITEMS) ||
                 e.Data.GetDataPresent(DataFormats.FileDrop))
             {
                 try
                 {
                     Point p = listView1.PointToClient(new Point(e.X, e.Y));
                     ListViewItem item = listView1.GetItemAt(p.X, p.Y);
-                    if (listView1.Items.IndexOf(item) < 0 || (item.Name != "/" && (item?.Tag as ItemInfo).info.kind != "FOLDER"))
+                    var droptarget = item?.Tag as ItemInfo;
+                    var current = listviewitem.Root;
+
+                    if (!listviewitem.Contains(droptarget?.info.id) || droptarget?.info.kind != "FOLDER")
                     {
-                        var current = listView1.Items.Find(".", false);
-                        if (current.Length > 0) item = current[0];
+                        // display root is target
                     }
-                    if (item == null) return;
-
-                    if (e.Data.GetDataPresent(typeof(ListView.SelectedListViewItemCollection)))
+                    else
                     {
-                        Config.Log.LogOut("move(listview) Start.");
-                        toolStripStatusLabel1.Text = "Move Item...";
-                        toolStripProgressBar1.Style = ProgressBarStyle.Marquee;
+                        current = droptarget;
+                    }
+                    if (current == null) return;
 
-                        string parent_id = null;
-                        try
-                        {
-                            var currect = listView1.Items.Find(".", false);
-                            parent_id = (currect[0].Tag as ItemInfo).info.id;
-                        }
-                        catch { }
-
-                        try
-                        {
-                            var selects = (ListView.SelectedListViewItemCollection)e.Data.GetData(typeof(ListView.SelectedListViewItemCollection));
-                            int count = 0;
-                            toolStripProgressBar1.Style = ProgressBarStyle.Continuous;
-                            toolStripProgressBar1.Value = toolStripProgressBar1.Minimum;
-                            toolStripStatusLabel1.Text = "Move Item...";
-                            toolStripProgressBar1.Maximum = selects.Count;
-                            toolStripProgressBar1.Step = 1;
-
-                            var toParent = (item.Tag == null) ? DriveData.AmazonDriveRootID : (item.Tag as ItemInfo).info.id;
-                            foreach (ListViewItem aItem in selects)
-                            {
-                                var fromParent = (aItem.Tag as ItemInfo).info.parents[0];
-                                var childid = (aItem.Tag as ItemInfo).info.id;
-                                toolStripStatusLabel1.Text = string.Format("Move Item... {0}/{1} {2}", ++count, selects.Count, (aItem.Tag as ItemInfo).info.name);
-
-                                await Drive.moveChild(childid, fromParent, toParent);
-                                toolStripProgressBar1.PerformStep();
-                            }
-
-                            toolStripProgressBar1.Style = ProgressBarStyle.Continuous;
-                            toolStripProgressBar1.Value = toolStripProgressBar1.Minimum;
-                            toolStripStatusLabel1.Text = "Move Item done.";
-                            toolStripProgressBar1.Maximum = 100;
-                            toolStripProgressBar1.Step = 10;
-
-                            toolStripProgressBar1.Style = ProgressBarStyle.Marquee;
-                            await Task.Delay(TimeSpan.FromSeconds(5));
-                            await ReloadItems(parent_id);
-                            Config.Log.LogOut("move(listview) : done.");
-                        }
-                        catch (OperationCanceledException)
-                        {
-                            throw;
-                        }
-                        catch (Exception ex)
-                        {
-                            Config.Log.LogOut("move(listview) : Error");
-                            toolStripProgressBar1.Style = ProgressBarStyle.Continuous;
-                            toolStripProgressBar1.Value = toolStripProgressBar1.Minimum;
-                            toolStripStatusLabel1.Text = "Error detected.";
-                            MessageBox.Show("Move Item : ERROR\r\n" + ex.Message);
-                        }
+                    var ParentId = current.info.id;
+                    if (e.Data.GetDataPresent(ClipboardAmazonDrive.CFSTR_AMAZON_DRIVE_ITEMS))
+                    {
+                        await listView_DragDrop_AmazonItem(e.Data, ParentId);
                     }
                     if (e.Data.GetDataPresent(DataFormats.FileDrop))
                     {
-                        Config.Log.LogOut("upload(listview) Start.");
-                        string[] drags = (string[])e.Data.GetData(DataFormats.FileDrop);
-
-                        if (drags.Where(x => Directory.Exists(x)).Count() > 0)
-                            if (MessageBox.Show("Drag item contains some Folder. Do you want to continue?", "Folder upload", MessageBoxButtons.OKCancel) != DialogResult.OK) return;
-
-                        string[] dir_drags = drags.Where(x => Directory.Exists(x)).ToArray();
-                        drags = drags.Where(x => File.Exists(x)).ToArray();
-
-                        var task = CreateTask("upload(listview)");
-                        try
-                        {
-                            int f_all = drags.Length + dir_drags.Select(x => Directory.EnumerateFiles(x, "*", SearchOption.AllDirectories)).SelectMany(i => i).Distinct().Count();
-                            int f_cur = 0;
-                            string parent_id = null;
-                            try
-                            {
-                                parent_id = (item.Tag as ItemInfo).info.id;
-                            }
-                            catch { }
-
-                            try
-                            {
-                                f_cur = await DoFileUpload(drags, parent_id, f_all, f_cur);
-                                if (f_cur >= 0)
-                                    f_cur = await DoDirectoryUpload(dir_drags, parent_id, f_all, f_cur, task.cts.Token);
-
-                                toolStripProgressBar1.Style = ProgressBarStyle.Marquee;
-                                await Task.Delay(TimeSpan.FromSeconds(5));
-                                await ReloadItems(parent_id);
-                                Config.Log.LogOut("upload(listview) : done.");
-                            }
-                            catch (OperationCanceledException)
-                            {
-                                throw;
-                            }
-                            catch (Exception ex)
-                            {
-                                Config.Log.LogOut("upload(listview) : Error");
-                                toolStripProgressBar1.Style = ProgressBarStyle.Continuous;
-                                toolStripProgressBar1.Value = toolStripProgressBar1.Minimum;
-                                toolStripStatusLabel1.Text = "Error detected.";
-                                MessageBox.Show("Upload Items : ERROR\r\n" + ex.Message);
-                            }
-                        }
-                        finally
-                        {
-                            FinishTask(task);
-                        }
+                        await listView_DragDrop_FileDrop(e.Data, ParentId);
                     }
                 }
                 catch (OperationCanceledException)
@@ -1949,7 +2149,7 @@ namespace TSviewACD
 
         private void treeView1_DragOver(object sender, DragEventArgs e)
         {
-            if (e.Data.GetDataPresent(typeof(ListView.SelectedListViewItemCollection)) ||
+            if (e.Data.GetDataPresent(ClipboardAmazonDrive.CFSTR_AMAZON_DRIVE_ITEMS) ||
                 e.Data.GetDataPresent(DataFormats.FileDrop))
             {
                 Point p = treeView1.PointToClient(new Point(e.X, e.Y));
@@ -1988,11 +2188,11 @@ namespace TSviewACD
                                 if (item == null) break;
                             }
                         }
-                        var toParent = (item == null) ? DriveData.AmazonDriveRootID : (item.Tag as ItemInfo).info.id;
-                        foreach (ListViewItem aItem in (ListView.SelectedListViewItemCollection)e.Data.GetData(typeof(ListView.SelectedListViewItemCollection)))
+                        var toParent = (item?.Tag as ItemInfo)?.info.id ?? DriveData.AmazonDriveRootID;
+                        foreach (var aItem in GetSelectedItemsFromDataObject(e.Data))
                         {
-                            var fromParent = (aItem.Tag as ItemInfo).info.parents[0];
-                            var childid = (aItem.Tag as ItemInfo).info.id;
+                            var fromParent = aItem.parents[0];
+                            var childid = aItem.id;
                             if (toParent == fromParent || toParent == childid)
                             {
                                 e.Effect = DragDropEffects.None;
@@ -2006,9 +2206,74 @@ namespace TSviewACD
             }
         }
 
+        private async Task treeView1_DragDrop_AmazonItem(System.Windows.Forms.IDataObject data, string toParent)
+        {
+            Config.Log.LogOut("move(treeview) Start.");
+            toolStripStatusLabel1.Text = "Move Item...";
+            toolStripProgressBar1.Style = ProgressBarStyle.Marquee;
+
+            try
+            {
+                string disp_id = listviewitem.Root?.info.id;
+
+                var selects = GetSelectedItemsFromDataObject(data);
+                int count = 0;
+                toolStripProgressBar1.Style = ProgressBarStyle.Continuous;
+                toolStripProgressBar1.Value = toolStripProgressBar1.Minimum;
+                toolStripStatusLabel1.Text = "Move Item...";
+                toolStripProgressBar1.Maximum = selects.Length;
+                toolStripProgressBar1.Step = 1;
+
+                foreach (var aItem in selects)
+                {
+                    var fromParent = aItem.parents[0];
+                    var childid = aItem.id;
+                    toolStripStatusLabel1.Text = string.Format("Move Item... {0}/{1} {2}", ++count, selects.Length, aItem.name);
+
+                    await Drive.moveChild(childid, fromParent, toParent);
+                    toolStripProgressBar1.PerformStep();
+                }
+                toolStripProgressBar1.Style = ProgressBarStyle.Continuous;
+                toolStripProgressBar1.Value = toolStripProgressBar1.Minimum;
+                toolStripStatusLabel1.Text = "Move Item done.";
+                toolStripProgressBar1.Maximum = 100;
+                toolStripProgressBar1.Step = 10;
+
+                toolStripProgressBar1.Style = ProgressBarStyle.Marquee;
+                await Task.Delay(TimeSpan.FromSeconds(2));
+                await ReloadItems(disp_id);
+                Config.Log.LogOut("move(treeview) : done.");
+            }
+            catch (OperationCanceledException)
+            {
+                throw;
+            }
+            catch (Exception ex)
+            {
+                Config.Log.LogOut("move(treeview) : Error");
+                toolStripProgressBar1.Style = ProgressBarStyle.Continuous;
+                toolStripProgressBar1.Value = toolStripProgressBar1.Minimum;
+                toolStripStatusLabel1.Text = "Error detected.";
+                MessageBox.Show("Move Item : ERROR\r\n" + ex.Message);
+            }
+        }
+
+        private async Task treeView1_DragDrop_FileDrop(System.Windows.Forms.IDataObject data, string parent_id)
+        {
+            string disp_id = listviewitem.Root?.info.id;
+
+            Config.Log.LogOut("upload(treeview) Start.");
+            string[] drags = (string[])data.GetData(DataFormats.FileDrop);
+
+            if (drags.Where(x => Directory.Exists(x)).Count() > 0)
+                if (MessageBox.Show(Resource_text.UploadFolder_str, "Folder upload", MessageBoxButtons.OKCancel) != DialogResult.OK) return;
+
+            await DragDrop_FileDrop(drags, parent_id, "treeview");
+        }
+
         private async void treeView1_DragDrop(object sender, DragEventArgs e)
         {
-            if (e.Data.GetDataPresent(typeof(ListView.SelectedListViewItemCollection)) ||
+            if (e.Data.GetDataPresent(ClipboardAmazonDrive.CFSTR_AMAZON_DRIVE_ITEMS) ||
                 e.Data.GetDataPresent(DataFormats.FileDrop))
             {
                 try
@@ -2018,103 +2283,22 @@ namespace TSviewACD
 
                     if (item != null)
                     {
-                        while ((item.Tag as ItemInfo).info.kind != "FOLDER")
+                        while ((item.Tag as ItemInfo)?.info.kind != "FOLDER")
                         {
                             item = item.Parent;
                             if (item == null) break;
                         }
                     }
 
-                    string disp_id = null;
-                    try
+
+                    string ParentId = (item?.Tag as ItemInfo)?.info.id ?? DriveData.AmazonDriveRootID;
+                    if (e.Data.GetDataPresent(ClipboardAmazonDrive.CFSTR_AMAZON_DRIVE_ITEMS))
                     {
-                        var currect = listView1.Items.Find(".", false);
-                        disp_id = (currect[0].Tag as ItemInfo).info.id;
-                    }
-                    catch { }
-
-                    if (e.Data.GetDataPresent(typeof(ListView.SelectedListViewItemCollection)))
-                    {
-                        Config.Log.LogOut("move(treeview) Start.");
-                        toolStripStatusLabel1.Text = "Move Item...";
-                        toolStripProgressBar1.Style = ProgressBarStyle.Marquee;
-
-                        try
-                        {
-                            var selects = (ListView.SelectedListViewItemCollection)e.Data.GetData(typeof(ListView.SelectedListViewItemCollection));
-                            int count = 0;
-                            toolStripProgressBar1.Style = ProgressBarStyle.Continuous;
-                            toolStripProgressBar1.Value = toolStripProgressBar1.Minimum;
-                            toolStripStatusLabel1.Text = "Move Item...";
-                            toolStripProgressBar1.Maximum = selects.Count;
-                            toolStripProgressBar1.Step = 1;
-
-
-                            var toParent = (item == null) ? DriveData.AmazonDriveRootID : (item.Tag as ItemInfo).info.id;
-                            foreach (ListViewItem aItem in selects)
-                            {
-                                var fromParent = (aItem.Tag as ItemInfo).info.parents[0];
-                                var childid = (aItem.Tag as ItemInfo).info.id;
-                                toolStripStatusLabel1.Text = string.Format("Move Item... {0}/{1} {2}", ++count, selects.Count, (aItem.Tag as ItemInfo).info.name);
-
-                                await Drive.moveChild(childid, fromParent, toParent);
-                                toolStripProgressBar1.PerformStep();
-                            }
-                            toolStripProgressBar1.Style = ProgressBarStyle.Continuous;
-                            toolStripProgressBar1.Value = toolStripProgressBar1.Minimum;
-                            toolStripStatusLabel1.Text = "Move Item done.";
-                            toolStripProgressBar1.Maximum = 100;
-                            toolStripProgressBar1.Step = 10;
-
-                            toolStripProgressBar1.Style = ProgressBarStyle.Marquee;
-                            await Task.Delay(TimeSpan.FromSeconds(5));
-                            await ReloadItems(disp_id);
-                            Config.Log.LogOut("move(treeview) : done.");
-                        }
-                        catch (OperationCanceledException)
-                        {
-                            throw;
-                        }
-                        catch (Exception ex)
-                        {
-                            Config.Log.LogOut("move(treeview) : Error");
-                            toolStripProgressBar1.Style = ProgressBarStyle.Continuous;
-                            toolStripProgressBar1.Value = toolStripProgressBar1.Minimum;
-                            toolStripStatusLabel1.Text = "Error detected.";
-                            MessageBox.Show("Move Item : ERROR\r\n" + ex.Message);
-                        }
+                        await treeView1_DragDrop_AmazonItem(e.Data, ParentId);
                     }
                     if (e.Data.GetDataPresent(DataFormats.FileDrop))
                     {
-                        Config.Log.LogOut("upload(treeview) Start.");
-                        string[] drags = (string[])e.Data.GetData(DataFormats.FileDrop);
-
-                        if (drags.Where(x => Directory.Exists(x)).Count() > 0)
-                            if (MessageBox.Show("Drag item contains some Folder. Do you want to continue?", "Folder upload", MessageBoxButtons.OKCancel) != DialogResult.OK) return;
-
-                        string[] dir_drags = drags.Where(x => Directory.Exists(x)).ToArray();
-                        drags = drags.Where(x => File.Exists(x)).ToArray();
-
-                        int f_all = drags.Length + dir_drags.Select(x => Directory.EnumerateFiles(x, "*", SearchOption.AllDirectories)).SelectMany(i => i).Distinct().Count();
-                        int f_cur = 0;
-                        var parent_id = (item.Tag as ItemInfo).info.id;
-
-                        var task = CreateTask("upload(treeview)");
-                        try
-                        {
-                            f_cur = await DoFileUpload(drags, parent_id, f_all, f_cur, task.cts.Token);
-                            if (f_cur >= 0)
-                                f_cur = await DoDirectoryUpload(dir_drags, parent_id, f_all, f_cur, task.cts.Token);
-                        }
-                        finally
-                        {
-                            FinishTask(task);
-                        }
-
-                        toolStripProgressBar1.Style = ProgressBarStyle.Marquee;
-                        await Task.Delay(TimeSpan.FromSeconds(5));
-                        await ReloadItems(disp_id);
-                        Config.Log.LogOut("upload(treeview) : done.");
+                        await treeView1_DragDrop_FileDrop(e.Data, ParentId);
                     }
                 }
                 catch (OperationCanceledException)
@@ -2222,10 +2406,15 @@ namespace TSviewACD
             if (e.KeyData == (Keys.A | Keys.Control))
             {
                 listView1.BeginUpdate();
-                foreach (ListViewItem item in listView1.Items)
+                if (listviewitem.Root == null)
                 {
-                    if (item.Name != "." && item.Name != ".." && item.Name != "/")
-                        item.Selected = true;
+                    for(int i = 0; i < listviewitem.Items.Length; i++)
+                        listView1.SelectedIndices.Add(i);
+                }
+                else
+                {
+                    for (int i = 2; i < listviewitem.Items.Length+2; i++)
+                        listView1.SelectedIndices.Add(i);
                 }
                 listView1.EndUpdate();
             }
@@ -2244,9 +2433,15 @@ namespace TSviewACD
 
         public IEnumerable<FileMetadata_Info> GetSeletctedRemoteFiles()
         {
-            return (listView1.SelectedItems.Count == 0 ? listView1.Items.OfType<ListViewItem>() : listView1.SelectedItems.OfType<ListViewItem>())
-                .Where(item => (item.Name != "." && item.Name != ".." && item.Name != "/"))
-                .Select(item => (item.Tag as ItemInfo).info);
+            if(listView1.SelectedIndices.Count == 0)
+                return listviewitem.Items.Select(x => x.info);
+            if (listviewitem.Root == null)
+                return listviewitem.GetItems(listView1.SelectedIndices).Select(x => x.info);
+
+            if (listView1.SelectedIndices.Contains(0)) listView1.SelectedIndices.Remove(0);
+            if (listView1.SelectedIndices.Contains(1)) listView1.SelectedIndices.Remove(1);
+
+            return listviewitem.GetItems(listView1.SelectedIndices).Select(x => x.info);
         }
 
         private void button_LocalRemoteMatch_Click(object sender, EventArgs e)
@@ -2838,10 +3033,10 @@ namespace TSviewACD
             Config.Log.LogOut(LogPrefix + " media files Start.");
             toolStripStatusLabel1.Text = "unable to download.";
             if (!initialized) return;
-            var select = listView1.SelectedItems;
+            var select = listView1.SelectedIndices;
             if (select.Count == 0) return;
 
-            var selectItem = select.OfType<ListViewItem>().Select(x => (x.Tag as ItemInfo).info).Where(x => x.kind != "FOLDER").ToArray();
+            var selectItem = listviewitem.GetItems(select).Select(x => x.info).Where(x => x.kind != "FOLDER").ToArray();
 
             int f_all = selectItem.Count();
             if (f_all == 0) return;
@@ -3094,50 +3289,120 @@ namespace TSviewACD
             test.SelectedRemoteFiles = GetSeletctedRemoteFiles();
             test.Show();
         }
-    }
 
+        ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-    public class ItemInfo
-    {
-        public FileMetadata_Info info;
-        public TreeNode tree;
-        public Dictionary<string, ItemInfo> children = new Dictionary<string, ItemInfo>();
-
-        public ItemInfo(FileMetadata_Info thisdata)
+        private async Task MakeTempDownloadLinks(IEnumerable<FileMetadata_Info> selectItem, CancellationToken ct = default(CancellationToken))
         {
-            info = thisdata;
+
+            Config.Log.LogOut("MakeTempDownloadLinks : start");
+            int f_all = selectItem.Count();
+            if (f_all == 0) return;
+
+            var templinks = new List<FileMetadata_Info>();
+            int f_cur = 0;
+            TaskCanselToken task = null;
+            if (ct == default(CancellationToken))
+            {
+                task = CreateTask("templink");
+                ct = task.cts.Token;
+            }
+            try
+            {
+                foreach (var item in selectItem)
+                {
+                    ct.ThrowIfCancellationRequested();
+                    Config.Log.LogOut("MakeTempLink : " + item.name);
+                    var download_str = (f_all > 1) ? string.Format("TempLink({0}/{1})...", ++f_cur, f_all) : "TempLink...";
+
+                    toolStripProgressBar1.Style = ProgressBarStyle.Marquee;
+                    int retry = 6;
+                    while (--retry > 0)
+                    {
+                        try
+                        {
+                            var newitem = await Drive.GetFileMetadata(item.id, ct: ct, templink: true);
+                            templinks.Add(newitem);
+                            break;
+                        }
+                        catch (HttpRequestException)
+                        {
+                            //retry
+                        }
+                        catch (OperationCanceledException)
+                        {
+                            throw;
+                        }
+                        catch (Exception)
+                        {
+                            throw;
+                        }
+                    }
+                    toolStripProgressBar1.Style = ProgressBarStyle.Continuous;
+                    toolStripProgressBar1.Maximum = f_all;
+                    toolStripProgressBar1.Value = f_cur;
+                    toolStripStatusLabel1.Text = download_str + " " + item.name;
+                }
+                toolStripProgressBar1.Style = ProgressBarStyle.Continuous;
+                toolStripProgressBar1.Value = toolStripProgressBar1.Minimum;
+                toolStripStatusLabel1.Text = "MakeTempLink done.";
+                toolStripProgressBar1.Maximum = 100;
+                toolStripProgressBar1.Step = 10;
+            }
+            catch (OperationCanceledException)
+            {
+                if (!Config.IsClosing)
+                {
+                    toolStripProgressBar1.Style = ProgressBarStyle.Continuous;
+                    toolStripProgressBar1.Value = toolStripProgressBar1.Minimum;
+                    toolStripStatusLabel1.Text = "Operation Aborted.";
+                }
+            }
+            catch (Exception ex)
+            {
+                Config.Log.LogOut("MakeTempDownloadLinks : error.");
+                toolStripProgressBar1.Style = ProgressBarStyle.Continuous;
+                toolStripProgressBar1.Value = toolStripProgressBar1.Minimum;
+                toolStripStatusLabel1.Text = "Error detected.";
+                MessageBox.Show("MakeTempDownloadLinks : ERROR\r\n" + ex.Message);
+            }
+            finally
+            {
+                FinishTask(task);
+            }
+            var logform = new FormTemplink();
+            logform.TempLinks = templinks;
+            logform.ShowDialog();
+        }
+
+        private async void makeTemporaryLinkToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            if (!initialized) return;
+            var select = listView1.SelectedIndices;
+            if (select.Count == 0) return;
+
+            var selectItem = listviewitem.GetItems(select).Select(x => x.info).Where(x => x.kind != "FOLDER").ToArray();
+            await MakeTempDownloadLinks(selectItem);
+        }
+
+        private void listView1_RetrieveVirtualItem(object sender, RetrieveVirtualItemEventArgs e)
+        {
+            e.Item = listviewitem[e.ItemIndex];
+        }
+
+        private void sortBykindOfItemToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            sortBykindOfItemToolStripMenuItem.Checked = !sortBykindOfItemToolStripMenuItem.Checked;
+            listviewitem.SortKind = sortBykindOfItemToolStripMenuItem.Checked;
+            listView1.Refresh();
         }
     }
 
-    public sealed class AsyncLock
+    static class Extensions
     {
-        private readonly System.Threading.SemaphoreSlim m_semaphore
-          = new System.Threading.SemaphoreSlim(1, 1);
-        private readonly Task<IDisposable> m_releaser;
-
-        public AsyncLock()
+        public static IOrderedEnumerable<ItemInfo> SortByKind(this IEnumerable<ItemInfo> x, bool SortKind)
         {
-            m_releaser = Task.FromResult((IDisposable)new Releaser(this));
-        }
-
-        public Task<IDisposable> LockAsync()
-        {
-            var wait = m_semaphore.WaitAsync();
-            return wait.IsCompleted ?
-                    m_releaser :
-                    wait.ContinueWith(
-                      (_, state) => (IDisposable)state,
-                      m_releaser.Result,
-                      System.Threading.CancellationToken.None,
-                      TaskContinuationOptions.ExecuteSynchronously,
-                      TaskScheduler.Default
-                    );
-        }
-        private sealed class Releaser : IDisposable
-        {
-            private readonly AsyncLock m_toRelease;
-            internal Releaser(AsyncLock toRelease) { m_toRelease = toRelease; }
-            public void Dispose() { m_toRelease.m_semaphore.Release(); }
+            return x.OrderBy(y => (SortKind) ? (y.info.kind != "FOLDER") : true);
         }
     }
 }

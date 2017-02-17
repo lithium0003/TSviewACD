@@ -240,6 +240,9 @@
   <data name="FuncVolumeUp_tip_str" xml:space="preserve">
     <value>Volume Up</value>
   </data>
+  <data name="RenameMulti_str" xml:space="preserve">
+    <value>Do you want to rename multiple items?</value>
+  </data>
   <data name="SelectUploadFiles_str" xml:space="preserve">
     <value>Select Upload File(s)</value>
   </data>
@@ -248,5 +251,8 @@
   </data>
   <data name="UpFolder_str" xml:space="preserve">
     <value>Parent folder</value>
+  </data>
+  <data name="UploadFolder_str" xml:space="preserve">
+    <value>Drag item contains some Folder. Do you want to continue to upload?</value>
   </data>
 </root>
