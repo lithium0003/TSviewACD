@@ -33,7 +33,7 @@ namespace TSviewACD
             Config.Log.LogOut("Application Start.");
         }
 
-        private TaskCanselToken CreateTask(string taskname)
+        public TaskCanselToken CreateTask(string taskname)
         {
             var item = new ListViewItem(taskname);
             var task = new TaskCanselToken(taskname);
@@ -42,7 +42,7 @@ namespace TSviewACD
             return task;
         }
 
-        private void FinishTask(TaskCanselToken task)
+        public void FinishTask(TaskCanselToken task)
         {
             var removes = listView_TaskList.Items.OfType<ListViewItem>().Where(x => x.Tag == task);
             if (removes.Count() > 0)
@@ -403,6 +403,28 @@ namespace TSviewACD
                 var parents = GetFullPathfromItem(DriveTree[info.info.parents[0]]);
                 return parents + ((parents != "/") ? "/" : "") + info.info.name;
             }
+        }
+
+        public string GetFullPathfromId(string id)
+        {
+            if (id == root_id) return "/";
+            else
+            {
+                var info = DriveTree[id].info;
+                var parents = GetFullPathfromItem(DriveTree[info.parents[0]]);
+                return parents + ((parents != "/") ? "/" : "") + info.name;
+            }
+        }
+
+        public IEnumerable<FileMetadata_Info> GetAllChildrenfromId(string id)
+        {
+            List<FileMetadata_Info> ret = new List<FileMetadata_Info>();
+            ret.Add(DriveTree[id].info);
+            foreach(var child in DriveTree[id].children)
+            {
+                ret.AddRange(GetAllChildrenfromId(child.Key));
+            }
+            return ret;
         }
 
         private ListViewItem[] GenerateListViewItem(ItemInfo root)
@@ -1003,7 +1025,7 @@ namespace TSviewACD
                             {
                                 byte[] md5 = null;
                                 toolStripProgressBar1.Style = ProgressBarStyle.Marquee;
-                                toolStripStatusLabel1.Text = "Check file MD5...";
+                                toolStripStatusLabel1.Text = upload_str + " " + short_filename + " Check file MD5...";
                                 await Task.Run(() => { md5 = md5calc.ComputeHash(hfile); }, ct);
                                 toolStripProgressBar1.Style = ProgressBarStyle.Continuous;
                                 toolStripStatusLabel1.Text = "Check done.";
@@ -1110,6 +1132,7 @@ namespace TSviewACD
 
         private async Task<int> DoDirectoryUpload(IEnumerable<string> Filenames, string parent_id, int f_all, int f_cur, CancellationToken ct = default(CancellationToken))
         {
+            FileMetadata_Info[] done_files = null;
             TaskCanselToken task = null;
             if (ct == default(CancellationToken))
             {
@@ -1118,13 +1141,34 @@ namespace TSviewACD
             }
             try
             {
+                if (checkBox_upSkip.Checked)
+                {
+                    toolStripProgressBar1.Style = ProgressBarStyle.Marquee;
+                    toolStripStatusLabel1.Text = "Check Drive files...";
+                    var ret = await Drive.ListChildren(parent_id, ct: ct);
+                    done_files = ret.data;
+
+                    toolStripProgressBar1.Style = ProgressBarStyle.Continuous;
+                    toolStripStatusLabel1.Text = "Check done.";
+                    toolStripProgressBar1.Value = toolStripProgressBar1.Minimum;
+                    toolStripProgressBar1.Maximum = 100;
+                }
+
                 foreach (var filename in Filenames)
                 {
                     ct.ThrowIfCancellationRequested();
                     var short_name = Path.GetFullPath(filename).Split(new char[] { '\\', '/' }).Last();
 
-                    // make subdirectory
-                    var newdir = await Drive.createFolder(short_name, parent_id);
+                    FileMetadata_Info newdir = null;
+                    if (done_files?.Where(x => x.kind == "FOLDER").Select(x => x.name).Contains(short_name) ?? false)
+                    {
+                        newdir = done_files.First(x => x.name == short_name && x.kind == "FOLDER");
+                    }
+                    if (newdir == null)
+                    {
+                        // make subdirectory
+                        newdir = await Drive.createFolder(short_name, parent_id);
+                    }
 
                     f_cur = await DoFileUpload(Directory.EnumerateFiles(filename), newdir.id, f_all, f_cur, ct);
                     if (f_cur < 0) return -1;
@@ -2190,7 +2234,7 @@ namespace TSviewACD
                         var task = CreateTask("upload(treeview)");
                         try
                         {
-                            f_cur = await DoFileUpload(drags, parent_id, f_all, f_cur);
+                            f_cur = await DoFileUpload(drags, parent_id, f_all, f_cur, task.cts.Token);
                             if (f_cur >= 0)
                                 f_cur = await DoDirectoryUpload(dir_drags, parent_id, f_all, f_cur, task.cts.Token);
                         }
@@ -2330,13 +2374,17 @@ namespace TSviewACD
             (new AboutBox1()).ShowDialog();
         }
 
+        public IEnumerable<FileMetadata_Info> GetSeletctedRemoteFiles()
+        {
+            return (listView1.SelectedItems.Count == 0 ? listView1.Items.OfType<ListViewItem>() : listView1.SelectedItems.OfType<ListViewItem>())
+                .Where(item => (item.Name != "." && item.Name != ".." && item.Name != "/"))
+                .Select(item => (item.Tag as ItemInfo).info);
+        }
+
         private void button_LocalRemoteMatch_Click(object sender, EventArgs e)
         {
-            var Matcher = new FormMatch();
-            Matcher.SelectedRemoteFiles =
-                (listView1.SelectedItems.Count == 0 ? listView1.Items.OfType<ListViewItem>() : listView1.SelectedItems.OfType<ListViewItem>())
-                .Where(item => (item.Name != "." && item.Name != ".." && item.Name != "/")).ToArray();
-            Matcher.ShowDialog();
+            FormMatch.Instance.SelectedRemoteFiles = GetSeletctedRemoteFiles();
+            FormMatch.Instance.Show();
         }
 
         private void comboBox_FindStr_KeyPress(object sender, KeyPressEventArgs e)
@@ -3086,10 +3134,9 @@ namespace TSviewACD
                 (item.Tag as TaskCanselToken).cts.Cancel();
         }
 
-        private void button_break_Click(object sender, EventArgs e)
+        private async void button_Playbreak_Click(object sender, EventArgs e)
         {
-            foreach (ListViewItem item in listView_TaskList.Items)
-                (item.Tag as TaskCanselToken).cts.Cancel();
+            await CancelTask("play");
         }
 
         private void buttonFFmpegmoduleConfig_Click(object sender, EventArgs e)
@@ -3098,6 +3145,11 @@ namespace TSviewACD
             form.ShowDialog();
         }
 
+        private void button_breakall_Click(object sender, EventArgs e)
+        {
+            foreach (ListViewItem item in listView_TaskList.Items)
+                (item.Tag as TaskCanselToken).cts.Cancel();
+        }
     }
 
 

@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace TSviewACD
 {
-    class TaskCanselToken
+    public class TaskCanselToken
     {
         public CancellationTokenSource cts = new CancellationTokenSource();
         public string taskname;

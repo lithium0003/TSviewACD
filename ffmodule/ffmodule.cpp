@@ -664,6 +664,7 @@ namespace ffmodule {
 		audio_out_sample_rate = 0;
 		audio_out_channels = 0;
 		audio_clock = 0;
+		audio_filter_src = { 0 };
 
 		frame_timer = 0;
 		frame_last_pts = 0;
@@ -1991,8 +1992,9 @@ namespace ffmodule {
 				is->overlay_text.erase();
 			}
 
-			if (is->audioq.size > MAX_AUDIOQ_SIZE ||
-				is->videoq.size > MAX_VIDEOQ_SIZE) {
+			if ((is->audioStream < 0 && is->videoq.size > MAX_VIDEOQ_SIZE) ||
+				(is->videoStream < 0 && is->audioq.size > MAX_AUDIOQ_SIZE) ||
+				(is->audioq.size > MAX_AUDIOQ_SIZE && is->videoq.size > MAX_VIDEOQ_SIZE)) {
 				SDL_Delay(10);
 				continue;
 			}

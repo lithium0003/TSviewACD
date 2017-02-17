@@ -12,29 +12,66 @@ using System.Windows.Forms;
 
 namespace TSviewACD
 {
-    public partial class FormMatch : Form
+    public sealed partial class FormMatch : Form
     {
-        public FormMatch()
+        private static readonly FormMatch _instance = new FormMatch();
+
+        public static FormMatch Instance
         {
-            InitializeComponent();
+            get
+            {
+                return _instance;
+            }
         }
 
-        private CancellationTokenSource ct_source = new CancellationTokenSource();
+        private FormMatch()
+        {
+            InitializeComponent();
+            listBox_remote.DataSource = _SelectedRemoteFiles;
+        }
 
-        public ListViewItem[] SelectedRemoteFiles;
+        CancellationTokenSource cts;
+
+        public IEnumerable<FileMetadata_Info> _SelectedRemoteFiles;
+
+        public IEnumerable<FileMetadata_Info> SelectedRemoteFiles
+        {
+            get
+            {
+                return _SelectedRemoteFiles;
+            }
+            set
+            {
+                if (value == null)
+                {
+                    _SelectedRemoteFiles = null;
+                    listBox_remote.DataSource = null;
+                }
+                else
+                {
+                    _SelectedRemoteFiles = value.ToArray()
+                        .Select(x => Program.MainForm.GetAllChildrenfromId(x.id))
+                        .SelectMany(x => x.Select(y => y))
+                        .Distinct()
+                        .Where(x => x.kind != "ASSET")
+                        .Where(x => x.kind != "FOLDER");
+                    listBox_remote.DataSource = _SelectedRemoteFiles.ToList();
+                }
+            }
+        }
         
         private void button_AddFile_Click(object sender, EventArgs e)
         {
             if (openFileDialog1.ShowDialog() != DialogResult.OK) return;
             
-            listBox1.Items.AddRange(openFileDialog1.FileNames.Where(x => listBox1.Items.IndexOf(x) < 0).Select(x => "  "+x).ToArray());
+            listBox_local.Items.AddRange(openFileDialog1.FileNames.Where(x => listBox_local.Items.IndexOf(x) < 0).ToArray());
         }
 
         private void DoDirectoryAdd(IEnumerable<string> Filenames)
         {
             foreach (var filename in Filenames)
             {
-                listBox1.Items.AddRange(Directory.EnumerateFiles(filename).Where(x => listBox1.Items.IndexOf(x) < 0).Select(x => "  " + x).ToArray());
+                listBox_local.Items.AddRange(Directory.EnumerateFiles(filename).Where(x => listBox_local.Items.IndexOf(x) < 0).ToArray());
 
                 DoDirectoryAdd(Directory.EnumerateDirectories(filename));
             }
@@ -55,9 +92,9 @@ namespace TSviewACD
 
         private void deltetItemToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            foreach(var i in listBox1.SelectedIndices.OfType<int>().Reverse())
+            foreach(var i in listBox_local.SelectedIndices.OfType<int>().Reverse())
             {
-                listBox1.Items.RemoveAt(i);
+                listBox_local.Items.RemoveAt(i);
             }
         }
 
@@ -65,136 +102,357 @@ namespace TSviewACD
         {
             if (e.KeyData == (Keys.A | Keys.Control))
             {
-                for (var i = 0; i < listBox1.Items.Count; i++)
-                    listBox1.SetSelected(i, true);
+                listBox_local.BeginUpdate();
+                try
+                {
+                    for (var i = 0; i < listBox_local.Items.Count; i++)
+                        listBox_local.SetSelected(i, true);
+                }
+                finally
+                {
+                    listBox_local.EndUpdate();
+                }
+            }
+        }
+
+        private string GetBasePath(IEnumerable<string> paths)
+        {
+            string prefix = null;
+            foreach(var p in paths)
+            {
+                if (prefix == null)
+                {
+                    var filename = Path.GetFileName(p);
+                    prefix = p.Substring(0, p.Length - filename.Length);
+                }
+                if (prefix == "")
+                    break;
+                while(!p.StartsWith(prefix) && prefix != "")
+                {
+                    prefix = prefix.Substring(0, prefix.Length - 1);
+                }
+            }
+            return prefix ?? "";
+        }
+
+        public class LocalItemInfo
+        {
+            public string path;
+            public string name;
+            public long size;
+            public string MD5;
+            public LocalItemInfo(string path, string name, long size, string MD5)
+            {
+                this.path = path;
+                this.name = name;
+                this.size = size;
+                this.MD5 = MD5;
+            }
+        }
+
+        public class RemoteItemInfo
+        {
+            public FileMetadata_Info info;
+            public string path;
+            public string name;
+            public RemoteItemInfo(FileMetadata_Info info, string path, string name)
+            {
+                this.info = info;
+                this.path = path;
+                this.name = name;
+            }
+        }
+
+        public class MatchItem
+        {
+            public LocalItemInfo local;
+            public RemoteItemInfo remote;
+            public MatchItem(LocalItemInfo local, RemoteItemInfo remote)
+            {
+                this.local = local;
+                this.remote = remote;
             }
         }
 
         private async void button1_Click(object sender, EventArgs e)
         {
+            if (SelectedRemoteFiles == null) return;
+
+            List<MatchItem> RemoteOnly = new List<MatchItem>();
+            List<MatchItem> LocalOnly = new List<MatchItem>();
+            List<MatchItem> BothAndMatch = new List<MatchItem>();
+            List<MatchItem> BothAndUnmatch = new List<MatchItem>();
+            Dictionary<string, LocalItemInfo[]> LocalDup = new Dictionary<string, LocalItemInfo[]>();
+            Dictionary<string, RemoteItemInfo[]> RemoteDup = new Dictionary<string, RemoteItemInfo[]>();
+
+            var task = Program.MainForm.CreateTask("match");
+            cts = task.cts;
             try
             {
                 button_start.Enabled = false;
-                for (var i = 0; i < listBox1.Items.Count; i++)
-                {
-                    var filename = listBox1.Items[i] as string;
-                    var name = Path.GetFileName(filename);
+                var synchronizationContext = SynchronizationContext.Current;
 
-                    var matchitem = SelectedRemoteFiles?.Select(x => (x.Tag as ItemInfo).info).Where(x => x.kind != "FOLDER" && x.name == name);
-                    if (matchitem.Count() > 0)
+                var remote = SelectedRemoteFiles.Select(x => new RemoteItemInfo(x, Program.MainForm.GetFullPathfromId(x.id), null)).ToArray();
+                var remotebasepath = GetBasePath(remote.Select(x => x.path));
+                remote = (checkBox_tree.Checked) ?
+                    remote.Select(x => new RemoteItemInfo(x.info, x.path, x.path.Substring(remotebasepath.Length))).ToArray() :
+                    remote.Select(x => new RemoteItemInfo(x.info, x.path, x.info.name)).ToArray();
+
+                var localpath = listBox_local.Items.Cast<string>();
+                var localbasepath = GetBasePath(localpath);
+                var local = ((checkBox_tree.Checked) ? 
+                    localpath.Select(x => new LocalItemInfo(x, x.Substring(localbasepath.Length).Replace('\\', '/'), 0, null)) :
+                    localpath.Select(x => new LocalItemInfo(x, Path.GetFileName(x), 0, null)))
+                    .GroupBy(x => x.name).ToArray();
+                var len = localpath.Count();
+                int i = 0;
+                await Task.Run(() =>
+                {
+                    foreach(var ritem in remote.GroupBy(x => x.name).Where(g => g.Count() > 1))
                     {
-                        bool match = false;
-                        foreach (var item in matchitem)
+                        RemoteDup[ritem.Key] = ritem.ToArray();
+                    }
+
+                    foreach (var litem in local)
+                    {
+                        cts.Token.ThrowIfCancellationRequested();
+                        var matchitem = remote.Where(x => x.name == litem.FirstOrDefault()?.name).ToArray();
+
+                        if(litem.Count() > 1)
                         {
-                            if (new System.IO.FileInfo(filename.Substring(2)).Length == item.contentProperties?.size)
-                            {
-                                match = true;
-                                break;
-                            }
+                            LocalDup[litem.Key] = litem.ToArray();
                         }
-                        if (match)
+
+                        if (matchitem.Length > 0)
                         {
-                            //match
-                            listBox1.Items[i] = "R " + filename.Substring(2);
+                            List<RemoteItemInfo> RemoteMatched = new List<RemoteItemInfo>();
+                            List<LocalItemInfo> LocalUnMatched = new List<LocalItemInfo>();
+                            // match test
+                            foreach (var item in litem)
+                            {
+                                ++i;
+                                synchronizationContext.Send(
+                                    (o) =>
+                                    {
+                                        if (cts.IsCancellationRequested) return;
+                                        label_info.Text = o as string;
+                                    }, string.Format("{0}/{1} {2}", i, len, item.path));
+
+                                List<RemoteItemInfo> Matched = new List<RemoteItemInfo>();
+                                item.size = new FileInfo(item.path).Length;
+                                foreach (var ritem in matchitem)
+                                {
+                                    if (item.size == ritem.info.contentProperties?.size)
+                                    {
+                                        Matched.Add(ritem);
+                                    }
+                                }
+
+                                if (Matched.Count > 0 && checkBox_MD5.Checked)
+                                {
+                                    byte[] md5 = null;
+                                    synchronizationContext.Send(
+                                        (o) =>
+                                        {
+                                            if (cts.IsCancellationRequested) return;
+                                            label_info.Text = o as string;
+                                        }, string.Format("{0}/{1} Check file MD5...{2}", i, len, item.path));
+                                    using (var md5calc = new System.Security.Cryptography.MD5CryptoServiceProvider())
+                                    using (var hfile = File.Open(item.path, FileMode.Open, FileAccess.Read, FileShare.Read))
+                                    {
+                                        md5 = md5calc.ComputeHash(hfile);
+                                        item.MD5 = BitConverter.ToString(md5).ToLower().Replace("-", "");
+                                        var sizeMatched = new List<RemoteItemInfo>(Matched);
+                                        Matched.Clear();
+                                        foreach (var ritem in sizeMatched)
+                                        {
+                                            if (item.MD5 == ritem.info.contentProperties?.md5)
+                                            {
+                                                //match
+                                                Matched.Add(ritem);
+                                            }
+                                        }
+                                    }
+                                }
+                                if(Matched.Count() == 0)
+                                {
+                                    LocalUnMatched.Add(item);
+                                }
+
+                                BothAndMatch.AddRange(Matched.Select(x => new MatchItem(item, x)));
+                                RemoteMatched.AddRange(Matched);
+                            }
+
+                            var RemoteUnMatched = matchitem.Except(RemoteMatched);
+                            if(RemoteUnMatched.Count() < LocalUnMatched.Count())
+                            {
+                                BothAndUnmatch.AddRange(RemoteUnMatched.Concat(RemoteMatched).Zip(LocalUnMatched, (r, l) => new MatchItem(l, r)));
+                            }
+                            else if(RemoteUnMatched.Count() > LocalUnMatched.Count())
+                            {
+                                BothAndUnmatch.AddRange(LocalUnMatched.Concat(litem).Zip(RemoteUnMatched, (l, r) => new MatchItem(l, r)));
+                            }
+                            else
+                            {
+                                if(RemoteUnMatched.Count() > 0)
+                                    BothAndUnmatch.AddRange(LocalUnMatched.Zip(RemoteUnMatched, (l, r) => new MatchItem(l, r)));
+                            }
                         }
                         else
                         {
-                            //no match
-                            listBox1.Items[i] = "C " + filename.Substring(2);
-                        }
-
-
-                        if (match && checkBox_MD5.Checked)
-                        {
-                            byte[] md5 = null;
-                            label_info.Text = "Check file MD5...";
-                            using (var md5calc = new System.Security.Cryptography.MD5CryptoServiceProvider())
-                            using (var hfile = File.Open(filename.Substring(2), FileMode.Open, FileAccess.Read, FileShare.Read))
+                            //nomatch
+                            foreach (var item in litem)
                             {
-                                await Task.Run(() => { md5 = md5calc.ComputeHash(hfile); }, ct_source.Token);
-                                label_info.Text = "";
-                                match = false;
-                                foreach (var item in matchitem)
-                                {
-                                    if (BitConverter.ToString(md5).ToLower().Replace("-", "") == item.contentProperties?.md5)
+                                ++i;
+                                synchronizationContext.Send(
+                                    (o) =>
                                     {
-                                        //match
-                                        match = true;
-                                        break;
-                                    }
-
-                                }
-                                //MD5 not match
-                                listBox1.Items[i] = ((match) ? "Ro" : "Rx") + filename.Substring(2);
+                                        if (cts.IsCancellationRequested) return;
+                                        label_info.Text = o as string;
+                                    }, string.Format("{0}/{1} {2}", i, len, item.path));
+                                LocalOnly.Add(new MatchItem(item, null));
                             }
                         }
                     }
-                    else
-                    {
-                        //nomatch
-                        listBox1.Items[i] = "L " + filename.Substring(2);
-                    }
-                }
-                button_start.Enabled = true;
+                    RemoteOnly.AddRange(remote.Select(x => x.info)
+                        .Except(BothAndMatch.Select(x => x.remote.info))
+                        .Except(BothAndUnmatch.Select(x => x.remote.info))
+                        .Select(x => remote.Where(y => y.info == x).FirstOrDefault())
+                        .Select(x => new MatchItem(null, x)));
+                }, cts.Token);
             }
             catch (OperationCanceledException)
             {
-
+                return;
             }
-        }
-
-        private void listBox1_DrawItem(object sender, DrawItemEventArgs e)
-        {
-            e.DrawBackground();
-            //背景を描画する
-            //項目が選択されている時は強調表示される
-
-            //ListBoxが空のときにListBoxが選択されるとe.Indexが-1になる
-            if (e.Index > -1)
-            { //空でない場合
-                string txt = ((ListBox)sender).Items[e.Index].ToString();
-                //描画する文字列の取得
-
-                if ((e.State & DrawItemState.Selected) != DrawItemState.Selected)
-                { //選択されていない時
-                    if (txt.StartsWith("L"))
-                    {
-                        // ローカルのみ
-                        e.Graphics.FillRectangle(Brushes.LemonChiffon, e.Bounds);
-                    }
-                    else if (txt.StartsWith("C"))
-                    {
-                        // リモートに同名ファイルがあるが一致していない
-                        e.Graphics.FillRectangle(Brushes.LightPink, e.Bounds);
-                    }
-                    else if (txt.StartsWith("Ro"))
-                    {
-                        // リモートと一致 MD5
-                        e.Graphics.FillRectangle(Brushes.MediumSeaGreen, e.Bounds);
-                    }
-                    else if (txt.StartsWith("Rx"))
-                    {
-                        // リモートと不一致 MD5
-                        e.Graphics.FillRectangle(Brushes.DeepPink, e.Bounds);
-                    }
-                    else if (txt.StartsWith("R"))
-                    {
-                        // リモートと一致
-                        e.Graphics.FillRectangle(Brushes.LightGreen, e.Bounds);
-                    }
-                }
-
-                using (Brush b = new SolidBrush(e.ForeColor))
-                    e.Graphics.DrawString(txt, e.Font, b, e.Bounds);
+            finally
+            {
+                label_info.Text = "";
+                Program.MainForm.FinishTask(task);
+                cts = null;
+                button_start.Enabled = true;
             }
-
-            e.DrawFocusRectangle();
-            //フォーカスを示す四角形を描画
+            var result = new FormMatchResult();
+            result.RemoteOnly = RemoteOnly;
+            result.LocalOnly = LocalOnly;
+            result.Unmatch = BothAndUnmatch;
+            result.Match = BothAndMatch;
+            result.RemoteDup = RemoteDup;
+            result.LocalDup = LocalDup;
+            result.ShowDialog();
         }
 
         private void FormMatch_FormClosing(object sender, FormClosingEventArgs e)
         {
-            ct_source.Cancel();
+            cts?.Cancel();
+            Hide();
+            e.Cancel = true;
+        }
+
+        private void listBox_remote_Format(object sender, ListControlConvertEventArgs e)
+        {
+            e.Value = Program.MainForm.GetFullPathfromId((e.ListItem as FileMetadata_Info).id);
+        }
+
+        private void button_AddRemote_Click(object sender, EventArgs e)
+        {
+            var items = SelectedRemoteFiles.ToList();
+            items.AddRange(Program.MainForm.GetSeletctedRemoteFiles());
+            SelectedRemoteFiles = items;
+        }
+
+        private void toolStripMenuItem1_Click(object sender, EventArgs e)
+        {
+            var items = SelectedRemoteFiles.ToList();
+            foreach (var i in listBox_remote.SelectedIndices.OfType<int>().Reverse())
+            {
+                items.RemoveAt(i);
+            }
+            SelectedRemoteFiles = items;
+        }
+
+        private void listBox_remote_KeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.KeyData == (Keys.A | Keys.Control))
+            {
+                listBox_remote.BeginUpdate();
+                try
+                {
+                    for (var i = 0; i < listBox_remote.Items.Count; i++)
+                        listBox_remote.SetSelected(i, true);
+                }
+                finally
+                {
+                    listBox_remote.EndUpdate();
+                }
+            }
+        }
+
+        private void button_cancel_Click(object sender, EventArgs e)
+        {
+            cts?.Cancel();
+        }
+
+        private void listBox_local_DragEnter(object sender, DragEventArgs e)
+        {
+            if (e.Data.GetDataPresent(DataFormats.FileDrop))
+                e.Effect = DragDropEffects.Copy;
+            else
+                e.Effect = DragDropEffects.None;
+        }
+
+        private void listBox_local_DragDrop(object sender, DragEventArgs e)
+        {
+            string[] fileName =
+                (string[])e.Data.GetData(DataFormats.FileDrop, false);
+
+            foreach (var item in fileName)
+            {
+                try
+                {
+                    if (File.GetAttributes(item).HasFlag(FileAttributes.Directory))
+                        DoDirectoryAdd(new string[] { item });
+                    else
+                    {
+                        if (listBox_local.Items.IndexOf(item) < 0)
+                            listBox_local.Items.Add(item);
+                    }
+                }
+                catch { }
+            }
+        }
+
+        private void listBox_remote_DragEnter(object sender, DragEventArgs e)
+        {
+            if (e.Data.GetDataPresent(typeof(ListView.SelectedListViewItemCollection)))
+                e.Effect = DragDropEffects.Move;
+            else
+                e.Effect = DragDropEffects.None;
+        }
+
+        private void listBox_remote_DragDrop(object sender, DragEventArgs e)
+        {
+            if (e.Data.GetDataPresent(typeof(ListView.SelectedListViewItemCollection)))
+            {
+                var selects = (ListView.SelectedListViewItemCollection)e.Data.GetData(typeof(ListView.SelectedListViewItemCollection));
+                if (SelectedRemoteFiles == null || SelectedRemoteFiles.Count() == 0)
+                    SelectedRemoteFiles = selects.Cast<ListViewItem>().Select(x => (x.Tag as ItemInfo).info);
+                else
+                {
+                    SelectedRemoteFiles = selects.Cast<ListViewItem>().Select(x => (x.Tag as ItemInfo).info).Concat(SelectedRemoteFiles);
+                }
+            }
+        }
+
+        private void button_clearLocal_Click(object sender, EventArgs e)
+        {
+            listBox_local.Items.Clear();
+        }
+
+        private void button_clearRemote_Click(object sender, EventArgs e)
+        {
+            SelectedRemoteFiles = null;
+            listBox_remote.DataSource = null;
         }
     }
 }

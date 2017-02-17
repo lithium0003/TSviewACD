@@ -31,6 +31,8 @@
             this.components = new System.ComponentModel.Container();
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(FormMatch));
             this.panel1 = new System.Windows.Forms.Panel();
+            this.checkBox_tree = new System.Windows.Forms.CheckBox();
+            this.button_AddRemote = new System.Windows.Forms.Button();
             this.button_cancel = new System.Windows.Forms.Button();
             this.label_info = new System.Windows.Forms.Label();
             this.checkBox_MD5 = new System.Windows.Forms.CheckBox();
@@ -38,18 +40,30 @@
             this.button_AddFolder = new System.Windows.Forms.Button();
             this.button_AddFile = new System.Windows.Forms.Button();
             this.panel2 = new System.Windows.Forms.Panel();
-            this.listBox1 = new System.Windows.Forms.ListBox();
+            this.listBox_remote = new System.Windows.Forms.ListBox();
+            this.contextMenuStrip2 = new System.Windows.Forms.ContextMenuStrip(this.components);
+            this.toolStripMenuItem1 = new System.Windows.Forms.ToolStripMenuItem();
+            this.splitter1 = new System.Windows.Forms.Splitter();
+            this.listBox_local = new System.Windows.Forms.ListBox();
             this.contextMenuStrip1 = new System.Windows.Forms.ContextMenuStrip(this.components);
             this.deltetItemToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.openFileDialog1 = new System.Windows.Forms.OpenFileDialog();
             this.folderBrowserDialog1 = new System.Windows.Forms.FolderBrowserDialog();
+            this.toolTip1 = new System.Windows.Forms.ToolTip(this.components);
+            this.button_clearLocal = new System.Windows.Forms.Button();
+            this.button_clearRemote = new System.Windows.Forms.Button();
             this.panel1.SuspendLayout();
             this.panel2.SuspendLayout();
+            this.contextMenuStrip2.SuspendLayout();
             this.contextMenuStrip1.SuspendLayout();
             this.SuspendLayout();
             // 
             // panel1
             // 
+            this.panel1.Controls.Add(this.button_clearRemote);
+            this.panel1.Controls.Add(this.button_clearLocal);
+            this.panel1.Controls.Add(this.checkBox_tree);
+            this.panel1.Controls.Add(this.button_AddRemote);
             this.panel1.Controls.Add(this.button_cancel);
             this.panel1.Controls.Add(this.label_info);
             this.panel1.Controls.Add(this.checkBox_MD5);
@@ -59,23 +73,48 @@
             this.panel1.Dock = System.Windows.Forms.DockStyle.Top;
             this.panel1.Location = new System.Drawing.Point(0, 0);
             this.panel1.Name = "panel1";
-            this.panel1.Size = new System.Drawing.Size(765, 100);
+            this.panel1.Size = new System.Drawing.Size(765, 116);
             this.panel1.TabIndex = 0;
+            // 
+            // checkBox_tree
+            // 
+            this.checkBox_tree.AutoSize = true;
+            this.checkBox_tree.Checked = true;
+            this.checkBox_tree.CheckState = System.Windows.Forms.CheckState.Checked;
+            this.checkBox_tree.Location = new System.Drawing.Point(278, 55);
+            this.checkBox_tree.Name = "checkBox_tree";
+            this.checkBox_tree.Size = new System.Drawing.Size(73, 16);
+            this.checkBox_tree.TabIndex = 7;
+            this.checkBox_tree.Text = "Keep tree";
+            this.toolTip1.SetToolTip(this.checkBox_tree, "比較をする際に、フォルダ構造を考慮して比較します");
+            this.checkBox_tree.UseVisualStyleBackColor = true;
+            // 
+            // button_AddRemote
+            // 
+            this.button_AddRemote.Location = new System.Drawing.Point(642, 77);
+            this.button_AddRemote.Name = "button_AddRemote";
+            this.button_AddRemote.Size = new System.Drawing.Size(111, 23);
+            this.button_AddRemote.TabIndex = 6;
+            this.button_AddRemote.Text = "Add Remote Item";
+            this.toolTip1.SetToolTip(this.button_AddRemote, "リモートの項目を追加します。\r\nフォルダが含まれている場合は、再帰的に中身を追加します。");
+            this.button_AddRemote.UseVisualStyleBackColor = true;
+            this.button_AddRemote.Click += new System.EventHandler(this.button_AddRemote_Click);
             // 
             // button_cancel
             // 
             this.button_cancel.DialogResult = System.Windows.Forms.DialogResult.Cancel;
-            this.button_cancel.Location = new System.Drawing.Point(533, 24);
+            this.button_cancel.Location = new System.Drawing.Point(396, 24);
             this.button_cancel.Name = "button_cancel";
             this.button_cancel.Size = new System.Drawing.Size(75, 23);
             this.button_cancel.TabIndex = 5;
             this.button_cancel.Text = "Cancel";
             this.button_cancel.UseVisualStyleBackColor = true;
+            this.button_cancel.Click += new System.EventHandler(this.button_cancel_Click);
             // 
             // label_info
             // 
             this.label_info.AutoSize = true;
-            this.label_info.Location = new System.Drawing.Point(236, 62);
+            this.label_info.Location = new System.Drawing.Point(236, 9);
             this.label_info.Name = "label_info";
             this.label_info.Size = new System.Drawing.Size(0, 12);
             this.label_info.TabIndex = 4;
@@ -83,11 +122,13 @@
             // checkBox_MD5
             // 
             this.checkBox_MD5.AutoSize = true;
-            this.checkBox_MD5.Location = new System.Drawing.Point(328, 28);
+            this.checkBox_MD5.Location = new System.Drawing.Point(278, 77);
             this.checkBox_MD5.Name = "checkBox_MD5";
             this.checkBox_MD5.Size = new System.Drawing.Size(171, 16);
             this.checkBox_MD5.TabIndex = 3;
             this.checkBox_MD5.Text = "Calculate MD5 and Matching";
+            this.toolTip1.SetToolTip(this.checkBox_MD5, "比較する際、ローカルのファイルのMD5ハッシュを算出し\r\nリモートのファイルのMD5と比較します。\r\nチェックされていない場合は、ファイルサイズのみの比較となりま" +
+        "す。");
             this.checkBox_MD5.UseVisualStyleBackColor = true;
             // 
             // button_start
@@ -102,47 +143,94 @@
             // 
             // button_AddFolder
             // 
-            this.button_AddFolder.Location = new System.Drawing.Point(25, 62);
+            this.button_AddFolder.Location = new System.Drawing.Point(12, 77);
             this.button_AddFolder.Name = "button_AddFolder";
             this.button_AddFolder.Size = new System.Drawing.Size(111, 23);
             this.button_AddFolder.TabIndex = 1;
             this.button_AddFolder.Text = "Add Local Folder";
+            this.toolTip1.SetToolTip(this.button_AddFolder, "ローカルのフォルダの中身を追加します");
             this.button_AddFolder.UseVisualStyleBackColor = true;
             this.button_AddFolder.Click += new System.EventHandler(this.button_AddFolder_Click);
             // 
             // button_AddFile
             // 
-            this.button_AddFile.Location = new System.Drawing.Point(25, 24);
+            this.button_AddFile.Location = new System.Drawing.Point(12, 48);
             this.button_AddFile.Name = "button_AddFile";
             this.button_AddFile.Size = new System.Drawing.Size(111, 23);
             this.button_AddFile.TabIndex = 0;
             this.button_AddFile.Text = "Add Local File";
+            this.toolTip1.SetToolTip(this.button_AddFile, "ローカルのファイルを追加します");
             this.button_AddFile.UseVisualStyleBackColor = true;
             this.button_AddFile.Click += new System.EventHandler(this.button_AddFile_Click);
             // 
             // panel2
             // 
-            this.panel2.Controls.Add(this.listBox1);
+            this.panel2.Controls.Add(this.listBox_remote);
+            this.panel2.Controls.Add(this.splitter1);
+            this.panel2.Controls.Add(this.listBox_local);
             this.panel2.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.panel2.Location = new System.Drawing.Point(0, 100);
+            this.panel2.Location = new System.Drawing.Point(0, 116);
             this.panel2.Name = "panel2";
-            this.panel2.Size = new System.Drawing.Size(765, 602);
+            this.panel2.Size = new System.Drawing.Size(765, 586);
             this.panel2.TabIndex = 1;
             // 
-            // listBox1
+            // listBox_remote
             // 
-            this.listBox1.ContextMenuStrip = this.contextMenuStrip1;
-            this.listBox1.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.listBox1.DrawMode = System.Windows.Forms.DrawMode.OwnerDrawFixed;
-            this.listBox1.FormattingEnabled = true;
-            this.listBox1.Location = new System.Drawing.Point(0, 0);
-            this.listBox1.Name = "listBox1";
-            this.listBox1.SelectionMode = System.Windows.Forms.SelectionMode.MultiExtended;
-            this.listBox1.Size = new System.Drawing.Size(765, 602);
-            this.listBox1.Sorted = true;
-            this.listBox1.TabIndex = 0;
-            this.listBox1.DrawItem += new System.Windows.Forms.DrawItemEventHandler(this.listBox1_DrawItem);
-            this.listBox1.KeyDown += new System.Windows.Forms.KeyEventHandler(this.listBox1_KeyDown);
+            this.listBox_remote.AllowDrop = true;
+            this.listBox_remote.ContextMenuStrip = this.contextMenuStrip2;
+            this.listBox_remote.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.listBox_remote.FormattingEnabled = true;
+            this.listBox_remote.ItemHeight = 12;
+            this.listBox_remote.Location = new System.Drawing.Point(376, 0);
+            this.listBox_remote.Name = "listBox_remote";
+            this.listBox_remote.SelectionMode = System.Windows.Forms.SelectionMode.MultiExtended;
+            this.listBox_remote.Size = new System.Drawing.Size(389, 586);
+            this.listBox_remote.Sorted = true;
+            this.listBox_remote.TabIndex = 2;
+            this.listBox_remote.Format += new System.Windows.Forms.ListControlConvertEventHandler(this.listBox_remote_Format);
+            this.listBox_remote.DragDrop += new System.Windows.Forms.DragEventHandler(this.listBox_remote_DragDrop);
+            this.listBox_remote.DragEnter += new System.Windows.Forms.DragEventHandler(this.listBox_remote_DragEnter);
+            this.listBox_remote.KeyDown += new System.Windows.Forms.KeyEventHandler(this.listBox_remote_KeyDown);
+            // 
+            // contextMenuStrip2
+            // 
+            this.contextMenuStrip2.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.toolStripMenuItem1});
+            this.contextMenuStrip2.Name = "contextMenuStrip1";
+            this.contextMenuStrip2.Size = new System.Drawing.Size(156, 26);
+            // 
+            // toolStripMenuItem1
+            // 
+            this.toolStripMenuItem1.Name = "toolStripMenuItem1";
+            this.toolStripMenuItem1.ShortcutKeys = System.Windows.Forms.Keys.Delete;
+            this.toolStripMenuItem1.Size = new System.Drawing.Size(155, 22);
+            this.toolStripMenuItem1.Text = "Deltet Item";
+            this.toolStripMenuItem1.Click += new System.EventHandler(this.toolStripMenuItem1_Click);
+            // 
+            // splitter1
+            // 
+            this.splitter1.Location = new System.Drawing.Point(373, 0);
+            this.splitter1.Name = "splitter1";
+            this.splitter1.Size = new System.Drawing.Size(3, 586);
+            this.splitter1.TabIndex = 1;
+            this.splitter1.TabStop = false;
+            // 
+            // listBox_local
+            // 
+            this.listBox_local.AllowDrop = true;
+            this.listBox_local.ContextMenuStrip = this.contextMenuStrip1;
+            this.listBox_local.Dock = System.Windows.Forms.DockStyle.Left;
+            this.listBox_local.FormattingEnabled = true;
+            this.listBox_local.ItemHeight = 12;
+            this.listBox_local.Location = new System.Drawing.Point(0, 0);
+            this.listBox_local.Name = "listBox_local";
+            this.listBox_local.SelectionMode = System.Windows.Forms.SelectionMode.MultiExtended;
+            this.listBox_local.Size = new System.Drawing.Size(373, 586);
+            this.listBox_local.Sorted = true;
+            this.listBox_local.TabIndex = 0;
+            this.listBox_local.DragDrop += new System.Windows.Forms.DragEventHandler(this.listBox_local_DragDrop);
+            this.listBox_local.DragEnter += new System.Windows.Forms.DragEventHandler(this.listBox_local_DragEnter);
+            this.listBox_local.KeyDown += new System.Windows.Forms.KeyEventHandler(this.listBox1_KeyDown);
             // 
             // contextMenuStrip1
             // 
@@ -164,6 +252,26 @@
             this.openFileDialog1.FileName = "openFileDialog1";
             this.openFileDialog1.Multiselect = true;
             // 
+            // button_clearLocal
+            // 
+            this.button_clearLocal.Location = new System.Drawing.Point(149, 77);
+            this.button_clearLocal.Name = "button_clearLocal";
+            this.button_clearLocal.Size = new System.Drawing.Size(75, 23);
+            this.button_clearLocal.TabIndex = 8;
+            this.button_clearLocal.Text = "Clear Local";
+            this.button_clearLocal.UseVisualStyleBackColor = true;
+            this.button_clearLocal.Click += new System.EventHandler(this.button_clearLocal_Click);
+            // 
+            // button_clearRemote
+            // 
+            this.button_clearRemote.Location = new System.Drawing.Point(529, 77);
+            this.button_clearRemote.Name = "button_clearRemote";
+            this.button_clearRemote.Size = new System.Drawing.Size(85, 23);
+            this.button_clearRemote.TabIndex = 9;
+            this.button_clearRemote.Text = "Clear Remote";
+            this.button_clearRemote.UseVisualStyleBackColor = true;
+            this.button_clearRemote.Click += new System.EventHandler(this.button_clearRemote_Click);
+            // 
             // FormMatch
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 12F);
@@ -179,6 +287,7 @@
             this.panel1.ResumeLayout(false);
             this.panel1.PerformLayout();
             this.panel2.ResumeLayout(false);
+            this.contextMenuStrip2.ResumeLayout(false);
             this.contextMenuStrip1.ResumeLayout(false);
             this.ResumeLayout(false);
 
@@ -190,7 +299,7 @@
         private System.Windows.Forms.Button button_AddFolder;
         private System.Windows.Forms.Button button_AddFile;
         private System.Windows.Forms.Panel panel2;
-        private System.Windows.Forms.ListBox listBox1;
+        private System.Windows.Forms.ListBox listBox_local;
         private System.Windows.Forms.OpenFileDialog openFileDialog1;
         private System.Windows.Forms.FolderBrowserDialog folderBrowserDialog1;
         private System.Windows.Forms.Button button_cancel;
@@ -199,5 +308,14 @@
         private System.Windows.Forms.Button button_start;
         private System.Windows.Forms.ContextMenuStrip contextMenuStrip1;
         private System.Windows.Forms.ToolStripMenuItem deltetItemToolStripMenuItem;
+        private System.Windows.Forms.Button button_AddRemote;
+        private System.Windows.Forms.Splitter splitter1;
+        private System.Windows.Forms.ListBox listBox_remote;
+        private System.Windows.Forms.ContextMenuStrip contextMenuStrip2;
+        private System.Windows.Forms.ToolStripMenuItem toolStripMenuItem1;
+        private System.Windows.Forms.CheckBox checkBox_tree;
+        private System.Windows.Forms.ToolTip toolTip1;
+        private System.Windows.Forms.Button button_clearRemote;
+        private System.Windows.Forms.Button button_clearLocal;
     }
 }

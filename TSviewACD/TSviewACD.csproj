@@ -134,6 +134,12 @@
     <Compile Include="FormMatch.Designer.cs">
       <DependentUpon>FormMatch.cs</DependentUpon>
     </Compile>
+    <Compile Include="FormMatchResult.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="FormMatchResult.Designer.cs">
+      <DependentUpon>FormMatchResult.cs</DependentUpon>
+    </Compile>
     <Compile Include="Icon.cs" />
     <Compile Include="JSONitem.cs" />
     <Compile Include="ProgressStream.cs" />
@@ -170,6 +176,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="FormMatch.resx">
       <DependentUpon>FormMatch.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="FormMatchResult.resx">
+      <DependentUpon>FormMatchResult.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Properties\Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>

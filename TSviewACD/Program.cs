@@ -10,6 +10,7 @@ namespace TSviewACD
 {
     static class Program
     {
+        public static Form1 MainForm = null;
         /// <summary>
         /// The main entry point for the application.
         /// </summary>
@@ -28,7 +29,8 @@ namespace TSviewACD
             Application.SetCompatibleTextRenderingDefault(false);
             if (args.Length == 0)
             {
-                Application.Run(new Form1());
+                MainForm = new Form1();
+                Application.Run(MainForm);
                 return 0;
             }
             else

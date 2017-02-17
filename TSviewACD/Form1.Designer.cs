@@ -337,7 +337,7 @@
             this.button_breakall.Text = "Cancel All";
             this.toolTip1.SetToolTip(this.button_breakall, "実行中のタスクすべてをキャンセルします");
             this.button_breakall.UseVisualStyleBackColor = true;
-            this.button_breakall.Click += new System.EventHandler(this.button_break_Click);
+            this.button_breakall.Click += new System.EventHandler(this.button_breakall_Click);
             // 
             // textBox_path
             // 
@@ -773,7 +773,7 @@
             this.button_stop.TabIndex = 5;
             this.toolTip1.SetToolTip(this.button_stop, "ストップ");
             this.button_stop.UseVisualStyleBackColor = true;
-            this.button_stop.Click += new System.EventHandler(this.button_break_Click);
+            this.button_stop.Click += new System.EventHandler(this.button_Playbreak_Click);
             // 
             // button_Play
             // 
@@ -1140,7 +1140,7 @@
             this.button_FFplay_stop.TabIndex = 13;
             this.toolTip1.SetToolTip(this.button_FFplay_stop, "FFplayストップ");
             this.button_FFplay_stop.UseVisualStyleBackColor = true;
-            this.button_FFplay_stop.Click += new System.EventHandler(this.button_break_Click);
+            this.button_FFplay_stop.Click += new System.EventHandler(this.button_Playbreak_Click);
             // 
             // button_FFplay
             // 

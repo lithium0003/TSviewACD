@@ -161,7 +161,7 @@ namespace TSviewACD
                 {
                     while (slotno <= lastslot)
                     {
-                        //Config.Log.LogOut(string.Format("AmazonDriveStream : slot {0}", slotno));
+                        //Config.Log.LogOut(string.Format("AmazonDriveStream : download slot {0}", slotno));
                         cts_1.Token.ThrowIfCancellationRequested();
 
                         // すでに取得済みかチェック
@@ -398,7 +398,7 @@ namespace TSviewACD
                         if (accesslog.Count() > 0)
                         {
                             var min_point = accesslog.OrderByDescending(x => x.Value).Take(1).Min(x => x.Key);
-                            var max_point = min_point + AmazonDriveStreamConfig.slotbacklog - AmazonDriveStreamConfig.slotkeepold;
+                            var max_point = min_point + AmazonDriveStreamConfig.slotbacklog;
                             min_point = Math.Max(min_point - AmazonDriveStreamConfig.slotnearby * 2, 0);
                             max_point = Math.Min(max_point + AmazonDriveStreamConfig.slotnearby * 2, lastslot);
                             //Config.Log.LogOut(string.Format("AmazonDriveStream : min_point {0}", min_point));
