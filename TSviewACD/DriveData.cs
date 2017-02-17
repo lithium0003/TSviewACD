@@ -18,19 +18,35 @@ namespace TSviewACD
 
         static string root_id;
         static Dictionary<string, ItemInfo> DriveTree = new Dictionary<string, ItemInfo>();
-        static List<Changes_Info> historydata = new List<Changes_Info>();
+        static List<FileMetadata_Info> historydata = new List<FileMetadata_Info>();
+        static string checkpoint;
+
+        static DriveData_Info AmazonDriveData
+        {
+            get
+            {
+                var ret = new DriveData_Info();
+                ret.checkpoint = checkpoint;
+                ret.nodes = historydata.ToArray();
+                return ret;
+            }
+        }
 
         static public IDictionary<string, ItemInfo> AmazonDriveTree
         {
             get { return DriveTree; }
         }
-        static public IEnumerable<Changes_Info> AmazonDriveData
-        {
-            get { return historydata; }
-        }
         static public string AmazonDriveRootID
         {
             get { return root_id; }
+        }
+        static public string ChangeCheckpoint
+        {
+            get { return checkpoint; }
+        }
+        static public IEnumerable<FileMetadata_Info> AmazonDriveHistory
+        {
+            get { return historydata; }
         }
 
         public static bool SaveToBinaryFile(object obj, string path)
@@ -86,11 +102,12 @@ namespace TSviewACD
                     {
                         historydata.Clear();
                         DriveTree.Clear();
-                        historydata.AddRange((Changes_Info[])LoadFromBinaryFile(cachefile));
+                        var cache = (DriveData_Info)LoadFromBinaryFile(cachefile);
+                        checkpoint = cache.checkpoint;
+                        historydata.AddRange(cache.nodes);
                         ConstructDriveTree(historydata);
                     }, ct);
                 }
-                string checkpoint = historydata.LastOrDefault()?.checkpoint;
                 await GetChanges(checkpoint: checkpoint, ct: ct, inprogress: inprogress, done: done);
                 done?.Invoke("Changes Loaded.");
             }
@@ -101,12 +118,13 @@ namespace TSviewACD
             }
         }
 
-        public static async Task<Changes_Info[]> GetChanges(
+        public static async Task<FileMetadata_Info[]> GetChanges(
             string checkpoint = null,
             CancellationToken ct = default(CancellationToken),
             DriveProgressHandler inprogress = null,
             DriveProgressHandler done = null)
         {
+            List<FileMetadata_Info> ret = new List<FileMetadata_Info>();
             inprogress?.Invoke("Loading Changes...");
             using (await DriveLock.LockAsync())
             {
@@ -118,35 +136,33 @@ namespace TSviewACD
                 while (!ct.IsCancellationRequested)
                 {
                     var history = await Drive.changes(checkpoint: checkpoint, ct: ct);
-                    ConstructDriveTree(history);
-                    if (history.LastOrDefault()?.end ?? false)
+                    foreach(var h in history)
                     {
-                        historydata.AddRange(history.Where(x => !(x.end ?? false)));
-                        break;
+                        if(!(h.end ?? false))
+                        {
+                            ConstructDriveTree(h.nodes);
+                            ret.AddRange(h.nodes);
+                            historydata.AddRange(h.nodes);
+                            DriveData.checkpoint = h.checkpoint;
+                        }
                     }
-                    else
-                        historydata.AddRange(history);
+                    if (history.LastOrDefault()?.end ?? false) break;
                 }
                 done?.Invoke("Changes Loaded.");
                 while (!ct.IsCancellationRequested)
                 {
-                    if (SaveToBinaryFile(historydata.ToArray(), cachefile))
+                    if (SaveToBinaryFile(AmazonDriveData, cachefile))
                         break;
                 }
-                if (checkpoint == null) return historydata.ToArray();
-                return historydata.SkipWhile(x => x.checkpoint != checkpoint).SkipWhile(x => x.checkpoint == checkpoint).ToArray();
+                return ret.ToArray();
             }
         }
 
-        static private void ConstructDriveTree(IEnumerable<Changes_Info> newdata)
+        static private void ConstructDriveTree(IEnumerable<FileMetadata_Info> newdata)
         {
-            foreach (var change in newdata)
+            foreach (var item in newdata)
             {
-                if (change.end ?? false) return;
-                foreach (var item in change.nodes)
-                {
-                    AddNewDriveItem(item);
-                }
+                AddNewDriveItem(item);
             }
         }
 
@@ -193,16 +209,27 @@ namespace TSviewACD
             else
             {
                 // deleted item
-                if (DriveTree.TryGetValue(newdata.id, out value))
+                DeleteDriveItem(newdata);
+            }
+        }
+
+        static private void DeleteDriveItem(FileMetadata_Info deldata)
+        {
+            ItemInfo value;
+            if (DriveTree.TryGetValue(deldata.id, out value))
+            {
+                var children = value.children.Values.ToArray();
+                foreach (var child in children)
                 {
-                    DriveTree.Remove(newdata.id);
-                    foreach (var p in newdata.parents)
-                    {
-                        if (DriveTree.TryGetValue(p, out value))
-                        {
-                            value.children.Remove(newdata.id);
-                        }
-                    }
+                    DeleteDriveItem(child.info);
+                }
+                DriveTree.Remove(deldata.id);
+            }
+            foreach (var p in deldata.parents)
+            {
+                if (DriveTree.TryGetValue(p, out value))
+                {
+                    value.children.Remove(deldata.id);
                 }
             }
         }
@@ -256,7 +283,7 @@ namespace TSviewACD
 
         public static async Task<bool> EncryptFilename(string uploadfilename, string enckey, string checkpoint, CancellationToken ct = default(CancellationToken))
         {
-            var child = (await GetChanges(checkpoint, ct).ConfigureAwait(false)).SelectMany(x => x.nodes).Where(x => x.name.Contains(uploadfilename)).LastOrDefault();
+            var child = (await GetChanges(checkpoint, ct).ConfigureAwait(false)).Where(x => x.name.Contains(uploadfilename)).LastOrDefault();
             if (child?.status == "AVAILABLE")
             {
                 Config.Log.LogOut("EncryptFilename");
@@ -276,7 +303,7 @@ namespace TSviewACD
                         }
                         await Drive.renameItem(id: child.id, newname: cryptname, ct: ct).ConfigureAwait(false);
                         await Task.Delay(TimeSpan.FromSeconds(5), ct).ConfigureAwait(false);
-                        await GetChanges(historydata.LastOrDefault()?.checkpoint, ct).ConfigureAwait(false);
+                        await GetChanges(checkpoint: ChangeCheckpoint, ct: ct).ConfigureAwait(false);
                         return true;
                     }
                 }

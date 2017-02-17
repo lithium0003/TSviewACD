@@ -307,7 +307,7 @@ namespace TSviewACD
                             }
                             else
                             {
-                                var checkpoint = DriveData.AmazonDriveData.LastOrDefault()?.checkpoint;
+                                var checkpoint = DriveData.ChangeCheckpoint;
                                 // make subdirectory
                                 var newdir = await DriveData.Drive.createFolder(p, parentID);
                                 await DriveData.GetChanges(checkpoint, ct);
@@ -315,7 +315,7 @@ namespace TSviewACD
                             }
                         }
                         // アップロード
-                        var checkpoint2 = DriveData.AmazonDriveData.LastOrDefault()?.checkpoint;
+                        var checkpoint2 = DriveData.ChangeCheckpoint;
                         if (await Program.MainForm.DoFileUpload(new string[] { filename }, parentID, ct: ct) < 0)
                             break;
                         await DriveData.GetChanges(checkpoint2, ct);

@@ -700,7 +700,7 @@ namespace TSviewACD
             public int? maxNodes;
 
             [DataMember(EmitDefaultValue = false)]
-            public bool? includePurged;
+            public string includePurged;
         }
 
         public async Task<Changes_Info[]> changes(string checkpoint = null, int? chankSize = null, CancellationToken ct = default(CancellationToken))

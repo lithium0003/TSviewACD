@@ -729,7 +729,7 @@ namespace TSviewACD
                     var uploadfilename = (Config.UseEncryption) ? enckey + ".enc" : short_filename;
                     string md5string = null;
 
-                    var checkpoint = DriveData.AmazonDriveData.LastOrDefault()?.checkpoint;
+                    var checkpoint = DriveData.ChangeCheckpoint;
 
                     if (done_files?.Select(x => x.name).Contains(uploadfilename) ?? false)
                     {
@@ -868,7 +868,7 @@ namespace TSviewACD
                                 Console.Error.WriteLine("Upload : wait 10sec for retry..." + checkretry.ToString());
                                 await Task.Delay(TimeSpan.FromSeconds(10), ct).ConfigureAwait(false);
 
-                                var children = (await DriveData.GetChanges(checkpoint, ct).ConfigureAwait(false)).SelectMany(x => x.nodes);
+                                var children = (await DriveData.GetChanges(checkpoint, ct).ConfigureAwait(false));
                                 if (children.Where(x => x.name.Contains(uploadfilename)).LastOrDefault()?.status == "AVAILABLE")
                                 {
                                     Console.Error.WriteLine("Upload : child found.");

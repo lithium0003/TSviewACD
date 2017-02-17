@@ -861,7 +861,7 @@ namespace TSviewACD
                     var uploadfilename = (Config.UseEncryption) ? enckey + ".enc" : short_filename;
                     if (Config.UseFilenameEncryption)
                         uploadfilename = Path.GetRandomFileName();
-                    var checkpoint = DriveData.AmazonDriveData.LastOrDefault()?.checkpoint;
+                    var checkpoint = DriveData.ChangeCheckpoint;
 
                     if (done_files?.Select(x => x.name).Contains(uploadfilename) ?? false)
                     {
@@ -951,7 +951,7 @@ namespace TSviewACD
                                 await Task.Delay(TimeSpan.FromSeconds(10), ct);
 
                                 var children = await DriveData.GetChanges(checkpoint, ct);
-                                if (children.SelectMany(x => x.nodes).Where(x => x.name.Contains(uploadfilename)).LastOrDefault()?.status == "AVAILABLE")
+                                if (children.Where(x => x.name.Contains(uploadfilename)).LastOrDefault()?.status == "AVAILABLE")
                                 {
                                     Config.Log.LogOut("Upload : child found.");
                                     break;
@@ -1036,7 +1036,7 @@ namespace TSviewACD
                     }
                     if (newdir == null)
                     {
-                        var checkpoint = DriveData.AmazonDriveData.LastOrDefault()?.checkpoint;
+                        var checkpoint = DriveData.ChangeCheckpoint;
                         // make subdirectory
                         newdir = await Drive.createFolder(short_name, parent_id);
                         await DriveData.GetChanges(checkpoint, ct);
@@ -1259,7 +1259,7 @@ namespace TSviewACD
             try
             {
                 // Load Changed items
-                var checkpoint = DriveData.AmazonDriveData.LastOrDefault()?.checkpoint;
+                var checkpoint = DriveData.ChangeCheckpoint;
                 await DriveData.GetChanges(
                     checkpoint: checkpoint, 
                     ct: ct,
@@ -3010,7 +3010,7 @@ namespace TSviewACD
         private void amazonDriveHistoryToolStripMenuItem_Click(object sender, EventArgs e)
         {
             var logform = new FormDriveLog();
-            logform.ChangeLog = DriveData.AmazonDriveData;
+            logform.ChangeLog = DriveData.AmazonDriveHistory;
             logform.ShowDialog();
         }
 

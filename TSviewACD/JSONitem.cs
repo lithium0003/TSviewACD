@@ -117,7 +117,6 @@ namespace TSviewACD
     }
 
 
-    [Serializable()]
     [DataContract]
     public class Changes_Info
     {
@@ -133,4 +132,13 @@ namespace TSviewACD
         public FileMetadata_Info[] nodes;
     }
 
+    [Serializable()]
+    [DataContract]
+    public class DriveData_Info
+    {
+        [DataMember]
+        public string checkpoint;
+        [DataMember]
+        public FileMetadata_Info[] nodes;
+    }
 }

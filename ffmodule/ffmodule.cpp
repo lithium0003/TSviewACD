@@ -908,7 +908,7 @@ namespace ffmodule {
 				inpkt = NULL;
 				if (audio_eof == audio_eof_enum::output_eof) {
 					audio_eof = audio_eof_enum::eof;
-					return -1;
+					goto quit_audio;
 				}
 			}
 
@@ -1096,7 +1096,7 @@ namespace ffmodule {
 				audio_size = is->audio_decode_frame(is->audio_buf, sizeof(is->audio_buf), &pts);
 				if (audio_size < 0) {
 					/* If error, output silence */
-					is->audio_buf_size = 1024;
+					is->audio_buf_size = MAX_AUDIO_FRAME_SIZE;
 					memset(is->audio_buf, 0, is->audio_buf_size);
 				}
 				else {
