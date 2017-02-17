@@ -7,6 +7,7 @@ using System.Net.Http;
 using System.Runtime.Serialization;
 using System.Runtime.Serialization.Formatters.Binary;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
@@ -25,7 +26,7 @@ namespace TSviewACD
         static List<FileMetadata_Info> historydata = new List<FileMetadata_Info>();
         static string checkpoint;
 
-        [Serializable()]
+        [Serializable]
         [DataContract]
         public class RecordData
         {
@@ -40,17 +41,6 @@ namespace TSviewACD
                 DriveTree = DriveData.DriveTree;
             }
         }
-
-        //static DriveData_Info AmazonDriveData
-        //{
-        //    get
-        //    {
-        //        var ret = new DriveData_Info();
-        //        ret.checkpoint = checkpoint;
-        //        ret.nodes = historydata.ToArray();
-        //        return ret;
-        //    }
-        //}
 
         static public IDictionary<string, ItemInfo> AmazonDriveTree
         {
@@ -68,6 +58,21 @@ namespace TSviewACD
         {
             get { return historydata; }
         }
+        static public void ChangeCryption1()
+        {
+            foreach(var item in DriveTree.Values)
+            {
+                item.ReloadCryptedMethod1();
+            }
+        }
+        static public void ChangeCryption2()
+        {
+            foreach (var item in DriveTree.Values)
+            {
+                item.ReloadCryptedMethod2();
+            }
+        }
+
 
         public static bool SaveToBinaryFile(RecordData obj, string path)
         {
@@ -344,18 +349,18 @@ namespace TSviewACD
             else
             {
                 var parents = GetFullPathfromItem(DriveTree[info.info.parents[0]]);
-                return parents + ((parents != "/") ? "/" : "") + info.info.name;
+                return parents + ((parents != "/") ? "/" : "") + info.DisplayName;
             }
         }
 
-        public static string GetFullPathfromId(string id)
+        public static string GetFullPathfromId(string id, bool nodecrypt = false)
         {
             if (id == root_id) return "/";
             else
             {
-                var info = DriveTree[id].info;
-                var parents = GetFullPathfromItem(DriveTree[info.parents[0]]);
-                return parents + ((parents != "/") ? "/" : "") + info.name;
+                var info = DriveTree[id];
+                var parents = GetFullPathfromItem(DriveTree[info.info.parents[0]]);
+                return parents + ((parents != "/") ? "/" : "") + ((nodecrypt)? info.info.name: info.DisplayName);
             }
         }
 
@@ -378,7 +383,7 @@ namespace TSviewACD
             foreach (var p in path)
             {
                 if (string.IsNullOrEmpty(p)) continue;
-                var find_result = DriveTree[id].children.Where(x => x.Value.info.name == p);
+                var find_result = DriveTree[id].children.Where(x => x.Value.DisplayName == p);
                 if (find_result.Count() == 0) break;
                 id = find_result.First().Key;
             }
@@ -387,41 +392,45 @@ namespace TSviewACD
 
         public static async Task<bool> EncryptFilename(string uploadfilename, string enckey, string checkpoint, CancellationToken ct = default(CancellationToken))
         {
-            var child = (await GetChanges(checkpoint, ct).ConfigureAwait(false)).Where(x => x.name.Contains(uploadfilename)).LastOrDefault();
-            if (child?.status == "AVAILABLE")
-            {
-                Config.Log.LogOut("EncryptFilename");
-                using (var ms = new MemoryStream())
+            int retry = 30;
+            while (--retry > 0) {
+                var child = (await GetChanges(checkpoint, ct).ConfigureAwait(false)).Where(x => x.name.Contains(uploadfilename)).LastOrDefault();
+                if (child?.status == "AVAILABLE")
                 {
-                    byte[] plain = Encoding.UTF8.GetBytes(enckey);
-                    ms.Write(plain, 0, plain.Length);
-                    ms.Position = 0;
-                    using (var enc = new AES256CTR_CryptStream(ms, Config.DrivePassword, child.id))
+                    Config.Log.LogOut("EncryptFilename");
+                    using (var ms = new MemoryStream())
                     {
-                        byte[] buf = new byte[ms.Length];
-                        enc.Read(buf, 0, buf.Length);
-                        string cryptname = "";
-                        foreach (var c in buf)
+                        byte[] plain = Encoding.UTF8.GetBytes(enckey);
+                        ms.Write(plain, 0, plain.Length);
+                        ms.Position = 0;
+                        using (var enc = new AES256CTR_CryptStream(ms, Config.DrivePassword, child.id))
                         {
-                            cryptname += (char)('\u2800' + c);
+                            byte[] buf = new byte[ms.Length];
+                            enc.Read(buf, 0, buf.Length);
+                            string cryptname = "";
+                            foreach (var c in buf)
+                            {
+                                cryptname += (char)('\u2800' + c);
+                            }
+                            var reItem = await Drive.renameItem(id: child.id, newname: cryptname, ct: ct).ConfigureAwait(false);
+                            await GetChanges(checkpoint: ChangeCheckpoint, ct: ct).ConfigureAwait(false);
+                            AmazonDriveTree[reItem.id].IsEncrypted = CryptMethods.Method1_CTR;
+                            AmazonDriveTree[reItem.id].ReloadCryptedMethod1();
+                            return true;
                         }
-                        await Drive.renameItem(id: child.id, newname: cryptname, ct: ct).ConfigureAwait(false);
-                        await Task.Delay(TimeSpan.FromSeconds(5), ct).ConfigureAwait(false);
-                        await GetChanges(checkpoint: ChangeCheckpoint, ct: ct).ConfigureAwait(false);
-                        return true;
                     }
                 }
+                await Task.Delay(2000).ConfigureAwait(false);
             }
-            else
-                return false;
+            return false;
         }
 
         public static string DecryptFilename(FileMetadata_Info downloaditem)
         {
-            Config.Log.LogOut("DecryptFilename");
             using (var ms = new MemoryStream())
             {
-                string cryptname = downloaditem.name;
+                string cryptname = downloaditem?.name;
+                if (string.IsNullOrEmpty(cryptname)) return null;
                 byte[] buf = new byte[cryptname.Length];
                 int i = 0;
                 foreach (var c in cryptname)
@@ -435,27 +444,157 @@ namespace TSviewACD
                 {
                     byte[] plain = new byte[i];
                     dec.Read(plain, 0, plain.Length);
-                    return Encoding.UTF8.GetString(plain);
+                    var plainname = Encoding.UTF8.GetString(plain);
+                    if (plainname.IndexOfAny(Path.GetInvalidFileNameChars()) < 0)
+                    {
+                        if (Regex.IsMatch(plainname ?? "", ".*?\\.[a-z0-9]{8}$"))
+                            return plainname;
+                        else
+                            return null;
+                    }
+                    else
+                        return null;
                 }
             }
         }
     }
 
-    [Serializable()]
+    public enum CryptMethods
+    {
+        Unknown,
+        Method0_Plain,
+        Method1_CTR,
+        Method2_CBC_CarotDAV,
+    }
+
+
+    [Serializable]
     [DataContract]
     public class ItemInfo
     {
         [DataMember]
-        public FileMetadata_Info info;
+        public FileMetadata_Info info {
+            get { return _info; }
+            set {
+                _info = value;
+                if(value != null)
+                    ProcessCryption();
+            }
+        }
+        [DataMember]
+        [OptionalField(VersionAdded = 2)]
+        public CryptMethods IsEncrypted;
+        public bool CryptError = false;
         public TreeNode tree;
         public Dictionary<string, ItemInfo> children = new Dictionary<string, ItemInfo>();
+        public string DisplayName { get; private set; }
+
+        private FileMetadata_Info _info;
+
+        private void ProcessCryption()
+        {
+            if (IsEncrypted == CryptMethods.Unknown)
+            {
+                if (info?.name?.StartsWith(Config.CarotDAV_CryptNameHeader) ?? false)
+                {
+                    IsEncrypted = CryptMethods.Method2_CBC_CarotDAV;
+                }
+                else if (Regex.IsMatch(info?.name ?? "", ".*?\\.[a-z0-9]{8}\\.enc$"))
+                {
+                    IsEncrypted = CryptMethods.Method1_CTR;
+                    DisplayName = Path.GetFileNameWithoutExtension(Path.GetFileNameWithoutExtension(info.name));
+                    return;
+                }
+                else if(Regex.IsMatch(info?.name ?? "", "^[\u2800-\u28ff]+$"))
+                {
+                    IsEncrypted = CryptMethods.Method1_CTR;
+                    var decodename = DriveData.DecryptFilename(info);
+                    if (decodename != null)
+                    {
+                        IsEncrypted = CryptMethods.Method1_CTR;
+                        DisplayName = Path.GetFileNameWithoutExtension(decodename);
+                        return;
+                    }
+                    DisplayName = info?.name;
+                    CryptError = true;
+                }
+                else
+                {
+                    IsEncrypted = CryptMethods.Method0_Plain;
+                }
+            }
+            switch (IsEncrypted)
+            {
+                case CryptMethods.Method0_Plain:
+                    DisplayName = info?.name;
+                    break;
+                case CryptMethods.Method1_CTR:
+                    if (Regex.IsMatch(info?.name ?? "", ".*?\\.[a-z0-9]{8}\\.enc$"))
+                    {
+                        DisplayName = Path.GetFileNameWithoutExtension(Path.GetFileNameWithoutExtension(info.name));
+                        CryptError = false;
+                    }
+                    else if (Regex.IsMatch(info?.name ?? "", "^[\u2800-\u28ff]+$"))
+                    {
+                        var decodename = DriveData.DecryptFilename(info);
+                        if (decodename != null)
+                        {
+                            DisplayName = Path.GetFileNameWithoutExtension(decodename);
+                            CryptError = false;
+                        }
+                        else
+                        {
+                            DisplayName = info?.name;
+                            CryptError = true;
+                        }
+                    }
+                    else
+                    {
+                        IsEncrypted = CryptMethods.Method0_Plain;
+                        DisplayName = info?.name;
+                    }
+                    break;
+                case CryptMethods.Method2_CBC_CarotDAV:
+                    {
+                        var decodename = CryptCarotDAV.DecryptFilename(info?.name, Config.DrivePassword);
+                        if (decodename != null)
+                        {
+                            DisplayName = decodename;
+                            CryptError = false;
+                        }
+                        else
+                        {
+                            DisplayName = info?.name;
+                            CryptError = true;
+                        }
+                    }
+                    break;
+            }
+        }
 
         public ItemInfo(FileMetadata_Info thisdata)
         {
             info = thisdata;
         }
 
-        [OnDeserialized()]
+        public void ReloadCryptedMethod1()
+        {
+            if(IsEncrypted != CryptMethods.Method0_Plain)
+            {
+                ProcessCryption();
+            }
+        }
+
+        public void ReloadCryptedMethod2()
+        {
+            if (IsEncrypted == CryptMethods.Method0_Plain || IsEncrypted == CryptMethods.Method2_CBC_CarotDAV)
+            {
+                IsEncrypted = CryptMethods.Unknown;
+            }
+            ProcessCryption();
+        }
+
+        [OnDeserialized]
         internal void OnDeserializedMethod(StreamingContext context)
         {
             children = new Dictionary<string, ItemInfo>();

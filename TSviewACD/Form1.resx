@@ -131,6 +131,58 @@
   <data name="tabControl1.Alignment" type="System.Windows.Forms.TabAlignment, System.Windows.Forms">
     <value>Bottom</value>
   </data>
+  <data name="button1.Location" type="System.Drawing.Point, System.Drawing">
+    <value>552, 35</value>
+  </data>
+  <data name="button1.Size" type="System.Drawing.Size, System.Drawing">
+    <value>75, 23</value>
+  </data>
+  <assembly alias="mscorlib" name="mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" />
+  <data name="button1.TabIndex" type="System.Int32, mscorlib">
+    <value>12</value>
+  </data>
+  <data name="button1.Text" xml:space="preserve">
+    <value>button1</value>
+  </data>
+  <data name="&gt;&gt;button1.Name" xml:space="preserve">
+    <value>button1</value>
+  </data>
+  <data name="&gt;&gt;button1.Type" xml:space="preserve">
+    <value>System.Windows.Forms.Button, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;button1.Parent" xml:space="preserve">
+    <value>tabPage_Navigation</value>
+  </data>
+  <data name="&gt;&gt;button1.ZOrder" xml:space="preserve">
+    <value>0</value>
+  </data>
+  <data name="checkBox_overrideUpload.AutoSize" type="System.Boolean, mscorlib">
+    <value>True</value>
+  </data>
+  <data name="checkBox_overrideUpload.Location" type="System.Drawing.Point, System.Drawing">
+    <value>238, 46</value>
+  </data>
+  <data name="checkBox_overrideUpload.Size" type="System.Drawing.Size, System.Drawing">
+    <value>135, 16</value>
+  </data>
+  <data name="checkBox_overrideUpload.TabIndex" type="System.Int32, mscorlib">
+    <value>11</value>
+  </data>
+  <data name="checkBox_overrideUpload.Text" xml:space="preserve">
+    <value>Override conflict files</value>
+  </data>
+  <data name="&gt;&gt;checkBox_overrideUpload.Name" xml:space="preserve">
+    <value>checkBox_overrideUpload</value>
+  </data>
+  <data name="&gt;&gt;checkBox_overrideUpload.Type" xml:space="preserve">
+    <value>System.Windows.Forms.CheckBox, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;checkBox_overrideUpload.Parent" xml:space="preserve">
+    <value>tabPage_Navigation</value>
+  </data>
+  <data name="&gt;&gt;checkBox_overrideUpload.ZOrder" xml:space="preserve">
+    <value>1</value>
+  </data>
   <data name="button_breakone.Anchor" type="System.Windows.Forms.AnchorStyles, System.Windows.Forms">
     <value>Top, Right</value>
   </data>
@@ -140,7 +192,6 @@
   <data name="button_breakone.Size" type="System.Drawing.Size, System.Drawing">
     <value>75, 23</value>
   </data>
-  <assembly alias="mscorlib" name="mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" />
   <data name="button_breakone.TabIndex" type="System.Int32, mscorlib">
     <value>10</value>
   </data>
@@ -163,7 +214,7 @@
     <value>tabPage_Navigation</value>
   </data>
   <data name="&gt;&gt;button_breakone.ZOrder" xml:space="preserve">
-    <value>0</value>
+    <value>2</value>
   </data>
   <data name="label23.Anchor" type="System.Windows.Forms.AnchorStyles, System.Windows.Forms">
     <value>Top, Right</value>
@@ -193,7 +244,7 @@
     <value>tabPage_Navigation</value>
   </data>
   <data name="&gt;&gt;label23.ZOrder" xml:space="preserve">
-    <value>1</value>
+    <value>3</value>
   </data>
   <data name="listView_TaskList.Anchor" type="System.Windows.Forms.AnchorStyles, System.Windows.Forms">
     <value>Top, Right</value>
@@ -217,7 +268,7 @@
     <value>tabPage_Navigation</value>
   </data>
   <data name="&gt;&gt;listView_TaskList.ZOrder" xml:space="preserve">
-    <value>2</value>
+    <value>4</value>
   </data>
   <data name="checkBox_MD5.AutoSize" type="System.Boolean, mscorlib">
     <value>True</value>
@@ -247,7 +298,7 @@
     <value>tabPage_Navigation</value>
   </data>
   <data name="&gt;&gt;checkBox_MD5.ZOrder" xml:space="preserve">
-    <value>3</value>
+    <value>5</value>
   </data>
   <data name="checkBox_upSkip.AutoSize" type="System.Boolean, mscorlib">
     <value>True</value>
@@ -277,7 +328,7 @@
     <value>tabPage_Navigation</value>
   </data>
   <data name="&gt;&gt;checkBox_upSkip.ZOrder" xml:space="preserve">
-    <value>4</value>
+    <value>6</value>
   </data>
   <data name="button_upload.Location" type="System.Drawing.Point, System.Drawing">
     <value>6, 31</value>
@@ -304,7 +355,7 @@
     <value>tabPage_Navigation</value>
   </data>
   <data name="&gt;&gt;button_upload.ZOrder" xml:space="preserve">
-    <value>5</value>
+    <value>7</value>
   </data>
   <data name="button_Go.Anchor" type="System.Windows.Forms.AnchorStyles, System.Windows.Forms">
     <value>Top, Right</value>
@@ -334,7 +385,7 @@
     <value>tabPage_Navigation</value>
   </data>
   <data name="&gt;&gt;button_Go.ZOrder" xml:space="preserve">
-    <value>6</value>
+    <value>8</value>
   </data>
   <data name="button_breakall.Anchor" type="System.Windows.Forms.AnchorStyles, System.Windows.Forms">
     <value>Top, Right</value>
@@ -364,7 +415,7 @@
     <value>tabPage_Navigation</value>
   </data>
   <data name="&gt;&gt;button_breakall.ZOrder" xml:space="preserve">
-    <value>7</value>
+    <value>9</value>
   </data>
   <data name="textBox_path.Anchor" type="System.Windows.Forms.AnchorStyles, System.Windows.Forms">
     <value>Top, Left, Right</value>
@@ -391,7 +442,7 @@
     <value>tabPage_Navigation</value>
   </data>
   <data name="&gt;&gt;textBox_path.ZOrder" xml:space="preserve">
-    <value>8</value>
+    <value>10</value>
   </data>
   <data name="button_reload.Anchor" type="System.Windows.Forms.AnchorStyles, System.Windows.Forms">
     <value>Top, Right</value>
@@ -421,7 +472,7 @@
     <value>tabPage_Navigation</value>
   </data>
   <data name="&gt;&gt;button_reload.ZOrder" xml:space="preserve">
-    <value>9</value>
+    <value>11</value>
   </data>
   <data name="tabPage_Navigation.Location" type="System.Drawing.Point, System.Drawing">
     <value>4, 4</value>
@@ -2852,6 +2903,135 @@ The format is seconds or HH:MM, HH:MM:SS.
   <data name="&gt;&gt;tabPage_Bandwidth.ZOrder" xml:space="preserve">
     <value>6</value>
   </data>
+  <data name="checkBox_decodeView.AutoSize" type="System.Boolean, mscorlib">
+    <value>True</value>
+  </data>
+  <data name="checkBox_decodeView.Location" type="System.Drawing.Point, System.Drawing">
+    <value>632, 12</value>
+  </data>
+  <data name="checkBox_decodeView.Size" type="System.Drawing.Size, System.Drawing">
+    <value>109, 16</value>
+  </data>
+  <data name="checkBox_decodeView.TabIndex" type="System.Int32, mscorlib">
+    <value>6</value>
+  </data>
+  <data name="checkBox_decodeView.Text" xml:space="preserve">
+    <value>Decode filename</value>
+  </data>
+  <data name="&gt;&gt;checkBox_decodeView.Name" xml:space="preserve">
+    <value>checkBox_decodeView</value>
+  </data>
+  <data name="&gt;&gt;checkBox_decodeView.Type" xml:space="preserve">
+    <value>System.Windows.Forms.CheckBox, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;checkBox_decodeView.Parent" xml:space="preserve">
+    <value>tabPage_Crypt</value>
+  </data>
+  <data name="&gt;&gt;checkBox_decodeView.ZOrder" xml:space="preserve">
+    <value>0</value>
+  </data>
+  <data name="comboBox_CarotDAV_Escape.Location" type="System.Drawing.Point, System.Drawing">
+    <value>150, 32</value>
+  </data>
+  <data name="comboBox_CarotDAV_Escape.Size" type="System.Drawing.Size, System.Drawing">
+    <value>76, 20</value>
+  </data>
+  <data name="comboBox_CarotDAV_Escape.TabIndex" type="System.Int32, mscorlib">
+    <value>7</value>
+  </data>
+  <data name="&gt;&gt;comboBox_CarotDAV_Escape.Name" xml:space="preserve">
+    <value>comboBox_CarotDAV_Escape</value>
+  </data>
+  <data name="&gt;&gt;comboBox_CarotDAV_Escape.Type" xml:space="preserve">
+    <value>System.Windows.Forms.ComboBox, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;comboBox_CarotDAV_Escape.Parent" xml:space="preserve">
+    <value>groupBox1</value>
+  </data>
+  <data name="&gt;&gt;comboBox_CarotDAV_Escape.ZOrder" xml:space="preserve">
+    <value>0</value>
+  </data>
+  <data name="radioButton_crypt_2_CBC.AutoSize" type="System.Boolean, mscorlib">
+    <value>True</value>
+  </data>
+  <data name="radioButton_crypt_2_CBC.ImeMode" type="System.Windows.Forms.ImeMode, System.Windows.Forms">
+    <value>NoControl</value>
+  </data>
+  <data name="radioButton_crypt_2_CBC.Location" type="System.Drawing.Point, System.Drawing">
+    <value>6, 36</value>
+  </data>
+  <data name="radioButton_crypt_2_CBC.Size" type="System.Drawing.Size, System.Drawing">
+    <value>138, 16</value>
+  </data>
+  <data name="radioButton_crypt_2_CBC.TabIndex" type="System.Int32, mscorlib">
+    <value>1</value>
+  </data>
+  <data name="radioButton_crypt_2_CBC.Text" xml:space="preserve">
+    <value>CBC mode(CarotDAV)</value>
+  </data>
+  <data name="&gt;&gt;radioButton_crypt_2_CBC.Name" xml:space="preserve">
+    <value>radioButton_crypt_2_CBC</value>
+  </data>
+  <data name="&gt;&gt;radioButton_crypt_2_CBC.Type" xml:space="preserve">
+    <value>System.Windows.Forms.RadioButton, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;radioButton_crypt_2_CBC.Parent" xml:space="preserve">
+    <value>groupBox1</value>
+  </data>
+  <data name="&gt;&gt;radioButton_crypt_2_CBC.ZOrder" xml:space="preserve">
+    <value>1</value>
+  </data>
+  <data name="radioButton_crypt_1_CTR.AutoSize" type="System.Boolean, mscorlib">
+    <value>True</value>
+  </data>
+  <data name="radioButton_crypt_1_CTR.Location" type="System.Drawing.Point, System.Drawing">
+    <value>6, 18</value>
+  </data>
+  <data name="radioButton_crypt_1_CTR.Size" type="System.Drawing.Size, System.Drawing">
+    <value>77, 16</value>
+  </data>
+  <data name="radioButton_crypt_1_CTR.TabIndex" type="System.Int32, mscorlib">
+    <value>0</value>
+  </data>
+  <data name="radioButton_crypt_1_CTR.Text" xml:space="preserve">
+    <value>CTR mode</value>
+  </data>
+  <data name="&gt;&gt;radioButton_crypt_1_CTR.Name" xml:space="preserve">
+    <value>radioButton_crypt_1_CTR</value>
+  </data>
+  <data name="&gt;&gt;radioButton_crypt_1_CTR.Type" xml:space="preserve">
+    <value>System.Windows.Forms.RadioButton, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;radioButton_crypt_1_CTR.Parent" xml:space="preserve">
+    <value>groupBox1</value>
+  </data>
+  <data name="&gt;&gt;radioButton_crypt_1_CTR.ZOrder" xml:space="preserve">
+    <value>2</value>
+  </data>
+  <data name="groupBox1.Location" type="System.Drawing.Point, System.Drawing">
+    <value>386, 3</value>
+  </data>
+  <data name="groupBox1.Size" type="System.Drawing.Size, System.Drawing">
+    <value>235, 62</value>
+  </data>
+  <data name="groupBox1.TabIndex" type="System.Int32, mscorlib">
+    <value>5</value>
+  </data>
+  <data name="groupBox1.Text" xml:space="preserve">
+    <value>Method</value>
+  </data>
+  <data name="&gt;&gt;groupBox1.Name" xml:space="preserve">
+    <value>groupBox1</value>
+  </data>
+  <data name="&gt;&gt;groupBox1.Type" xml:space="preserve">
+    <value>System.Windows.Forms.GroupBox, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;groupBox1.Parent" xml:space="preserve">
+    <value>tabPage_Crypt</value>
+  </data>
+  <data name="&gt;&gt;groupBox1.ZOrder" xml:space="preserve">
+    <value>1</value>
+  </data>
   <data name="checkBox_LockPassword.AutoSize" type="System.Boolean, mscorlib">
     <value>True</value>
   </data>
@@ -2859,13 +3039,13 @@ The format is seconds or HH:MM, HH:MM:SS.
     <value>259, 17</value>
   </data>
   <data name="checkBox_LockPassword.Size" type="System.Drawing.Size, System.Drawing">
-    <value>101, 16</value>
+    <value>100, 16</value>
   </data>
   <data name="checkBox_LockPassword.TabIndex" type="System.Int32, mscorlib">
     <value>4</value>
   </data>
   <data name="checkBox_LockPassword.Text" xml:space="preserve">
-    <value>Lock Password</value>
+    <value>Hide Password</value>
   </data>
   <data name="checkBox_LockPassword.ToolTip" xml:space="preserve">
     <value>If checked, lock the password textbox.</value>
@@ -2880,7 +3060,7 @@ The format is seconds or HH:MM, HH:MM:SS.
     <value>tabPage_Crypt</value>
   </data>
   <data name="&gt;&gt;checkBox_LockPassword.ZOrder" xml:space="preserve">
-    <value>0</value>
+    <value>2</value>
   </data>
   <data name="label27.AutoSize" type="System.Boolean, mscorlib">
     <value>True</value>
@@ -2907,7 +3087,7 @@ The format is seconds or HH:MM, HH:MM:SS.
     <value>tabPage_Crypt</value>
   </data>
   <data name="&gt;&gt;label27.ZOrder" xml:space="preserve">
-    <value>1</value>
+    <value>3</value>
   </data>
   <data name="textBox_Password.Location" type="System.Drawing.Point, System.Drawing">
     <value>183, 36</value>
@@ -2928,7 +3108,7 @@ The format is seconds or HH:MM, HH:MM:SS.
     <value>tabPage_Crypt</value>
   </data>
   <data name="&gt;&gt;textBox_Password.ZOrder" xml:space="preserve">
-    <value>2</value>
+    <value>4</value>
   </data>
   <data name="checkBox_cryptfilename.AutoSize" type="System.Boolean, mscorlib">
     <value>True</value>
@@ -2958,7 +3138,7 @@ The format is seconds or HH:MM, HH:MM:SS.
     <value>tabPage_Crypt</value>
   </data>
   <data name="&gt;&gt;checkBox_cryptfilename.ZOrder" xml:space="preserve">
-    <value>3</value>
+    <value>5</value>
   </data>
   <data name="checkBox_crypt.AutoSize" type="System.Boolean, mscorlib">
     <value>True</value>
@@ -2988,7 +3168,7 @@ The format is seconds or HH:MM, HH:MM:SS.
     <value>tabPage_Crypt</value>
   </data>
   <data name="&gt;&gt;checkBox_crypt.ZOrder" xml:space="preserve">
-    <value>4</value>
+    <value>6</value>
   </data>
   <data name="tabPage_Crypt.Location" type="System.Drawing.Point, System.Drawing">
     <value>4, 4</value>
@@ -3284,6 +3464,27 @@ The format is seconds or HH:MM, HH:MM:SS.
   <data name="playWithFFplayToolStripMenuItem.Text" xml:space="preserve">
     <value>&amp;Play with FFmpeg</value>
   </data>
+  <data name="toolStripMenuItem7.Size" type="System.Drawing.Size, System.Drawing">
+    <value>183, 6</value>
+  </data>
+  <data name="cutToolStripMenuItem.ShortcutKeys" type="System.Windows.Forms.Keys, System.Windows.Forms">
+    <value>Ctrl+X</value>
+  </data>
+  <data name="cutToolStripMenuItem.Size" type="System.Drawing.Size, System.Drawing">
+    <value>186, 22</value>
+  </data>
+  <data name="cutToolStripMenuItem.Text" xml:space="preserve">
+    <value>Cut</value>
+  </data>
+  <data name="pasteToolStripMenuItem.ShortcutKeys" type="System.Windows.Forms.Keys, System.Windows.Forms">
+    <value>Ctrl+V</value>
+  </data>
+  <data name="pasteToolStripMenuItem.Size" type="System.Drawing.Size, System.Drawing">
+    <value>186, 22</value>
+  </data>
+  <data name="pasteToolStripMenuItem.Text" xml:space="preserve">
+    <value>Paste</value>
+  </data>
   <data name="toolStripMenuItem3.Size" type="System.Drawing.Size, System.Drawing">
     <value>183, 6</value>
   </data>
@@ -3306,7 +3507,7 @@ The format is seconds or HH:MM, HH:MM:SS.
     <value>Trash Item</value>
   </data>
   <data name="contextMenuStrip1.Size" type="System.Drawing.Size, System.Drawing">
-    <value>187, 148</value>
+    <value>187, 220</value>
   </data>
   <data name="&gt;&gt;contextMenuStrip1.Name" xml:space="preserve">
     <value>contextMenuStrip1</value>
@@ -4110,6 +4311,24 @@ The format is seconds or HH:MM, HH:MM:SS.
   </data>
   <data name="&gt;&gt;timer4.Type" xml:space="preserve">
     <value>System.Windows.Forms.Timer, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;toolStripMenuItem7.Name" xml:space="preserve">
+    <value>toolStripMenuItem7</value>
+  </data>
+  <data name="&gt;&gt;toolStripMenuItem7.Type" xml:space="preserve">
+    <value>System.Windows.Forms.ToolStripSeparator, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;cutToolStripMenuItem.Name" xml:space="preserve">
+    <value>cutToolStripMenuItem</value>
+  </data>
+  <data name="&gt;&gt;cutToolStripMenuItem.Type" xml:space="preserve">
+    <value>System.Windows.Forms.ToolStripMenuItem, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;pasteToolStripMenuItem.Name" xml:space="preserve">
+    <value>pasteToolStripMenuItem</value>
+  </data>
+  <data name="&gt;&gt;pasteToolStripMenuItem.Type" xml:space="preserve">
+    <value>System.Windows.Forms.ToolStripMenuItem, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </data>
   <data name="&gt;&gt;$this.Name" xml:space="preserve">
     <value>Form1</value>

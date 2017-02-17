@@ -21,6 +21,40 @@ namespace TSviewACD
         private static Dictionary<string, ItemInfo> DriveTree = new Dictionary<string, ItemInfo>();
         private static List<Changes_Info> treedata = new List<Changes_Info>();
 
+        static public TaskCanselToken CreateTask(string taskname)
+        {
+            var task = new TaskCanselToken(taskname);
+            ConsoleTasks.Add(task);
+            return task;
+        }
+
+        static public void FinishTask(TaskCanselToken task)
+        {
+            ConsoleTasks.Remove(task);
+        }
+
+        static public async Task CancelTask(string taskname)
+        {
+            foreach (var item in ConsoleTasks.Where(x => x.taskname == taskname).ToArray())
+            {
+                item.cts.Cancel();
+            }
+            while (ConsoleTasks.Where(x => x.taskname == taskname).Count() > 0)
+            {
+                await Task.Delay(100).ConfigureAwait(false);
+            }
+        }
+
+        static public bool CancelTaskAll()
+        {
+            if (ConsoleTasks.Count > 0)
+            {
+                foreach (var t in ConsoleTasks)
+                    t.cts.Cancel();
+            }
+            return (ConsoleTasks.Count > 0);
+        }
+
         public async static Task<int> MainFunc(string[] args)
         {
             bool outputRedirected = IsRedirected(GetStdHandle(StandardHandle.Output));
@@ -101,16 +135,16 @@ namespace TSviewACD
                     Console.WriteLine("\tlist     (REMOTE_PATH)                    : list item");
                     Console.WriteLine("\t\t--recursive: recursive mode");
                     Console.WriteLine("\t\t--md5: show MD5 hash");
+                    Console.WriteLine("\t\t--nodecrypt: disable auto decrypt");
                     Console.WriteLine("\tdownload (REMOTE_PATH) (LOCAL_DIR_PATH)   : download item");
                     Console.WriteLine("\t\t--md5 : hash check after download");
-                    Console.WriteLine("\t\t--cryptname: crypt name mode");
-                    Console.WriteLine("\t\t--plainname: plain name mode");
+                    Console.WriteLine("\t\t--nodecrypt: disable auto decrypt");
                     Console.WriteLine("\tupload   (LOCAL_FILE_PATH) (REMOTE_PATH)  : upload item");
                     Console.WriteLine("\t\t--md5 : hash check after upload");
-                    Console.WriteLine("\t\t--crypt: crypt upload mode");
+                    Console.WriteLine("\t\t--crypt1: crypt upload mode(CTR mode)");
+                    Console.WriteLine("\t\t--crypt1name: crypt filename(CTR mode)");
+                    Console.WriteLine("\t\t--crypt2: crypt upload mode(CBC mode CarrotDAV)");
                     Console.WriteLine("\t\t--nocrypt: nomal upload mode");
-                    Console.WriteLine("\t\t--cryptname: crypt name mode");
-                    Console.WriteLine("\t\t--plainname: plain name mode");
                     Console.WriteLine("");
                     Console.WriteLine("\t\t--debug : debug log output");
                     break;
@@ -131,8 +165,7 @@ namespace TSviewACD
         {
             Console.Error.WriteLine("");
             Console.Error.WriteLine("Cancel...");
-            foreach (var task in ConsoleTasks)
-                task.cts.Cancel();
+            TaskCanceler.CancelTaskAll();
             args.Cancel = true;
             await Task.Run(() =>
             {
@@ -144,8 +177,7 @@ namespace TSviewACD
 
         private static async Task Login()
         {
-            var task = new TaskCanselToken("Login");
-            ConsoleTasks.Add(task);
+            var task = TaskCanceler.CreateTask("Login");
             try
             {
                 Console.Error.WriteLine("Login Start.");
@@ -163,7 +195,7 @@ namespace TSviewACD
             }
             finally
             {
-                ConsoleTasks.Remove(task);
+                TaskCanceler.FinishTask(task);
             }
         }
 
@@ -173,8 +205,7 @@ namespace TSviewACD
             TaskCanselToken task = null;
             if (ct == default(CancellationToken))
             {
-                task = new TaskCanselToken("FindItems");
-                ConsoleTasks.Add(task);
+                task = TaskCanceler.CreateTask("FindItems");
                 ct = task.cts.Token;
             }
             try
@@ -200,25 +231,25 @@ namespace TSviewACD
                     return ret.ToArray();
                 }
 
-                var children = DriveData.AmazonDriveTree[root.id].children.Select(x => x.Value.info);
+                var children = DriveData.AmazonDriveTree[root.id].children.Select(x => x.Value);
 
                 foreach (var c in children)
                 {
-                    if (c.name == path_str[0]
+                    if (c.DisplayName == path_str[0]
                         ||
                         ((path_str[0].Contains('*') || path_str[0].Contains('?'))
-                                && Regex.IsMatch(c.name, Regex.Escape(path_str[0]).Replace("\\*", ".*").Replace("\\?", "."))))
+                                && Regex.IsMatch(c.DisplayName, Regex.Escape(path_str[0]).Replace("\\*", ".*").Replace("\\?", "."))))
                     {
-                        if (c.kind == "FOLDER")
-                            ret.AddRange(await FindItems((recursive && path_str[0] == "*")? path_str: path_str.Skip(1).ToArray(), recursive, c, ct: ct).ConfigureAwait(false));
+                        if (c.info.kind == "FOLDER")
+                            ret.AddRange(await FindItems((recursive && path_str[0] == "*")? path_str: path_str.Skip(1).ToArray(), recursive, c.info, ct: ct).ConfigureAwait(false));
                         else
                         {
-                            if (path_str[0] == c.name
+                            if (path_str[0] == c.DisplayName
                                 ||
                                 (((path_str[0].Contains('*') || path_str[0].Contains('?'))
-                                    && Regex.IsMatch(c.name, Regex.Escape(path_str[0]).Replace("\\*", ".*").Replace("\\?", ".")))))
+                                    && Regex.IsMatch(c.DisplayName, Regex.Escape(path_str[0]).Replace("\\*", ".*").Replace("\\?", ".")))))
                             {
-                                ret.Add(c);
+                                ret.Add(c.info);
                             }
                         }
                     }
@@ -236,8 +267,8 @@ namespace TSviewACD
             }
             finally
             {
-                if(task != null)
-                    ConsoleTasks.Remove(task);
+                if (task != null)
+                    TaskCanceler.FinishTask(task);
             }
         }
 
@@ -247,8 +278,7 @@ namespace TSviewACD
             TaskCanselToken task = null;
             if (ct == default(CancellationToken))
             {
-                task = new TaskCanselToken("FindItemsID");
-                ConsoleTasks.Add(task);
+                task = TaskCanceler.CreateTask("FindItemsID");
                 ct = task.cts.Token;
             }
             try
@@ -266,14 +296,14 @@ namespace TSviewACD
                     root = DriveData.AmazonDriveTree[DriveData.AmazonDriveRootID].info;
                 }
 
-                var children = DriveData.AmazonDriveTree[root.id].children.Select(x => x.Value.info);
+                var children = DriveData.AmazonDriveTree[root.id].children.Select(x => x.Value);
 
                 foreach (var c in children)
                 {
-                    if (c.name == path_str[0])
+                    if (c.DisplayName == path_str[0])
                     {
-                        if (c.kind == "FOLDER")
-                            return await FindItemsID(path_str.Skip(1).ToArray(), c).ConfigureAwait(false);
+                        if (c.info.kind == "FOLDER")
+                            return await FindItemsID(path_str.Skip(1).ToArray(), c.info).ConfigureAwait(false);
                         else
                         {
                             return null;
@@ -285,13 +315,13 @@ namespace TSviewACD
             finally
             {
                 if (task != null)
-                    ConsoleTasks.Remove(task);
+                    TaskCanceler.FinishTask(task);
             }
         }
 
         static async Task<int> ListItems(string[] targetArgs, string[] paramArgs)
         {
-            var task = new TaskCanselToken("ListItems");
+            var task = TaskCanceler.CreateTask("ListItems");
             ConsoleTasks.Add(task);
             try
             {
@@ -306,6 +336,7 @@ namespace TSviewACD
 
                 bool recursive = false;
                 bool showmd5 = false;
+                bool nodecrypt = false;
                 foreach (var p in paramArgs)
                 {
                     switch (p)
@@ -317,6 +348,10 @@ namespace TSviewACD
                         case "md5":
                             Console.Error.WriteLine("(--md5: show MD5 hash)");
                             showmd5 = true;
+                            break;
+                        case "nodecrypt":
+                            Console.Error.WriteLine("(--nodecrypt: disable auto decrypt)");
+                            nodecrypt = true;
                             break;
                     }
                 }
@@ -345,9 +380,9 @@ namespace TSviewACD
                         if (showmd5) detail = "\t" + item.contentProperties?.md5;
 
                         if (recursive)
-                            Console.WriteLine(DriveData.GetFullPathfromId(item.id) + detail);
+                            Console.WriteLine(DriveData.GetFullPathfromId(item.id, nodecrypt) + detail);
                         else
-                            Console.WriteLine(item.name + ((item.kind == "FOLDER") ? "/" : "") + detail);
+                            Console.WriteLine(((nodecrypt)? item.name: DriveData.AmazonDriveTree[item.id].DisplayName) + ((item.kind == "FOLDER") ? "/" : "") + detail);
                     }
 
                     return 0;
@@ -365,14 +400,13 @@ namespace TSviewACD
             finally
             {
                 Console.Out.Flush();
-                ConsoleTasks.Remove(task);
+                TaskCanceler.FinishTask(task);
             }
         }
 
         static async Task<int> Download(string[] targetArgs, string[] paramArgs)
         {
-            var task = new TaskCanselToken("Download");
-            ConsoleTasks.Add(task);
+            var task = TaskCanceler.CreateTask("Download");
             var ct = task.cts.Token;
             try
             {
@@ -394,6 +428,7 @@ namespace TSviewACD
                 }
 
                 bool hashflag = false;
+                bool autodecrypt = true;
                 foreach (var p in paramArgs)
                 {
                     switch (p)
@@ -402,13 +437,9 @@ namespace TSviewACD
                             Console.Error.WriteLine("(--md5: hash check mode)");
                             hashflag = true;
                             break;
-                        case "cryptname":
-                            Console.Error.WriteLine("(--cryptname: crypt name mode)");
-                            Config.UseFilenameEncryption = true;
-                            break;
-                        case "plainname":
-                            Console.Error.WriteLine("(--plainname: plain name mode)");
-                            Config.UseFilenameEncryption = false;
+                        case "nodecrypt":
+                            Console.Error.WriteLine("(--nodecrypt: disable auto decrypt)");
+                            autodecrypt = false;
                             break;
                     }
                 }
@@ -445,8 +476,6 @@ namespace TSviewACD
                     return 1;
                 }
 
-                bool CryptFlag = false;
-                string enckey = null;
                 if (String.IsNullOrEmpty(localpath))
                 {
                     Thread t = new Thread(new ThreadStart(() =>
@@ -465,26 +494,7 @@ namespace TSviewACD
                         {
                             using (var save = new SaveFileDialog())
                             {
-                                var filename = target[0].name;
-                                if (Config.UseFilenameEncryption)
-                                {
-                                    enckey = DriveData.DecryptFilename(target[0]);
-                                    if (enckey != null)
-                                    {
-                                        filename = Path.GetFileNameWithoutExtension(enckey); //.random
-                                        CryptFlag = true;
-                                    }
-                                }
-                                if (enckey == null && Path.GetExtension(filename) == ".enc")
-                                {
-                                    CryptFlag = true;
-                                    enckey = Path.GetFileNameWithoutExtension(filename); //.enc
-                                    filename = Path.GetFileNameWithoutExtension(enckey); //.random
-                                }
-                                else if(enckey == null)
-                                {
-                                    CryptFlag = false;
-                                }
+                                var filename = DriveData.AmazonDriveTree[target[0].id].DisplayName;
                                 save.FileName = filename;
                                 if (save.ShowDialog() != DialogResult.OK) return;
                                 localpath = save.FileName;
@@ -504,26 +514,7 @@ namespace TSviewACD
 
                     if (target.Length == 1)
                     {
-                        var filename = target[0].name;
-                        if (Config.UseFilenameEncryption)
-                        {
-                            enckey = DriveData.DecryptFilename(target[0]);
-                            if (enckey != null)
-                            {
-                                filename = Path.GetFileNameWithoutExtension(enckey); //.random
-                                CryptFlag = true;
-                            }
-                        }
-                        if (enckey == null && Path.GetExtension(filename) == ".enc")
-                        {
-                            CryptFlag = true;
-                            enckey = Path.GetFileNameWithoutExtension(filename); //.enc
-                            filename = Path.GetFileNameWithoutExtension(enckey); //.random
-                        }
-                        else if(enckey == null)
-                        {
-                            CryptFlag = false;
-                        }
+                        var filename = DriveData.AmazonDriveTree[target[0].id].DisplayName;
                         localpath = Path.Combine(localpath, filename);
                     }
                     if (target.Length > 1 && Path.GetFileName(localpath) != "")
@@ -534,7 +525,24 @@ namespace TSviewACD
                     var f_cur = 0;
                     foreach (var downitem in target)
                     {
-                        Console.Error.WriteLine("Download : " + downitem.name);
+                        var filename = (autodecrypt) ? DriveData.AmazonDriveTree[downitem.id].DisplayName: downitem.name;
+                        var cryptflg = (autodecrypt)? DriveData.AmazonDriveTree[downitem.id].IsEncrypted : CryptMethods.Method0_Plain;
+                        Console.Error.WriteLine("Download : " + filename);
+                        if (!autodecrypt)
+                        {
+                            if (DriveData.AmazonDriveTree[downitem.id].IsEncrypted == CryptMethods.Method1_CTR)
+                            {
+                                if (Regex.IsMatch(downitem.name ?? "", "^[\u2800-\u28ff]+$"))
+                                {
+                                    var decodename = DriveData.DecryptFilename(downitem);
+                                    if (decodename != null)
+                                    {
+                                        Console.WriteLine("decrypted filename : " + decodename);
+                                        Console.WriteLine("filename decode nonce : " + downitem.id);
+                                    }
+                                }
+                            }
+                        }
                         var download_str = (target.Length > 1) ? string.Format("Download({0}/{1})...", ++f_cur, target.Length) : "Download...";
 
                         var savefilename = localpath;
@@ -547,66 +555,27 @@ namespace TSviewACD
                                 dpath = Path.Combine(dpath, p);
                                 if (!Directory.Exists(dpath)) Directory.CreateDirectory(dpath);
                             }
-                            var filename = downitem.name;
-                            if (Config.UseFilenameEncryption)
-                            {
-                                enckey = DriveData.DecryptFilename(downitem);
-                                if (enckey != null)
-                                {
-                                    filename = Path.GetFileNameWithoutExtension(enckey); //.random
-                                    CryptFlag = true;
-                                }
-                            }
-                            if (enckey == null && Path.GetExtension(filename) == ".enc")
-                            {
-                                CryptFlag = true;
-                                enckey = Path.GetFileNameWithoutExtension(filename); //.enc
-                                filename = Path.GetFileNameWithoutExtension(enckey); //.random
-                            }
-                            else if(enckey == null)
-                            {
-                                CryptFlag = false;
-                            }
                             savefilename = Path.Combine(dpath, filename);
                         }
 
                         var retry = 5;
                         while (--retry > 0)
                         {
-                            Func<Stream, Task> dodownload = async (outfile) => {
-                                using (var ret = await Drive.downloadFile(downitem, enckey: enckey, ct: ct).ConfigureAwait(false))
-                                using (var f = new PositionStream(ret, downitem.contentProperties.size.Value))
-                                {
-                                    f.PosChangeEvent += (src, evnt) =>
-                                    {
-                                        Console.Error.Write("\r{0,-79}", download_str + evnt.Log);
-                                    };
-                                    await f.CopyToAsync(outfile, 16 * 1024 * 1024, ct).ConfigureAwait(false);
-                                }
-                            };
-
                             try
                             {
+                                Console.Error.WriteLine("");
+                                Console.Error.WriteLine("download {0:#,0} byte", downitem.contentProperties.size);
+
                                 using (var outfile = File.Open(savefilename, FileMode.Create, FileAccess.Write, FileShare.Read))
                                 {
-                                    Console.Error.WriteLine("");
-                                    Console.Error.WriteLine("download {0:#,0} byte", downitem.contentProperties.size);
-                                    if (downitem.contentProperties.size > ConfigAPI.FilenameChangeTrickSize)
+                                    using (var ret = new AmazonDriveBaseStream(Drive, downitem, autodecrypt))
+                                    using (var f = new PositionStream(ret, downitem.OrignalLength ?? 0))
                                     {
-                                        Console.Error.WriteLine("Download : <BIG FILE> temporary filename change");
-                                        try
+                                        f.PosChangeEvent += (src, evnt) =>
                                         {
-                                            var tmpfile = await Drive.renameItem(downitem.id, ConfigAPI.temporaryFilename + downitem.id).ConfigureAwait(false);
-                                            await dodownload(outfile).ConfigureAwait(false);
-                                        }
-                                        finally
-                                        {
-                                            await Drive.renameItem(downitem.id, downitem.name).ConfigureAwait(false);
-                                        }
-                                    }
-                                    else
-                                    {
-                                        await dodownload(outfile).ConfigureAwait(false);
+                                            Console.Error.Write("\r{0,-79}", download_str + evnt.Log);
+                                        };
+                                        await f.CopyToAsync(outfile, 16 * 1024 * 1024, ct).ConfigureAwait(false);
                                     }
                                 }
                                 Console.Error.WriteLine("\r\nDownload : done.");
@@ -618,9 +587,25 @@ namespace TSviewACD
                                     {
                                         byte[] md5 = null;
                                         Console.Error.WriteLine("Hash check start...");
-                                        if (CryptFlag)
+                                        if (cryptflg == CryptMethods.Method1_CTR)
                                         {
-                                            using (var encfile = new AES256CTR_CryptStream(hfile, Config.DrivePassword, enckey))
+                                            string nonce = null;
+                                            nonce = DriveData.DecryptFilename(downitem);
+                                            if (nonce == null && Path.GetExtension(downitem.name) == ".enc")
+                                            {
+                                                nonce = Path.GetFileNameWithoutExtension(downitem.name);
+                                            }
+                                            if (!string.IsNullOrEmpty(nonce))
+                                                using (var encfile = new AES256CTR_CryptStream(hfile, Config.DrivePassword, nonce))
+                                                {
+                                                    await Task.Run(() => { md5 = md5calc.ComputeHash(encfile); }, ct).ConfigureAwait(false);
+                                                }
+                                            else
+                                                await Task.Run(() => { md5 = md5calc.ComputeHash(hfile); }, ct).ConfigureAwait(false);
+                                        }
+                                        else if (cryptflg == CryptMethods.Method2_CBC_CarotDAV)
+                                        {
+                                            using (var encfile = new CryptCarotDAV.CryptCarotDAV_CryptStream(hfile, Config.DrivePassword))
                                             {
                                                 await Task.Run(() => { md5 = md5calc.ComputeHash(encfile); }, ct).ConfigureAwait(false);
                                             }
@@ -662,7 +647,6 @@ namespace TSviewACD
                             return 1;
                         }
                         Console.Error.WriteLine("Download : Done.");
-                        enckey = null;
                     }
                     return 0;
                 }
@@ -679,7 +663,7 @@ namespace TSviewACD
             finally
             {
                 Console.Out.Flush();
-                ConsoleTasks.Remove(task);
+                TaskCanceler.FinishTask(task);
             }
         }
 
@@ -712,20 +696,55 @@ namespace TSviewACD
             }
             else
             {
-                Console.Error.WriteLine("createFolder: " + path_str[0]);
+                var enckey = path_str[0] + "." + Path.GetFileNameWithoutExtension(Path.GetRandomFileName());
+                var makedirname = path_str[0];
+
+                Console.Error.WriteLine("createFolder: " + makedirname);
+
+                if (Config.UseEncryption)
+                {
+                    if (Config.CryptMethod == CryptMethods.Method1_CTR)
+                    {
+                        if (Config.UseFilenameEncryption)
+                            makedirname = Path.GetRandomFileName();
+                    }
+                    else if (Config.CryptMethod == CryptMethods.Method2_CBC_CarotDAV)
+                    {
+                        makedirname = CryptCarotDAV.EncryptFilename(makedirname, Config.DrivePassword);
+                    }
+                }
+
                 var checkpoint = DriveData.ChangeCheckpoint;
-                int retry = 6;
+                int retry = 30;
                 while (--retry > 0)
                 {
                     try
                     {
-                        targetchild = await Drive.createFolder(path_str[0], parent.id, ct).ConfigureAwait(false);
-                        var children2 = await DriveData.GetChanges(checkpoint, ct);
-                        if (children2.Where(x => x.name.Contains(path_str[0])).LastOrDefault()?.status == "AVAILABLE")
+                        targetchild = await Drive.createFolder(makedirname, parent.id, ct).ConfigureAwait(false);
+                        var children2 = await DriveData.GetChanges(checkpoint, ct).ConfigureAwait(false);
+                        if (children2?.Where(x => x.name.Contains(makedirname)).LastOrDefault()?.status == "AVAILABLE")
                         {
                             break;
                         }
-                        await Task.Delay(2000, ct).ConfigureAwait(false);
+                        await Task.Delay(2000).ConfigureAwait(false);
+                        continue;
+                    }
+                    catch (HttpRequestException)
+                    {
+                        // retry
+                    }
+                    catch (OperationCanceledException)
+                    {
+                        throw;
+                    }
+                    try
+                    {
+                        var children2 = await DriveData.GetChanges(checkpoint, ct).ConfigureAwait(false);
+                        if (children2?.Where(x => x.name.Contains(makedirname)).LastOrDefault()?.status == "AVAILABLE")
+                        {
+                            break;
+                        }
+                        await Task.Delay(2000).ConfigureAwait(false);
                     }
                     catch (HttpRequestException)
                     {
@@ -736,6 +755,13 @@ namespace TSviewACD
                         throw;
                     }
                 }
+                if (Config.UseEncryption && Config.UseFilenameEncryption && Config.CryptMethod == CryptMethods.Method1_CTR)
+                {
+                    if (!await DriveData.EncryptFilename(uploadfilename: makedirname, enckey: enckey, checkpoint: checkpoint, ct: ct))
+                    {
+                        Console.Error.WriteLine("Fail to create crypted folder");
+                    }
+                }
                 var newitems = (await DriveData.GetChanges(checkpoint, ct).ConfigureAwait(false));
             }
             return await CreateDirs(path_str.Skip(1).ToArray(), targetchild, ct).ConfigureAwait(false);
@@ -743,8 +769,7 @@ namespace TSviewACD
 
         static async Task<int> Upload(string[] targetArgs, string[] paramArgs)
         {
-            var task = new TaskCanselToken("Upload");
-            ConsoleTasks.Add(task);
+            var task = TaskCanceler.CreateTask("Upload");
             var ct = task.cts.Token;
             try
             {
@@ -766,22 +791,28 @@ namespace TSviewACD
                             Console.Error.WriteLine("(--createpath: make upload target folder mode)");
                             createdir = true;
                             break;
-                        case "crypt":
-                            Console.Error.WriteLine("(--crypt: crypt upload mode)");
+                        case "crypt1":
+                            Console.Error.WriteLine("(--crypt1: crypt upload mode(CTR mode))");
                             Config.UseEncryption = true;
+                            Config.UseFilenameEncryption = false;
+                            Config.CryptMethod = CryptMethods.Method1_CTR;
                             break;
                         case "nocrypt":
                             Console.Error.WriteLine("(--nocrypt: nomal upload mode)");
                             Config.UseEncryption = false;
-                            break;
-                        case "cryptname":
-                            Console.Error.WriteLine("(--cryptname: crypt name mode)");
-                            Config.UseFilenameEncryption = true;
-                            Config.UseEncryption = false;
-                            break;
-                        case "plainname":
-                            Console.Error.WriteLine("(--plainname: plain name mode)");
                             Config.UseFilenameEncryption = false;
+                            break;
+                        case "crypt1name":
+                            Console.Error.WriteLine("(--crypt1name: crypt filename(CTR mode))");
+                            Config.UseFilenameEncryption = true;
+                            Config.UseEncryption = true;
+                            Config.CryptMethod = CryptMethods.Method1_CTR;
+                            break;
+                        case "crypt2":
+                            Console.Error.WriteLine("(--crypt2: crypt upload mode(CBC mode CarrotDAV))");
+                            Config.UseFilenameEncryption = true;
+                            Config.UseEncryption = true;
+                            Config.CryptMethod = CryptMethods.Method2_CBC_CarotDAV;
                             break;
                     }
                 }
@@ -857,15 +888,83 @@ namespace TSviewACD
                     var upload_str = "Upload...";
                     var short_filename = Path.GetFileName(localpath);
                     var enckey = short_filename + "." + Path.GetFileNameWithoutExtension(Path.GetRandomFileName());
-                    var uploadfilename = (Config.UseEncryption) ? enckey + ".enc" : short_filename;
                     string md5string = null;
+
+                    string uploadfilename = short_filename;
+                    if (Config.UseEncryption)
+                    {
+                        if (Config.CryptMethod == CryptMethods.Method1_CTR)
+                        {
+                            if (Config.UseFilenameEncryption)
+                                uploadfilename = Path.GetRandomFileName();
+                            else
+                                uploadfilename = enckey + ".enc";
+                        }
+                        else if (Config.CryptMethod == CryptMethods.Method2_CBC_CarotDAV)
+                        {
+                            uploadfilename = CryptCarotDAV.EncryptFilename(short_filename, Config.DrivePassword);
+                            enckey = "";
+                        }
+                    }
 
                     var checkpoint = DriveData.ChangeCheckpoint;
                     var filesize = new FileInfo(localpath).Length;
-
-                    if (done_files?.Select(x => x.name.ToLower()).Contains(uploadfilename.ToLower()) ?? false)
+                    if (Config.UseEncryption && Config.CryptMethod == CryptMethods.Method2_CBC_CarotDAV)
                     {
-                        var target = done_files.FirstOrDefault(x => x.name == uploadfilename);
+                        filesize = filesize + 128 / 8 + 128;
+                    }
+
+                    bool dup_flg = done_files?.Select(x => x.name.ToLower()).Contains(short_filename.ToLower()) ?? false;
+                    if (Config.UseEncryption)
+                    {
+                        if (Config.CryptMethod == CryptMethods.Method1_CTR){
+                            dup_flg = dup_flg || (done_files?.Select(x => (Path.GetExtension(x.name) == ".enc") && (Path.GetFileNameWithoutExtension(Path.GetFileNameWithoutExtension(x.name)) == short_filename)).Any(x => x) ?? false);
+                            if (Config.UseFilenameEncryption)
+                            {
+                                dup_flg = dup_flg || (done_files?.Select(x =>
+                                {
+                                    var enc = DriveData.DecryptFilename(x);
+                                    if (enc == null) return false;
+                                    return Path.GetFileNameWithoutExtension(enc) == short_filename;
+                                }).Any(x => x) ?? false);
+                            }
+                        }
+                        if (Config.CryptMethod == CryptMethods.Method2_CBC_CarotDAV)
+                        {
+                            dup_flg = dup_flg || (done_files?.Select(x =>
+                            {
+                                var enc = CryptCarotDAV.DecryptFilename(x.name, Config.DrivePassword);
+                                if (enc == null) return false;
+                                return enc == short_filename;
+                            }).Any(x => x) ?? false);
+                        }
+                    }
+
+                    if (dup_flg)
+                    {
+                        var target = done_files.FirstOrDefault(x => x.name == short_filename);
+                        if (target == null && Config.UseEncryption && Config.CryptMethod == CryptMethods.Method1_CTR)
+                        {
+                            target = done_files.Where(x => (Path.GetExtension(x.name) == ".enc") && (Path.GetFileNameWithoutExtension(Path.GetFileNameWithoutExtension(x.name)) == short_filename)).FirstOrDefault();
+                            if (target == null && Config.UseFilenameEncryption)
+                            {
+                                target = done_files.Where(x =>
+                                {
+                                    var enc = DriveData.DecryptFilename(x);
+                                    if (enc == null) return false;
+                                    return Path.GetFileNameWithoutExtension(enc) == short_filename;
+                                }).FirstOrDefault();
+                            }
+                        }
+                        if (target == null && Config.UseEncryption && Config.CryptMethod == CryptMethods.Method2_CBC_CarotDAV)
+                        {
+                            target = done_files.Where(x =>
+                            {
+                                var enc = CryptCarotDAV.DecryptFilename(x.name, Config.DrivePassword);
+                                if (enc == null) return false;
+                                return enc == short_filename;
+                            }).FirstOrDefault();
+                        }
                         if (filesize == target.contentProperties?.size)
                         {
                             if (!hashflag)
@@ -880,9 +979,29 @@ namespace TSviewACD
                                 Console.Error.WriteLine("Hash check start...");
                                 if (Config.UseEncryption)
                                 {
-                                    using (var encfile = new AES256CTR_CryptStream(hfile, Config.DrivePassword, Path.GetFileNameWithoutExtension(uploadfilename)))
+                                    if (Config.CryptMethod == CryptMethods.Method1_CTR)
                                     {
-                                        await Task.Run(() => { md5 = md5calc.ComputeHash(encfile); }, ct).ConfigureAwait(false);
+                                        string nonce = null;
+                                        if (Config.UseFilenameEncryption)
+                                        {
+                                            nonce = DriveData.DecryptFilename(target);
+                                        }
+                                        if (Path.GetExtension(target.name) == ".enc")
+                                        {
+                                            nonce = Path.GetFileNameWithoutExtension(target.name);
+                                        }
+                                        if (!string.IsNullOrEmpty(nonce))
+                                            using (var encfile = new AES256CTR_CryptStream(hfile, Config.DrivePassword, nonce))
+                                            {
+                                                await Task.Run(() => { md5 = md5calc.ComputeHash(encfile); }, ct).ConfigureAwait(false);
+                                            }
+                                    }
+                                    else if (Config.CryptMethod == CryptMethods.Method2_CBC_CarotDAV)
+                                    {
+                                        using (var encfile = new CryptCarotDAV.CryptCarotDAV_CryptStream(hfile, Config.DrivePassword))
+                                        {
+                                            await Task.Run(() => { md5 = md5calc.ComputeHash(encfile); }, ct).ConfigureAwait(false);
+                                        }
                                     }
                                 }
                                 else
@@ -900,13 +1019,54 @@ namespace TSviewACD
                         }
                         Console.Error.WriteLine("conflict.");
                         Console.Error.WriteLine("remove item...");
+                        Config.Log.LogOut("remove item...");
                         try
                         {
-                            foreach (var conflicts in done_files.Where(x => x.name.ToLower() == uploadfilename.ToLower()))
+                            checkpoint = DriveData.ChangeCheckpoint;
+                            foreach (var conflicts in done_files.Where(x => x.name.ToLower() == short_filename.ToLower()))
                             {
                                 await Drive.TrashItem(conflicts.id, ct).ConfigureAwait(false);
                             }
+                            if (Config.UseEncryption && Config.CryptMethod == CryptMethods.Method2_CBC_CarotDAV)
+                            {
+                                var conflict_crypt = done_files.Where(x =>
+                                {
+                                    var enc = CryptCarotDAV.DecryptFilename(x.name, Config.DrivePassword);
+                                    if (enc == null) return false;
+                                    return enc == short_filename;
+                                });
+                                foreach (var conflicts in conflict_crypt)
+                                {
+                                    await Drive.TrashItem(conflicts.id, ct).ConfigureAwait(false);
+                                }
+                            }
+                            if (Config.UseEncryption && Config.CryptMethod == CryptMethods.Method1_CTR)
+                            {
+                                if (Config.UseFilenameEncryption)
+                                {
+                                    var conflict_crypt = done_files.Where(x =>
+                                    {
+                                        var enc = DriveData.DecryptFilename(x);
+                                        if (enc == null) return false;
+                                        return Path.GetFileNameWithoutExtension(enc) == short_filename;
+                                    });
+                                    foreach (var conflicts in conflict_crypt)
+                                    {
+                                        await Drive.TrashItem(conflicts.id, ct).ConfigureAwait(false);
+                                    }
+                                }
+                                else
+                                {
+                                    var conflict_crypt = done_files.Where(x => (Path.GetExtension(x.name) == ".enc") && (Path.GetFileNameWithoutExtension(Path.GetFileNameWithoutExtension(x.name)) == short_filename));
+                                    foreach (var conflicts in conflict_crypt)
+                                    {
+                                        await Drive.TrashItem(conflicts.id, ct).ConfigureAwait(false);
+                                    }
+                                }
+                            }
                             await Task.Delay(TimeSpan.FromSeconds(5), ct).ConfigureAwait(false);
+                            await DriveData.GetChanges(checkpoint, ct).ConfigureAwait(false);
+                            md5string = null;
                         }
                         catch (OperationCanceledException)
                         {
@@ -925,9 +1085,19 @@ namespace TSviewACD
                             Console.Error.WriteLine("Hash check start...");
                             if (Config.UseEncryption)
                             {
-                                using (var encfile = new AES256CTR_CryptStream(hfile, Config.DrivePassword, Path.GetFileNameWithoutExtension(uploadfilename)))
+                                if (Config.CryptMethod == CryptMethods.Method1_CTR)
                                 {
-                                    await Task.Run(() => { md5 = md5calc.ComputeHash(encfile); }, ct).ConfigureAwait(false);
+                                    using (var encfile = new AES256CTR_CryptStream(hfile, Config.DrivePassword, enckey))
+                                    {
+                                        await Task.Run(() => { md5 = md5calc.ComputeHash(encfile); }, ct).ConfigureAwait(false);
+                                    }
+                                }
+                                else if (Config.CryptMethod == CryptMethods.Method2_CBC_CarotDAV)
+                                {
+                                    using (var encfile = new CryptCarotDAV.CryptCarotDAV_CryptStream(hfile, Config.DrivePassword))
+                                    {
+                                        await Task.Run(() => { md5 = md5calc.ComputeHash(encfile); }, ct).ConfigureAwait(false);
+                                    }
                                 }
                             }
                             else
@@ -1044,7 +1214,7 @@ namespace TSviewACD
                         return -1;
                     }
 
-                    if (Config.UseFilenameEncryption)
+                    if (Config.UseFilenameEncryption && Config.CryptMethod == CryptMethods.Method1_CTR)
                     {
                         if (!await DriveData.EncryptFilename(uploadfilename: uploadfilename, enckey: enckey, checkpoint: checkpoint, ct: ct).ConfigureAwait(false))
                         {
@@ -1071,7 +1241,7 @@ namespace TSviewACD
             finally
             {
                 Console.Out.Flush();
-                ConsoleTasks.Remove(task);
+                TaskCanceler.FinishTask(task);
             }
         }
         ///////////////////////////////////////////////////////////////////////////////////

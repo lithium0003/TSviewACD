@@ -40,21 +40,24 @@ namespace TSviewACD
             var item = new ListViewItem(taskname);
             var task = new TaskCanselToken(taskname);
             item.Tag = task;
-            listView_TaskList.Items.Add(item);
+            Invoke(new Action(() => { listView_TaskList.Items.Add(item); }));
             return task;
         }
 
         public void FinishTask(TaskCanselToken task)
         {
-            var removes = listView_TaskList.Items.OfType<ListViewItem>().Where(x => x.Tag == task);
-            if (removes.Count() > 0)
+            Invoke(new Action(() =>
             {
-                foreach (var item in removes)
-                    listView_TaskList.Items.Remove(item);
-            }
+                var removes = listView_TaskList.Items.OfType<ListViewItem>().Where(x => x.Tag == task).ToArray();
+                if (removes.Count() > 0)
+                {
+                    foreach (var item in removes)
+                        listView_TaskList.Items.Remove(item);
+                }
+            }));
         }
 
-        private async Task CancelTask(string taskname)
+        public async Task CancelTask(string taskname)
         {
             foreach (var item in listView_TaskList.Items.OfType<ListViewItem>().Where(x => (x.Tag as TaskCanselToken).taskname == taskname).ToArray())
             {
@@ -66,7 +69,7 @@ namespace TSviewACD
             }
         }
 
-        private bool CancelTaskAll()
+        public bool CancelTaskAll()
         {
             var removes = listView_TaskList.Items;
             if (removes.Count > 0)
@@ -152,7 +155,6 @@ namespace TSviewACD
         private readonly SynchronizationContext synchronizationContext;
         bool initialized = false;
         bool supressListviewRefresh = false;
-        private int CriticalCount = 0;
 
         AmazonDrive Drive = DriveData.Drive;
 
@@ -185,7 +187,7 @@ namespace TSviewACD
                         switch (_SortColum)
                         {
                             case ListColums.Name:
-                                return (IEnumerable<ItemInfo> x) => x.SortByKind(_SortKind).ThenBy(y => y.info.name);
+                                return (IEnumerable<ItemInfo> x) => x.SortByKind(_SortKind).ThenBy(y => (Config.AutoDecode)? y.DisplayName: y.info.name);
                             case ListColums.Size:
                                 return (IEnumerable<ItemInfo> x) => x.SortByKind(_SortKind).ThenBy(y => y.info.contentProperties?.size ?? 0);
                             case ListColums.modifiedDate:
@@ -197,7 +199,7 @@ namespace TSviewACD
                             case ListColums.MD5:
                                 return (IEnumerable<ItemInfo> x) => x.SortByKind(_SortKind).ThenBy(y => y.info.contentProperties?.md5 ?? "");
                             default:
-                                return (IEnumerable<ItemInfo> x) => x.SortByKind(_SortKind).ThenBy(y => y.info.name);
+                                return (IEnumerable<ItemInfo> x) => x.SortByKind(_SortKind).ThenBy(y => (Config.AutoDecode) ? y.DisplayName : y.info.name);
                         }
                     }
                     else
@@ -205,7 +207,7 @@ namespace TSviewACD
                         switch (_SortColum)
                         {
                             case ListColums.Name:
-                                return (IEnumerable<ItemInfo> x) => x.SortByKind(_SortKind).ThenByDescending(y => y.info.name);
+                                return (IEnumerable<ItemInfo> x) => x.SortByKind(_SortKind).ThenByDescending(y => (Config.AutoDecode) ? y.DisplayName : y.info.name);
                             case ListColums.Size:
                                 return (IEnumerable<ItemInfo> x) => x.SortByKind(_SortKind).ThenByDescending(y => y.info.contentProperties?.size ?? 0);
                             case ListColums.modifiedDate:
@@ -217,7 +219,7 @@ namespace TSviewACD
                             case ListColums.MD5:
                                 return (IEnumerable<ItemInfo> x) => x.SortByKind(_SortKind).ThenByDescending(y => y.info.contentProperties?.md5 ?? "");
                             default:
-                                return (IEnumerable<ItemInfo> x) => x.SortByKind(_SortKind).ThenByDescending(y => y.info.name);
+                                return (IEnumerable<ItemInfo> x) => x.SortByKind(_SortKind).ThenByDescending(y => (Config.AutoDecode) ? y.DisplayName : y.info.name);
                         }
                     }
                 }
@@ -272,7 +274,7 @@ namespace TSviewACD
                 }
             }
 
-            public IEnumerable<ItemInfo> GetItems(ListView.SelectedIndexCollection indecies)
+            public IEnumerable<ItemInfo> GetItems(ListView.SelectedIndexCollection indecies, bool IncludeSpetial = true)
             {
                 List<ItemInfo> ret = new List<ItemInfo>();
                 foreach(int i in indecies)
@@ -283,8 +285,14 @@ namespace TSviewACD
                     }
                     else
                     {
-                        if (i == 0) ret.Add(Root);
-                        else if (i == 1) ret.Add(Parent);
+                        if (i == 0)
+                        {
+                            if (IncludeSpetial) ret.Add(Root);
+                        }
+                        else if (i == 1)
+                        {
+                            if (IncludeSpetial) ret.Add(Parent);
+                        }
                         else if (i >= 2 && i - 2 < Items.Length) ret.Add(Items[i - 2]);
                     }
                 }
@@ -341,7 +349,7 @@ namespace TSviewACD
             {
                 var item = new ListViewItem(
                     new string[] {
-                            x.info.name,
+                            (Config.AutoDecode)? x.DisplayName: x.info.name,
                             x.info.contentProperties?.size?.ToString("#,0"),
                             x.info.modifiedDate.ToString(),
                             x.info.createdDate.ToString(),
@@ -349,9 +357,28 @@ namespace TSviewACD
                             x.info.id,
                             x.info.contentProperties?.md5,
                     }, (x.info.kind == "FOLDER") ? 0 : 2);
-                item.Name = x.info.name;
+                item.Name = (Config.AutoDecode) ? x.DisplayName : x.info.name;
                 item.Tag = x;
                 item.ToolTipText = item.Name;
+                switch (x.IsEncrypted)
+                {
+                    case CryptMethods.Method0_Plain:
+                        break;
+                    case CryptMethods.Method1_CTR:
+                        item.ForeColor = Color.Blue;
+                        if (x.CryptError)
+                        {
+                            item.BackColor = Color.LightPink;
+                        }
+                        break;
+                    case CryptMethods.Method2_CBC_CarotDAV:
+                        item.ForeColor = Color.ForestGreen;
+                        if (x.CryptError)
+                        {
+                            item.BackColor = Color.LightPink;
+                        }
+                        break;
+                }
                 return item;
             }
 
@@ -427,7 +454,7 @@ namespace TSviewACD
         private async Task Login()
         {
             Config.Log.LogOut("Login Start.");
-            var task = CreateTask("login");
+            var task = TaskCanceler.CreateTask("login");
             var ct = task.cts.Token;
             try
             {
@@ -464,14 +491,14 @@ namespace TSviewACD
             }
             finally
             {
-                FinishTask(task);
+                TaskCanceler.FinishTask(task);
             }
         }
 
         private async Task Logout()
         {
             Config.Log.LogOut("Logout Start.");
-            if (CancelTaskAll())
+            if (TaskCanceler.CancelTaskAll())
             {
                 while (listView_TaskList.Items.Count > 0)
                     await Task.Delay(100);
@@ -493,7 +520,7 @@ namespace TSviewACD
 
         private async Task InitAlltree()
         {
-            var task = CreateTask("Init drive tree data");
+            var task = TaskCanceler.CreateTask("Init drive tree data");
             var ct = task.cts.Token;
             try
             {
@@ -523,7 +550,7 @@ namespace TSviewACD
             }
             finally
             {
-                FinishTask(task);
+                TaskCanceler.FinishTask(task);
             }
         }
 
@@ -532,9 +559,20 @@ namespace TSviewACD
             return children.Select(x =>
             {
                 int img = (x.info.kind == "FOLDER") ? 0 : 2;
-                var node = new TreeNode(x.info.name, img, img);
-                node.Name = x.info.name;
+                var node = new TreeNode((Config.AutoDecode) ? x.DisplayName : x.info.name, img, img);
+                node.Name = (Config.AutoDecode) ? x.DisplayName : x.info.name;
                 node.Tag = x;
+                switch (x.IsEncrypted)
+                {
+                    case CryptMethods.Method0_Plain:
+                        break;
+                    case CryptMethods.Method1_CTR:
+                        node.ForeColor = Color.Blue;
+                        break;
+                    case CryptMethods.Method2_CBC_CarotDAV:
+                        node.ForeColor = Color.ForestGreen;
+                        break;
+                }
                 if (x.info.kind == "FOLDER" && count > 0)
                 {
                     node.Nodes.AddRange(GenerateTreeNode(x.children.Values, count - 1));
@@ -657,6 +695,18 @@ namespace TSviewACD
                     defaultToolStripMenuItem.Checked = true;
                     break;
             }
+            switch (Config.CryptMethod)
+            {
+                case CryptMethods.Method1_CTR:
+                    radioButton_crypt_1_CTR.Checked = true;
+                    break;
+                case CryptMethods.Method2_CBC_CarotDAV:
+                    radioButton_crypt_2_CBC.Checked = true;
+                    break;
+            }
+            checkBox_decodeView.Checked = Config.AutoDecode;
+            comboBox_CarotDAV_Escape.Items.AddRange(Config.CarotDAV_crypt_names);
+            comboBox_CarotDAV_Escape.Text = Config.CarotDAV_CryptNameHeader;
             await Login();
         }
 
@@ -823,7 +873,7 @@ namespace TSviewACD
 
         private void Form1_FormClosing(object sender, FormClosingEventArgs e)
         {
-            if (CancelTaskAll() || CriticalCount > 0)
+            if (TaskCanceler.CancelTaskAll() || Config.AmazonDriveTempCount > 0)
             {
                 e.Cancel = true;
                 PostMessage(Handle, WM_CLOSE, 0, 0);
@@ -949,7 +999,7 @@ namespace TSviewACD
             }
             else if (tabControl1.SelectedTab.Name == "tabPage_SendUDP")
             {
-                await CancelTask("play");
+                await TaskCanceler.CancelTask("play");
                 await PlayFiles(PlayOneTSFile, "Send UDP");
             }
             else if (tabControl1.SelectedTab.Name == "tabPage_FFmpeg")
@@ -991,7 +1041,7 @@ namespace TSviewACD
             TaskCanselToken task = null;
             if (ct == default(CancellationToken))
             {
-                task = CreateTask("FileUpload");
+                task = TaskCanceler.CreateTask("FileUpload");
                 ct = task.cts.Token;
             }
             try
@@ -1011,19 +1061,85 @@ namespace TSviewACD
                     var upload_str = (f_all > 1) ? string.Format("Upload({0}/{1})...", ++f_cur, f_all) : "Upload...";
                     var short_filename = System.IO.Path.GetFileName(filename);
                     var enckey = short_filename + "." + Path.GetFileNameWithoutExtension(Path.GetRandomFileName());
-                    var uploadfilename = (Config.UseEncryption) ? enckey + ".enc" : short_filename;
-                    if (Config.UseFilenameEncryption)
-                        uploadfilename = Path.GetRandomFileName();
+                    string uploadfilename = short_filename;
+                    if (Config.UseEncryption)
+                    {
+                        if(Config.CryptMethod == CryptMethods.Method1_CTR)
+                        {
+                            if (Config.UseFilenameEncryption)
+                                uploadfilename = Path.GetRandomFileName();
+                            else
+                                uploadfilename = enckey + ".enc";
+                        }
+                        else if(Config.CryptMethod == CryptMethods.Method2_CBC_CarotDAV)
+                        {
+                            uploadfilename = CryptCarotDAV.EncryptFilename(short_filename, Config.DrivePassword);
+                            enckey = "";
+                        }
+                    }
                     var checkpoint = DriveData.ChangeCheckpoint;
                     var filesize = new FileInfo(filename).Length;
-
-                    if (done_files?.Select(x => x.name.ToLower()).Contains(uploadfilename.ToLower()) ?? false)
+                    if(Config.UseEncryption && Config.CryptMethod == CryptMethods.Method2_CBC_CarotDAV)
                     {
-                        var target = done_files.FirstOrDefault(x => x.name == uploadfilename);
+                        filesize = filesize + CryptCarotDAV.BlockSizeByte + CryptCarotDAV.CryptHeaderByte + CryptCarotDAV.CryptFooterByte;
+                    }
+
+                    bool dup_flg = done_files?.Select(x => x.name.ToLower()).Contains(short_filename.ToLower()) ?? false;
+                    if (Config.UseEncryption)
+                    {
+                        if(Config.CryptMethod == CryptMethods.Method1_CTR){
+                            dup_flg = dup_flg || (done_files?.Select(x => (Path.GetExtension(x.name) == ".enc") && (Path.GetFileNameWithoutExtension(Path.GetFileNameWithoutExtension(x.name)) == short_filename)).Any(x => x) ?? false);
+                            if (Config.UseFilenameEncryption)
+                            {
+                                dup_flg = dup_flg || (done_files?.Select(x =>
+                                {
+                                    var enc = DriveData.DecryptFilename(x);
+                                    if (enc == null) return false;
+                                    return Path.GetFileNameWithoutExtension(enc) == short_filename;
+                                }).Any(x => x) ?? false);
+                            }
+                        }
+                        if (Config.CryptMethod == CryptMethods.Method2_CBC_CarotDAV) {
+                            dup_flg = dup_flg || (done_files?.Select(x =>
+                            {
+                                var enc = CryptCarotDAV.DecryptFilename(x.name, Config.DrivePassword);
+                                if (enc == null) return false;
+                                return enc == short_filename;
+                            }).Any(x => x) ?? false);
+                        }
+                    }
+
+                    if (dup_flg)
+                    {
+                        var target = done_files.FirstOrDefault(x => x.name == short_filename);
+                        if(target == null && Config.UseEncryption && Config.CryptMethod == CryptMethods.Method1_CTR)
+                        {
+                            target = done_files.Where(x => (Path.GetExtension(x.name) == ".enc") && (Path.GetFileNameWithoutExtension(Path.GetFileNameWithoutExtension(x.name)) == short_filename)).FirstOrDefault();
+                            if (target == null && Config.UseFilenameEncryption)
+                            {
+                                target = done_files.Where(x =>
+                                {
+                                    var enc = DriveData.DecryptFilename(x);
+                                    if (enc == null) return false;
+                                    return Path.GetFileNameWithoutExtension(enc) == short_filename;
+                                }).FirstOrDefault();
+                            }
+                        }
+                        if (target == null && Config.UseEncryption && Config.CryptMethod == CryptMethods.Method2_CBC_CarotDAV)
+                        {
+                            target = done_files.Where(x =>
+                            {
+                                var enc = CryptCarotDAV.DecryptFilename(x.name, Config.DrivePassword);
+                                if (enc == null) return false;
+                                return enc == short_filename;
+                            }).FirstOrDefault();
+                        }
+
                         if (filesize == target?.contentProperties?.size)
                         {
                             if (!checkBox_MD5.Checked)
                                 continue;
+
                             using (var md5calc = new System.Security.Cryptography.MD5CryptoServiceProvider())
                             using (var hfile = File.Open(filename, FileMode.Open, FileAccess.Read, FileShare.Read))
                             {
@@ -1032,9 +1148,29 @@ namespace TSviewACD
                                 toolStripStatusLabel1.Text = upload_str + " " + short_filename + " Check file MD5...";
                                 if (Config.UseEncryption)
                                 {
-                                    using(var encfile = new AES256CTR_CryptStream(hfile, Config.DrivePassword, Path.GetFileNameWithoutExtension(uploadfilename)))
+                                    if (Config.CryptMethod == CryptMethods.Method1_CTR)
                                     {
-                                        await Task.Run(() => { md5 = md5calc.ComputeHash(encfile); }, ct);
+                                        string nonce = null;
+                                        if (Config.UseFilenameEncryption)
+                                        {
+                                            nonce = DriveData.DecryptFilename(target);
+                                        }
+                                        if (Path.GetExtension(target.name) == ".enc")
+                                        {
+                                            nonce = Path.GetFileNameWithoutExtension(target.name);
+                                        }
+                                        if (!string.IsNullOrEmpty(nonce))
+                                            using (var encfile = new AES256CTR_CryptStream(hfile, Config.DrivePassword, nonce))
+                                            {
+                                                await Task.Run(() => { md5 = md5calc.ComputeHash(encfile); }, ct);
+                                            }
+                                    }
+                                    else if (Config.CryptMethod == CryptMethods.Method2_CBC_CarotDAV)
+                                    {
+                                        using (var encfile = new CryptCarotDAV.CryptCarotDAV_CryptStream(hfile, Config.DrivePassword))
+                                        {
+                                            await Task.Run(() => { md5 = md5calc.ComputeHash(encfile); }, ct);
+                                        }
                                     }
                                 }
                                 else
@@ -1047,14 +1183,53 @@ namespace TSviewACD
                                     continue;
                             }
                         }
-                        Config.Log.LogOut("conflict. " + uploadfilename);
+                        Config.Log.LogOut(string.Format("conflict. name:{0} upload:{1}", short_filename, uploadfilename));
+                        if (!checkBox_overrideUpload.Checked)
+                            continue;
                         Config.Log.LogOut("remove item...");
                         try
                         {
                             checkpoint = DriveData.ChangeCheckpoint;
-                            foreach (var conflicts in done_files.Where(x => x.name.ToLower() == uploadfilename.ToLower()))
+                            foreach (var conflicts in done_files.Where(x => x.name.ToLower() == short_filename.ToLower()))
                             {
                                 await Drive.TrashItem(conflicts.id, ct);
+                            }
+                            if (Config.UseEncryption && Config.CryptMethod == CryptMethods.Method2_CBC_CarotDAV)
+                            {
+                                var conflict_crypt = done_files.Where(x =>
+                                {
+                                    var enc = CryptCarotDAV.DecryptFilename(x.name, Config.DrivePassword);
+                                    if (enc == null) return false;
+                                    return enc == short_filename;
+                                });
+                                foreach (var conflicts in conflict_crypt)
+                                {
+                                    await Drive.TrashItem(conflicts.id, ct);
+                                }
+                            }
+                            if (Config.UseEncryption && Config.CryptMethod == CryptMethods.Method1_CTR)
+                            {
+                                if (Config.UseFilenameEncryption)
+                                {
+                                    var conflict_crypt = done_files.Where(x =>
+                                    {
+                                        var enc = DriveData.DecryptFilename(x);
+                                        if (enc == null) return false;
+                                        return Path.GetFileNameWithoutExtension(enc) == short_filename;
+                                    });
+                                    foreach (var conflicts in conflict_crypt)
+                                    {
+                                        await Drive.TrashItem(conflicts.id, ct);
+                                    }
+                                }
+                                else
+                                {
+                                    var conflict_crypt = done_files.Where(x => (Path.GetExtension(x.name) == ".enc") && (Path.GetFileNameWithoutExtension(Path.GetFileNameWithoutExtension(x.name)) == short_filename));
+                                    foreach (var conflicts in conflict_crypt)
+                                    {
+                                        await Drive.TrashItem(conflicts.id, ct);
+                                    }
+                                }
                             }
                             await Task.Delay(TimeSpan.FromSeconds(5), ct);
                             await DriveData.GetChanges(checkpoint, ct);
@@ -1062,6 +1237,7 @@ namespace TSviewACD
                             {
                                 done_files = DriveData.AmazonDriveTree[parent_id].children.Values.Select(x => x.info).ToArray();
                             }
+                            checkpoint = DriveData.ChangeCheckpoint;
                         }
                         catch (OperationCanceledException)
                         {
@@ -1163,9 +1339,10 @@ namespace TSviewACD
                         return -1;
                     }
 
-                    if (Config.UseFilenameEncryption)
+                    if (Config.UseFilenameEncryption && Config.CryptMethod == CryptMethods.Method1_CTR)
                     {
-                        if(!await DriveData.EncryptFilename(uploadfilename: uploadfilename, enckey: enckey, checkpoint: checkpoint,ct: ct))
+                        Config.Log.LogOut("Encrypt Name.");
+                        if (!await DriveData.EncryptFilename(uploadfilename: uploadfilename, enckey: enckey, checkpoint: checkpoint,ct: ct))
                         {
                             Config.Log.LogOut("Upload : failed.");
                             toolStripProgressBar1.Style = ProgressBarStyle.Continuous;
@@ -1173,6 +1350,10 @@ namespace TSviewACD
                             toolStripProgressBar1.Maximum = 100;
                             toolStripStatusLabel1.Text = "Upload Failed.";
                             return -1;
+                        }
+                        using (await DriveData.DriveLock.LockAsync())
+                        {
+                            done_files = DriveData.AmazonDriveTree[parent_id].children.Values.Select(x => x.info).ToArray();
                         }
                     }
 
@@ -1186,7 +1367,7 @@ namespace TSviewACD
             }
             finally
             {
-                FinishTask(task);
+                TaskCanceler.FinishTask(task);
             }
         }
 
@@ -1196,7 +1377,7 @@ namespace TSviewACD
             TaskCanselToken task = null;
             if (ct == default(CancellationToken))
             {
-                task = CreateTask("DirectoryUpload");
+                task = TaskCanceler.CreateTask("DirectoryUpload");
                 ct = task.cts.Token;
             }
             try
@@ -1219,8 +1400,45 @@ namespace TSviewACD
                     {
                         newdir = done_files.First(x => x.name.ToLower() == short_name.ToLower() && x.kind == "FOLDER");
                     }
+                    if (newdir == null && Config.UseEncryption)
+                    {
+                        var selection = done_files?.Where(x => (x.kind == "FOLDER") && (Path.GetExtension(x.name) == ".enc") && (Path.GetFileNameWithoutExtension(Path.GetFileNameWithoutExtension(x.name)) == short_name));
+                        if(selection?.Any() ?? false)
+                        {
+                            newdir = selection.FirstOrDefault();
+                        }
+                    }
+                    if (newdir == null && Config.UseFilenameEncryption)
+                    {
+                        var selection = done_files?.Where(x => x.kind == "FOLDER").Where(x => {
+                            var enc = DriveData.DecryptFilename(x);
+                            if (enc == null) return false;
+                            return Path.GetFileNameWithoutExtension(enc) == short_name;
+                        });
+                        if (selection?.Any() ?? false)
+                        {
+                            newdir = selection.FirstOrDefault();
+                        }
+                    }
+
                     if (newdir == null)
                     {
+                        var enckey = short_name + "." + Path.GetFileNameWithoutExtension(Path.GetRandomFileName());
+                        var makedirname = short_name;
+
+                        if (Config.UseEncryption)
+                        {
+                            if (Config.CryptMethod == CryptMethods.Method1_CTR)
+                            {
+                                if (Config.UseFilenameEncryption)
+                                    makedirname = Path.GetRandomFileName();
+                            }
+                            else if (Config.CryptMethod == CryptMethods.Method2_CBC_CarotDAV)
+                            {
+                                makedirname = CryptCarotDAV.EncryptFilename(short_name, Config.DrivePassword);
+                            }
+                        }
+
                         var checkpoint = DriveData.ChangeCheckpoint;
                         // make subdirectory
                         int retry = 30;
@@ -1228,9 +1446,28 @@ namespace TSviewACD
                         {
                             try
                             {
-                                newdir = await Drive.createFolder(short_name, parent_id, ct);
+                                newdir = await Drive.createFolder(makedirname, parent_id, ct);
                                 var children = await DriveData.GetChanges(checkpoint, ct);
-                                if (children.Where(x => x.name.Contains(short_name)).LastOrDefault()?.status == "AVAILABLE")
+                                if (children?.Where(x => x.name.Contains(makedirname)).LastOrDefault()?.status == "AVAILABLE")
+                                {
+                                    Config.Log.LogOut("createFolder : child found.");
+                                    break;
+                                }
+                                await Task.Delay(2000);
+                                continue;
+                            }
+                            catch (HttpRequestException)
+                            {
+                                // retry
+                            }
+                            catch (OperationCanceledException)
+                            {
+                                throw;
+                            }
+                            try
+                            {
+                                var children = await DriveData.GetChanges(checkpoint, ct);
+                                if (children?.Where(x => x.name.Contains(makedirname)).LastOrDefault()?.status == "AVAILABLE")
                                 {
                                     Config.Log.LogOut("createFolder : child found.");
                                     break;
@@ -1246,6 +1483,19 @@ namespace TSviewACD
                                 throw;
                             }
                         }
+                        if (retry == 0)
+                        {
+                            Config.Log.LogOut("createFolder : (ERROR)child not found.");
+                            return -1;
+                        }
+                        if (Config.UseEncryption && Config.UseFilenameEncryption && Config.CryptMethod == CryptMethods.Method1_CTR)
+                        {
+                            if (!await DriveData.EncryptFilename(uploadfilename: makedirname, enckey: enckey, checkpoint: checkpoint, ct: ct))
+                            {
+                                Config.Log.LogOut("createFolder : (ERROR)name cryption failed.");
+                                return -1;
+                            }
+                        }
                     }
 
                     f_cur = await DoFileUpload(Directory.EnumerateFiles(filename), newdir.id, f_all, f_cur, ct);
@@ -1258,7 +1508,7 @@ namespace TSviewACD
             }
             finally
             {
-                FinishTask(task);
+                TaskCanceler.FinishTask(task);
             }
         }
 
@@ -1308,7 +1558,7 @@ namespace TSviewACD
             if (trushids.Count() == 0) return;
             if (MessageBox.Show(Resource_text.TrashItems_str, "Trash Items", MessageBoxButtons.OKCancel) != DialogResult.OK) return;
 
-            var task = CreateTask("TrashItem");
+            var task = TaskCanceler.CreateTask("TrashItem");
             var ct = task.cts.Token;
             try
             {
@@ -1356,7 +1606,7 @@ namespace TSviewACD
             }
             finally
             {
-                FinishTask(task);
+                TaskCanceler.FinishTask(task);
             }
         }
 
@@ -1373,9 +1623,9 @@ namespace TSviewACD
         {
             if (string.IsNullOrEmpty(display_id))
                 display_id = DriveData.AmazonDriveRootID;
-            await CancelTask("ReloadItems");
-            await CancelTask("ForceReloadItems");
-            var task = CreateTask("ForceReloadItems");
+            await TaskCanceler.CancelTask("ReloadItems");
+            await TaskCanceler.CancelTask("ForceReloadItems");
+            var task = TaskCanceler.CreateTask("ForceReloadItems");
             var ct = task.cts.Token;
             try
             {
@@ -1438,18 +1688,21 @@ namespace TSviewACD
             }
             finally
             {
-                FinishTask(task);
+                TaskCanceler.FinishTask(task);
             }
         }
 
         private async Task ReloadItems(string display_id, bool getchange = true)
         {
+            if (string.IsNullOrEmpty(DriveData.AmazonDriveRootID))
+                return;
+
             if (string.IsNullOrEmpty(display_id))
                 display_id = DriveData.AmazonDriveRootID;
 
-            await CancelTask("ReloadItems");
-            await CancelTask("ForceReloadItems");
-            var task = CreateTask("ReloadItems");
+            await TaskCanceler.CancelTask("ReloadItems");
+            await TaskCanceler.CancelTask("ForceReloadItems");
+            var task = TaskCanceler.CreateTask("ReloadItems");
             var ct = task.cts.Token;
             try
             {
@@ -1528,7 +1781,7 @@ namespace TSviewACD
             }
             finally
             {
-                FinishTask(task);
+                TaskCanceler.FinishTask(task);
             }
         }
 
@@ -1562,7 +1815,6 @@ namespace TSviewACD
             int f_cur = 0;
             string savefilename = null;
             string savefilepath = null;
-            string enckey = null;
 
             if (f_all > 1)
             {
@@ -1572,39 +1824,28 @@ namespace TSviewACD
             }
             else
             {
-                var filename = target.First().name;
-                if (Config.UseFilenameEncryption)
-                {
-                    enckey = DriveData.DecryptFilename(target.First());
-                    if (enckey != null)
-                    {
-                        filename = Path.GetFileNameWithoutExtension(enckey); //.random
-                    }
-                }
-                if (enckey == null && Path.GetExtension(filename) == ".enc")
-                {
-                    enckey = Path.GetFileNameWithoutExtension(filename); //.enc
-                    filename = Path.GetFileNameWithoutExtension(enckey); //.random
-                }
+                var filename = DriveData.AmazonDriveTree[target.First().id].DisplayName;
                 saveFileDialog1.FileName = filename;
                 saveFileDialog1.Title = "Select Save Fileneme for Download";
                 if (saveFileDialog1.ShowDialog() != DialogResult.OK) return;
                 savefilename = saveFileDialog1.FileName;
             }
 
-            var task = CreateTask("downloads");
+            var task = TaskCanceler.CreateTask("downloads");
             var ct = task.cts.Token;
             try
             {
                 foreach (var downitem in target)
                 {
                     ct.ThrowIfCancellationRequested();
-                    Config.Log.LogOut("Download : " + downitem.name);
+                    var filename = DriveData.AmazonDriveTree[downitem.id].DisplayName;
+
+                    Config.Log.LogOut("Download : " + filename);
                     var download_str = (f_all > 1) ? string.Format("Download({0}/{1})...", ++f_cur, f_all) : "Download...";
 
                     toolStripProgressBar1.Style = ProgressBarStyle.Continuous;
                     toolStripProgressBar1.Value = toolStripProgressBar1.Minimum;
-                    toolStripStatusLabel1.Text = download_str + " " + downitem.name;
+                    toolStripStatusLabel1.Text = download_str + " " + filename;
                     toolStripProgressBar1.Maximum = 10000;
 
                     if (savefilepath != null)
@@ -1616,20 +1857,6 @@ namespace TSviewACD
                             dpath = Path.Combine(dpath, p);
                             if (!Directory.Exists(dpath)) Directory.CreateDirectory(dpath);
                         }
-                        var filename = downitem.name;
-                        if (Config.UseFilenameEncryption)
-                        {
-                            enckey = DriveData.DecryptFilename(downitem);
-                            if (enckey != null)
-                            {
-                                filename = Path.GetFileNameWithoutExtension(enckey); //.random
-                            }
-                        }
-                        if (enckey == null && Path.GetExtension(filename) == ".enc")
-                        {
-                            enckey = Path.GetFileNameWithoutExtension(filename); //.enc
-                            filename = Path.GetFileNameWithoutExtension(enckey); //.random
-                        }
                         savefilename = Path.Combine(dpath, filename);
                     }
 
@@ -1637,55 +1864,27 @@ namespace TSviewACD
                     var strerr = "";
                     while (--retry > 0)
                     {
-                        Func<Stream, Task> dodownload = async (outfile) => {
-                            using (var ret = await Drive.downloadFile(downitem, ct: ct))
-                            using (var f = new PositionStream(ret, downitem.contentProperties.size.Value))
-                            {
-                                f.PosChangeEvent += (src, evnt) =>
-                                {
-                                    synchronizationContext.Post(
-                                        (o) =>
-                                        {
-                                            if (ct.IsCancellationRequested) return;
-                                            var eo = o as PositionChangeEventArgs;
-                                            toolStripStatusLabel1.Text = download_str + eo.Log + " " + downitem.name;
-                                            toolStripProgressBar1.Style = ProgressBarStyle.Continuous;
-                                            toolStripProgressBar1.Maximum = 10000;
-                                            toolStripProgressBar1.Value = (int)((double)eo.Position / eo.Length * 10000);
-                                        }, evnt);
-                                };
-                                await f.CopyToAsync(outfile, 16 * 1024 * 1024, ct);
-                            }
-                        };
-
                         try
                         {
                             using (var outfile = File.Open(savefilename, FileMode.Create, FileAccess.Write, FileShare.Read))
                             {
-                                if (downitem.contentProperties.size > ConfigAPI.FilenameChangeTrickSize)
+                                using (var ret = new AmazonDriveBaseStream(Drive, downitem))
+                                using (var f = new PositionStream(ret, downitem.OrignalLength ?? 0))
                                 {
-                                    Config.Log.LogOut("Download : <BIG FILE> temporary filename change");
-                                    Interlocked.Increment(ref CriticalCount);
-                                    try
+                                    f.PosChangeEvent += (src, evnt) =>
                                     {
-                                        try
-                                        {
-                                            var tmpfile = await Drive.renameItem(downitem.id, ConfigAPI.temporaryFilename + downitem.id);
-                                            await dodownload(outfile);
-                                        }
-                                        finally
-                                        {
-                                            await Drive.renameItem(downitem.id, downitem.name);
-                                        }
-                                    }
-                                    finally
-                                    {
-                                        Interlocked.Decrement(ref CriticalCount);
-                                    }
-                                }
-                                else
-                                {
-                                    await dodownload(outfile);
+                                        synchronizationContext.Post(
+                                            (o) =>
+                                            {
+                                                if (ct.IsCancellationRequested) return;
+                                                var eo = o as PositionChangeEventArgs;
+                                                toolStripStatusLabel1.Text = download_str + eo.Log + " " + filename;
+                                                toolStripProgressBar1.Style = ProgressBarStyle.Continuous;
+                                                toolStripProgressBar1.Maximum = 10000;
+                                                toolStripProgressBar1.Value = (int)((double)eo.Position / eo.Length * 10000);
+                                            }, evnt);
+                                    };
+                                    await f.CopyToAsync(outfile, 16 * 1024 * 1024, ct);
                                 }
                             }
                             Config.Log.LogOut("Download : Done");
@@ -1734,7 +1933,7 @@ namespace TSviewACD
             }
             finally
             {
-                FinishTask(task);
+                TaskCanceler.FinishTask(task);
             }
         }
 
@@ -1746,7 +1945,7 @@ namespace TSviewACD
 
         private async void sendUDPToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            await CancelTask("play");
+            await TaskCanceler.CancelTask("play");
             await PlayFiles(PlayOneTSFile, "Send UDP");
         }
 
@@ -1769,18 +1968,18 @@ namespace TSviewACD
             if (checkBox_Regex.Checked)
             {
                 if (checkBox_findCaseSensitive.Checked)
-                    selection = selection.Where(x => Regex.IsMatch(x.info.name ?? "", search_str));
+                    selection = selection.Where(x => Regex.IsMatch(x.DisplayName ?? "", search_str));
                 else
-                    selection = selection.Where(x => Regex.IsMatch(x.info.name ?? "", search_str, RegexOptions.IgnoreCase));
+                    selection = selection.Where(x => Regex.IsMatch(x.DisplayName ?? "", search_str, RegexOptions.IgnoreCase));
             }
             else
             {
                 if (checkBox_findCaseSensitive.Checked)
-                    selection = selection.Where(x => (x.info.name?.IndexOf(search_str) >= 0));
+                    selection = selection.Where(x => (x.DisplayName?.IndexOf(search_str) >= 0));
                 else
                     selection = selection.Where(x => (
                     System.Globalization.CultureInfo.CurrentCulture.CompareInfo.IndexOf(
-                        x.info.name ?? "",
+                        x.DisplayName ?? "",
                         search_str,
                         System.Globalization.CompareOptions.IgnoreCase | System.Globalization.CompareOptions.IgnoreKanaType | System.Globalization.CompareOptions.IgnoreWidth
                         | System.Globalization.CompareOptions.IgnoreNonSpace | System.Globalization.CompareOptions.IgnoreSymbols
@@ -1890,7 +2089,7 @@ namespace TSviewACD
 
             toolStripStatusLabel1.Text = "Rename...";
             toolStripProgressBar1.Style = ProgressBarStyle.Marquee;
-            var task = CreateTask("Rename");
+            var task = TaskCanceler.CreateTask("Rename");
             var ct = task.cts.Token;
             try
             {
@@ -1904,7 +2103,7 @@ namespace TSviewACD
                         if (NewName.ShowDialog() != DialogResult.OK) break;
 
                         ct.ThrowIfCancellationRequested();
-                        var tmpfile = await Drive.renameItem(downitem.id, NewName.NewItemName, ct: ct);
+                        await Drive.renameItem(downitem.id, NewName.NewItemName, ct: ct);
                     }
                 }
 
@@ -1914,7 +2113,7 @@ namespace TSviewACD
 
                 toolStripProgressBar1.Style = ProgressBarStyle.Marquee;
                 await Task.Delay(TimeSpan.FromSeconds(5));
-                await ReloadItems(parent_id);
+                await ReloadItems(parent_id, true);
                 Config.Log.LogOut("rename : done.");
             }
             catch (OperationCanceledException)
@@ -1936,7 +2135,7 @@ namespace TSviewACD
             }
             finally
             {
-                FinishTask(task);
+                TaskCanceler.FinishTask(task);
             }
         }
 
@@ -2005,13 +2204,14 @@ namespace TSviewACD
             }
         }
 
-        private async Task listView_DragDrop_AmazonItem(System.Windows.Forms.IDataObject data, string toParent)
+        private async Task DragDrop_AmazonItem(System.Windows.Forms.IDataObject data, string toParent, string logprefix = "")
         {
-            Config.Log.LogOut("move(listview) Start.");
+            Config.Log.LogOut(string.Format("move({0}) Start.", logprefix));
             toolStripStatusLabel1.Text = "Move Item...";
             toolStripProgressBar1.Style = ProgressBarStyle.Marquee;
 
             string parent_id = listviewitem.Root?.info.id;
+            var task = TaskCanceler.CreateTask(string.Format("move({0})", logprefix));
             try
             {
                 var selects = GetSelectedItemsFromDataObject(data);
@@ -2024,12 +2224,13 @@ namespace TSviewACD
 
                 foreach (var aItem in selects)
                 {
+                    task.cts.Token.ThrowIfCancellationRequested();
                     var fromParent = aItem.parents[0];
                     var childid = aItem.id;
 
                     toolStripStatusLabel1.Text = string.Format("Move Item... {0}/{1} {2}", ++count, selects.Length, aItem.name);
 
-                    await Drive.moveChild(childid, fromParent, toParent);
+                    await Drive.moveChild(childid, fromParent, toParent, task.cts.Token);
                     toolStripProgressBar1.PerformStep();
                 }
 
@@ -2042,25 +2243,39 @@ namespace TSviewACD
                 toolStripProgressBar1.Style = ProgressBarStyle.Marquee;
                 await Task.Delay(TimeSpan.FromSeconds(2));
                 await ReloadItems(parent_id);
-                Config.Log.LogOut("move(listview) : done.");
+                Config.Log.LogOut(string.Format("move({0}) : done.", logprefix));
             }
             catch (OperationCanceledException)
             {
-                throw;
+                if (!Config.IsClosing)
+                {
+                    toolStripProgressBar1.Style = ProgressBarStyle.Marquee;
+                    await Task.Delay(TimeSpan.FromSeconds(2));
+                    await ReloadItems(parent_id);
+
+                    toolStripProgressBar1.Style = ProgressBarStyle.Continuous;
+                    toolStripProgressBar1.Value = toolStripProgressBar1.Minimum;
+                    toolStripProgressBar1.Maximum = 100;
+                    toolStripStatusLabel1.Text = "Operation Aborted.";
+                }
             }
             catch (Exception ex)
             {
-                Config.Log.LogOut("move(listview) : Error");
+                Config.Log.LogOut(string.Format("move({0}) : Error", logprefix));
                 toolStripProgressBar1.Style = ProgressBarStyle.Continuous;
                 toolStripProgressBar1.Value = toolStripProgressBar1.Minimum;
                 toolStripStatusLabel1.Text = "Error detected.";
                 MessageBox.Show("Move Item : ERROR\r\n" + ex.Message);
             }
+            finally
+            {
+                TaskCanceler.FinishTask(task);
+            }
         }
 
         private async Task DragDrop_FileDrop(string[] drags, string parent_id, string logprefix = "")
         {
-            var task = CreateTask(string.Format("upload({0})", logprefix));
+            var task = TaskCanceler.CreateTask(string.Format("upload({0})", logprefix));
             string disp_id = listviewitem.Root?.info.id;
             try
             {
@@ -2100,7 +2315,7 @@ namespace TSviewACD
             }
             finally
             {
-                FinishTask(task);
+                TaskCanceler.FinishTask(task);
             }
         }
 
@@ -2140,7 +2355,7 @@ namespace TSviewACD
                     var ParentId = current.info.id;
                     if (e.Data.GetDataPresent(ClipboardAmazonDrive.CFSTR_AMAZON_DRIVE_ITEMS))
                     {
-                        await listView_DragDrop_AmazonItem(e.Data, ParentId);
+                        await DragDrop_AmazonItem(e.Data, ParentId, "listview");
                     }
                     if (e.Data.GetDataPresent(DataFormats.FileDrop))
                     {
@@ -2513,7 +2728,7 @@ namespace TSviewACD
 
         private async void button_Play_Click(object sender, EventArgs e)
         {
-            await CancelTask("play");
+            await TaskCanceler.CancelTask("play");
             await PlayFiles(PlayOneTSFile, "Send UDP");
         }
 
@@ -2548,11 +2763,12 @@ namespace TSviewACD
             while (true)
             {
                 PressKeyForOtherApp();
+                var filename = DriveData.AmazonDriveTree[downitem.id].DisplayName;
 
                 toolStripProgressBar1.Style = ProgressBarStyle.Continuous;
                 toolStripProgressBar1.Value = toolStripProgressBar1.Minimum;
                 toolStripProgressBar1.Maximum = 10000;
-                toolStripStatusLabel1.Text = download_str + " " + downitem.name;
+                toolStripStatusLabel1.Text = download_str + " " + filename;
 
                 var internalToken = seekUDP_ct_source.Token;
                 var externalToken = ct;
@@ -2571,7 +2787,7 @@ namespace TSviewACD
                                 {
                                     if (linkedCts.Token.IsCancellationRequested) return;
                                     var eo = o as PositionChangeEventArgs;
-                                    toolStripStatusLabel1.Text = download_str + eo.Log + " " + downitem.name;
+                                    toolStripStatusLabel1.Text = download_str + eo.Log + " " + filename;
                                     toolStripProgressBar1.Style = ProgressBarStyle.Continuous;
                                     toolStripProgressBar1.Maximum = 10000;
                                     toolStripProgressBar1.Value = (int)((double)eo.Position / eo.Length * 10000);
@@ -2579,7 +2795,7 @@ namespace TSviewACD
                         };
                         using (var UDP = new UDP_TS_Stream(linkedCts.Token))
                         {
-                            label_sendname.Text = downitem.name;
+                            label_sendname.Text = filename;
                             if (SeekUDPtoPos < TimeSpan.FromDays(30))
                             {
                                 if (SendDuration != default(TimeSpan))
@@ -2830,7 +3046,7 @@ namespace TSviewACD
 
         private async Task PlayWithFFmpeg()
         {
-            await CancelTask("play");
+            await TaskCanceler.CancelTask("play");
             if (!initialized) return;
 
             var asm = Assembly.LoadFrom("ffmodule.dll");
@@ -2895,8 +3111,8 @@ namespace TSviewACD
                 Bitmap ret = null;
                 FileMetadata_Info downitem = player.Tag as FileMetadata_Info;
                 ImageCodecInfo[] decoders = ImageCodecInfo.GetImageDecoders();
-                string filename = downitem.name;
-                var target = DriveData.AmazonDriveTree[downitem.parents[0]].children.Where(x => x.Value.info.name.StartsWith(Path.GetFileNameWithoutExtension(filename)));
+                string filename = DriveData.AmazonDriveTree[downitem.id].DisplayName;
+                var target = DriveData.AmazonDriveTree[downitem.parents[0]].children.Where(x => x.Value.DisplayName.StartsWith(Path.GetFileNameWithoutExtension(filename)));
                 foreach (var t in target)
                 {
                     var ext = Path.GetExtension(t.Value.info.name).ToLower();
@@ -2930,18 +3146,19 @@ namespace TSviewACD
 
         private async Task PlayOneFFmpegPlayer(FileMetadata_Info downitem, string download_str, CancellationToken ct, dynamic data)
         {
+            string filename = DriveData.AmazonDriveTree[downitem.id].DisplayName;
             toolStripProgressBar1.Style = ProgressBarStyle.Continuous;
             toolStripProgressBar1.Maximum = 10000;
             toolStripProgressBar1.Value = toolStripProgressBar1.Minimum;
-            toolStripStatusLabel1.Text = download_str + " " + downitem.name;
-            label_FFplay_sendname.Text = downitem.name;
+            toolStripStatusLabel1.Text = download_str + " " + filename;
+            label_FFplay_sendname.Text = filename;
             var Player = data;
             timer3.Enabled = true;
             Player.StartSkip = FFplayStartDelay;
             Player.StopDuration = FFplayDuration;
             await Task.Run(() =>
             {
-                using (var driveStream = new AmazonDriveStream(Drive, downitem))
+                using (var driveStream = new AmazonDriveSeekableStream(Drive, downitem))
                 using (var PosStream = new PositionStream(driveStream))
                 {
                     PosStream.PosChangeEvent += (src, evnt) =>
@@ -2951,14 +3168,14 @@ namespace TSviewACD
                             {
                                 if (ct.IsCancellationRequested) return;
                                 var eo = o as PositionChangeEventArgs;
-                                toolStripStatusLabel1.Text = download_str + eo.Log + " " + downitem.name;
+                                toolStripStatusLabel1.Text = download_str + eo.Log + " " + filename;
                                 toolStripProgressBar1.Style = ProgressBarStyle.Continuous;
                                 toolStripProgressBar1.Maximum = 10000;
                                 toolStripProgressBar1.Value = (int)((double)eo.Position / eo.Length * 10000);
                             }, evnt);
                     };
                     Player.Tag = downitem;
-                    if (Player.Play(PosStream, downitem.name, ct) != 0)
+                    if (Player.Play(PosStream, filename, ct) != 0)
                         throw new OperationCanceledException("player cancel");
                 }
             }, ct);
@@ -3090,7 +3307,7 @@ namespace TSviewACD
             TaskCanselToken task = null;
             if (ct == default(CancellationToken))
             {
-                task = CreateTask("play");
+                task = TaskCanceler.CreateTask("play");
                 ct = task.cts.Token;
             }
             try
@@ -3099,13 +3316,14 @@ namespace TSviewACD
                 foreach (var downitem in selectItem)
                 {
                     ct.ThrowIfCancellationRequested();
-                    Config.Log.LogOut(LogPrefix + " download : " + downitem.name);
+                    var filename = DriveData.AmazonDriveTree[downitem.id].DisplayName;
+                    Config.Log.LogOut(LogPrefix + " download : " + filename);
                     var download_str = (f_all > 1) ? string.Format("Download({0}/{1})...", ++f_cur, f_all) : "Download...";
 
-                    if (downitem.contentProperties.size > ConfigAPI.FilenameChangeTrickSize)
+                    if (downitem.contentProperties.size > ConfigAPI.FilenameChangeTrickSize && !Regex.IsMatch(downitem.name, "^[\x20-\x7e]*$"))
                     {
                         Config.Log.LogOut(LogPrefix + " download : <BIG FILE> temporary filename change");
-                        Interlocked.Increment(ref CriticalCount);
+                        Interlocked.Increment(ref Config.AmazonDriveTempCount);
                         try
                         {
                             toolStripStatusLabel1.Text = "temporary filename change...";
@@ -3121,7 +3339,7 @@ namespace TSviewACD
                         }
                         finally
                         {
-                            Interlocked.Decrement(ref CriticalCount);
+                            Interlocked.Decrement(ref Config.AmazonDriveTempCount);
                         }
                     }
                     else
@@ -3159,7 +3377,7 @@ namespace TSviewACD
             }
             finally
             {
-                FinishTask(task);
+                TaskCanceler.FinishTask(task);
             }
             label_sendname.Text = "Send Filename";
             label_FFplay_sendname.Text = "Play Filename";
@@ -3257,7 +3475,7 @@ namespace TSviewACD
 
         private async void button_Playbreak_Click(object sender, EventArgs e)
         {
-            await CancelTask("play");
+            await TaskCanceler.CancelTask("play");
         }
 
         private void buttonFFmpegmoduleConfig_Click(object sender, EventArgs e)
@@ -3283,6 +3501,7 @@ namespace TSviewACD
         {
             Config.LockPassword = checkBox_LockPassword.Checked;
             textBox_Password.Enabled = !checkBox_LockPassword.Checked;
+            textBox_Password.PasswordChar = (Config.LockPassword) ? '*' : '\0';
         }
 
         private void textBox_Password_TextChanged(object sender, EventArgs e)
@@ -3349,7 +3568,7 @@ namespace TSviewACD
             TaskCanselToken task = null;
             if (ct == default(CancellationToken))
             {
-                task = CreateTask("templink");
+                task = TaskCanceler.CreateTask("templink");
                 ct = task.cts.Token;
             }
             try
@@ -3413,7 +3632,7 @@ namespace TSviewACD
             }
             finally
             {
-                FinishTask(task);
+                TaskCanceler.FinishTask(task);
             }
             if (templinks.Count > 1)
             {
@@ -3448,13 +3667,94 @@ namespace TSviewACD
             listviewitem.SortKind = sortBykindOfItemToolStripMenuItem.Checked;
             listView1.Refresh();
         }
+
+        private void radioButton_crypt_1_CTR_CheckedChanged(object sender, EventArgs e)
+        {
+            if (radioButton_crypt_1_CTR.Checked) Config.CryptMethod = CryptMethods.Method1_CTR;
+        }
+
+        private void radioButton_crypt_2_CBC_CheckedChanged(object sender, EventArgs e)
+        {
+            if (radioButton_crypt_2_CBC.Checked)
+            {
+                Config.CryptMethod = CryptMethods.Method2_CBC_CarotDAV;
+                checkBox_cryptfilename.Checked = true;
+            }
+        }
+
+        private async void checkBox_decodeView_CheckedChanged(object sender, EventArgs e)
+        {
+            Config.AutoDecode = checkBox_decodeView.Checked;
+            await ReloadItems(listviewitem.Root?.info.id, false);
+        }
+
+        private async void comboBox_CarotDAV_Escape_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            Config.CarotDAV_CryptNameHeader = comboBox_CarotDAV_Escape.Text;
+            DriveData.ChangeCryption2();
+            await ReloadItems(listviewitem.Root?.info.id, false);
+        }
+
+        private async void textBox_Password_Leave(object sender, EventArgs e)
+        {
+            DriveData.ChangeCryption1();
+            await ReloadItems(listviewitem.Root?.info.id, false);
+        }
+
+        private void button1_Click(object sender, EventArgs e)
+        {
+            using (var st = new CryptCarotDAV.CryptCarotDAV_CryptStream(new FileStream("test.txt", FileMode.Open), "test"))
+            {
+                using(var outst = new FileStream("test.txt.enc", FileMode.Create))
+                {
+                    st.CopyTo(outst);
+                }
+            }
+        }
+
+        private void cutToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            if (listviewitem.Root != null && (listView1.SelectedIndices.Contains(0) || listView1.SelectedIndices.Contains(1)))
+                return;
+            Clipboard.SetDataObject(new ClipboardAmazonDrive(listviewitem.GetItems(listView1.SelectedIndices, IncludeSpetial: false)));
+        }
+
+        private async void pasteToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            var selection = listviewitem.GetItems(listView1.SelectedIndices).ToArray();
+            var current = listviewitem.Root;
+            if(selection.Count() == 1)
+            {
+                var select = selection.First();
+                if (select.info?.kind == "FOLDER")
+                    current = select;
+            }
+            if (current == null) return;
+
+            var ParentId = current.info.id;
+            if (Clipboard.ContainsData(DataFormats.FileDrop)) {
+                Config.Log.LogOut("upload(listview) Start.");
+                string[] drags = (string[])Clipboard.GetData(DataFormats.FileDrop);
+
+                if (drags.Where(x => Directory.Exists(x)).Count() > 0)
+                    if (MessageBox.Show(Resource_text.UploadFolder_str, "Folder upload", MessageBoxButtons.OKCancel) != DialogResult.OK) return;
+
+                await DragDrop_FileDrop(drags, ParentId, "clipboard");
+                return;
+            }
+            System.Windows.Forms.IDataObject data = Clipboard.GetDataObject();
+            var formats = data.GetFormats();
+            if (formats.Contains(ClipboardAmazonDrive.CFSTR_AMAZON_DRIVE_ITEMS)) {
+                await DragDrop_AmazonItem(data, ParentId, "clipboard");
+            }
+        }
     }
 
     static class Extensions
     {
         public static IOrderedEnumerable<ItemInfo> SortByKind(this IEnumerable<ItemInfo> x, bool SortKind)
         {
-            return x.OrderBy(y => (SortKind) ? (y.info.kind != "FOLDER") : true);
+            return x.OrderBy(y => (SortKind) ? (y.info.kind != "FOLDER") : true).ThenBy(y => (SortKind)? y.IsEncrypted: CryptMethods.Unknown);
         }
     }
 }

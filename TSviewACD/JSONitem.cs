@@ -28,7 +28,7 @@ namespace TSviewACD
         public string status;
     }
 
-    [Serializable()]
+    [Serializable]
     [DataContract]
     public class FileMetadata_Info
     {
@@ -87,9 +87,21 @@ namespace TSviewACD
 
         [DataMember]
         public contentProperties_Info contentProperties;
+
+        public long? OrignalLength
+        {
+            get
+            {
+                if (name.StartsWith(Config.CarotDAV_CryptNameHeader))
+                {
+                    return contentProperties?.size - (CryptCarotDAV.BlockSizeByte + CryptCarotDAV.CryptFooterByte + CryptCarotDAV.CryptFooterByte);
+                }
+                return contentProperties?.size;
+            }
+        }
     }
 
-    [Serializable()]
+    [Serializable]
     [DataContract]
     public class contentProperties_Info
     {
@@ -132,7 +144,7 @@ namespace TSviewACD
         public FileMetadata_Info[] nodes;
     }
 
-    [Serializable()]
+    [Serializable]
     [DataContract]
     public class DriveData_Info
     {

@@ -166,13 +166,13 @@
         "Entry"
         {
         "MsmKey" = "8:_UNDEFINED"
-        "OwnerKey" = "8:_EE87D4693607DA830341F2EE0B71A64E"
+        "OwnerKey" = "8:_81A9D0128E1A5163C562043C4B894E9E"
         "MsmSig" = "8:_UNDEFINED"
         }
         "Entry"
         {
         "MsmKey" = "8:_UNDEFINED"
-        "OwnerKey" = "8:_81A9D0128E1A5163C562043C4B894E9E"
+        "OwnerKey" = "8:_F2CC19CFEBF44648AEA35821DE165D77"
         "MsmSig" = "8:_UNDEFINED"
         }
         "Entry"
@@ -184,7 +184,7 @@
         "Entry"
         {
         "MsmKey" = "8:_UNDEFINED"
-        "OwnerKey" = "8:_F2CC19CFEBF44648AEA35821DE165D77"
+        "OwnerKey" = "8:_EE87D4693607DA830341F2EE0B71A64E"
         "MsmSig" = "8:_UNDEFINED"
         }
     }
@@ -419,6 +419,11 @@
             "AssemblyAsmDisplayName" = "8:ffmodule_conf, Version=1.0.0.0, Culture=neutral, processorArchitecture=AMD64"
                 "ScatterAssemblies"
                 {
+                    "_81A9D0128E1A5163C562043C4B894E9E"
+                    {
+                    "Name" = "8:ffmodule_conf.dll"
+                    "Attributes" = "3:512"
+                    }
                 }
             "SourcePath" = "8:ffmodule_conf.dll"
             "TargetName" = "8:"
@@ -665,6 +670,11 @@
             "AssemblyAsmDisplayName" = "8:System.Net.Http, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a"
                 "ScatterAssemblies"
                 {
+                    "_EE87D4693607DA830341F2EE0B71A64E"
+                    {
+                    "Name" = "8:System.Net.Http.dll"
+                    "Attributes" = "3:512"
+                    }
                 }
             "SourcePath" = "8:System.Net.Http.dll"
             "TargetName" = "8:"
@@ -802,15 +812,15 @@
         {
         "Name" = "8:Microsoft Visual Studio"
         "ProductName" = "8:TSviewACD"
-        "ProductCode" = "8:{B2E21542-3C03-4279-8F10-47303C077673}"
-        "PackageCode" = "8:{3E34D92C-4439-4406-862A-17B1F2D5318E}"
+        "ProductCode" = "8:{D65FF758-B6BC-4B03-A660-F2DCF95527F8}"
+        "PackageCode" = "8:{5BF187D2-1367-450A-A484-B75957217D81}"
         "UpgradeCode" = "8:{35BB5569-D1AC-4F9A-861C-2B676D50BCC7}"
         "AspNetVersion" = "8:4.0.30319.0"
         "RestartWWWService" = "11:FALSE"
         "RemovePreviousVersions" = "11:TRUE"
         "DetectNewerInstalledVersion" = "11:TRUE"
         "InstallAllUsers" = "11:FALSE"
-        "ProductVersion" = "8:5.0.2"
+        "ProductVersion" = "8:5.1.0"
         "Manufacturer" = "8:lithium03"
         "ARPHELPTELEPHONE" = "8:"
         "ARPHELPLINK" = "8:"

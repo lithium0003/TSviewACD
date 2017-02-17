@@ -33,6 +33,8 @@
             this.splitContainer1 = new System.Windows.Forms.SplitContainer();
             this.tabControl1 = new System.Windows.Forms.TabControl();
             this.tabPage_Navigation = new System.Windows.Forms.TabPage();
+            this.button1 = new System.Windows.Forms.Button();
+            this.checkBox_overrideUpload = new System.Windows.Forms.CheckBox();
             this.button_breakone = new System.Windows.Forms.Button();
             this.label23 = new System.Windows.Forms.Label();
             this.listView_TaskList = new System.Windows.Forms.ListView();
@@ -129,6 +131,11 @@
             this.label22 = new System.Windows.Forms.Label();
             this.label21 = new System.Windows.Forms.Label();
             this.tabPage_Crypt = new System.Windows.Forms.TabPage();
+            this.checkBox_decodeView = new System.Windows.Forms.CheckBox();
+            this.groupBox1 = new System.Windows.Forms.GroupBox();
+            this.comboBox_CarotDAV_Escape = new System.Windows.Forms.ComboBox();
+            this.radioButton_crypt_2_CBC = new System.Windows.Forms.RadioButton();
+            this.radioButton_crypt_1_CTR = new System.Windows.Forms.RadioButton();
             this.checkBox_LockPassword = new System.Windows.Forms.CheckBox();
             this.label27 = new System.Windows.Forms.Label();
             this.textBox_Password = new System.Windows.Forms.TextBox();
@@ -185,6 +192,9 @@
             this.timer2 = new System.Windows.Forms.Timer(this.components);
             this.timer3 = new System.Windows.Forms.Timer(this.components);
             this.timer4 = new System.Windows.Forms.Timer(this.components);
+            this.toolStripMenuItem7 = new System.Windows.Forms.ToolStripSeparator();
+            this.cutToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.pasteToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             ((System.ComponentModel.ISupportInitialize)(this.splitContainer1)).BeginInit();
             this.splitContainer1.Panel1.SuspendLayout();
             this.splitContainer1.Panel2.SuspendLayout();
@@ -202,6 +212,7 @@
             ((System.ComponentModel.ISupportInitialize)(this.trackBar_FFplay_pos)).BeginInit();
             this.tabPage_Bandwidth.SuspendLayout();
             this.tabPage_Crypt.SuspendLayout();
+            this.groupBox1.SuspendLayout();
             this.menuStrip1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.splitContainer2)).BeginInit();
             this.splitContainer2.Panel1.SuspendLayout();
@@ -243,6 +254,8 @@
             // 
             // tabPage_Navigation
             // 
+            this.tabPage_Navigation.Controls.Add(this.button1);
+            this.tabPage_Navigation.Controls.Add(this.checkBox_overrideUpload);
             this.tabPage_Navigation.Controls.Add(this.button_breakone);
             this.tabPage_Navigation.Controls.Add(this.label23);
             this.tabPage_Navigation.Controls.Add(this.listView_TaskList);
@@ -256,6 +269,18 @@
             resources.ApplyResources(this.tabPage_Navigation, "tabPage_Navigation");
             this.tabPage_Navigation.Name = "tabPage_Navigation";
             this.tabPage_Navigation.UseVisualStyleBackColor = true;
+            // 
+            // button1
+            // 
+            resources.ApplyResources(this.button1, "button1");
+            this.button1.Name = "button1";
+            this.button1.UseVisualStyleBackColor = true;
+            // 
+            // checkBox_overrideUpload
+            // 
+            resources.ApplyResources(this.checkBox_overrideUpload, "checkBox_overrideUpload");
+            this.checkBox_overrideUpload.Name = "checkBox_overrideUpload";
+            this.checkBox_overrideUpload.UseVisualStyleBackColor = true;
             // 
             // button_breakone
             // 
@@ -999,6 +1024,8 @@
             // 
             // tabPage_Crypt
             // 
+            this.tabPage_Crypt.Controls.Add(this.checkBox_decodeView);
+            this.tabPage_Crypt.Controls.Add(this.groupBox1);
             this.tabPage_Crypt.Controls.Add(this.checkBox_LockPassword);
             this.tabPage_Crypt.Controls.Add(this.label27);
             this.tabPage_Crypt.Controls.Add(this.textBox_Password);
@@ -1007,6 +1034,46 @@
             resources.ApplyResources(this.tabPage_Crypt, "tabPage_Crypt");
             this.tabPage_Crypt.Name = "tabPage_Crypt";
             this.tabPage_Crypt.UseVisualStyleBackColor = true;
+            // 
+            // checkBox_decodeView
+            // 
+            resources.ApplyResources(this.checkBox_decodeView, "checkBox_decodeView");
+            this.checkBox_decodeView.Name = "checkBox_decodeView";
+            this.checkBox_decodeView.UseVisualStyleBackColor = true;
+            this.checkBox_decodeView.CheckedChanged += new System.EventHandler(this.checkBox_decodeView_CheckedChanged);
+            // 
+            // groupBox1
+            // 
+            this.groupBox1.Controls.Add(this.comboBox_CarotDAV_Escape);
+            this.groupBox1.Controls.Add(this.radioButton_crypt_2_CBC);
+            this.groupBox1.Controls.Add(this.radioButton_crypt_1_CTR);
+            resources.ApplyResources(this.groupBox1, "groupBox1");
+            this.groupBox1.Name = "groupBox1";
+            this.groupBox1.TabStop = false;
+            // 
+            // comboBox_CarotDAV_Escape
+            // 
+            this.comboBox_CarotDAV_Escape.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            this.comboBox_CarotDAV_Escape.FormattingEnabled = true;
+            resources.ApplyResources(this.comboBox_CarotDAV_Escape, "comboBox_CarotDAV_Escape");
+            this.comboBox_CarotDAV_Escape.Name = "comboBox_CarotDAV_Escape";
+            this.comboBox_CarotDAV_Escape.SelectedIndexChanged += new System.EventHandler(this.comboBox_CarotDAV_Escape_SelectedIndexChanged);
+            // 
+            // radioButton_crypt_2_CBC
+            // 
+            resources.ApplyResources(this.radioButton_crypt_2_CBC, "radioButton_crypt_2_CBC");
+            this.radioButton_crypt_2_CBC.Name = "radioButton_crypt_2_CBC";
+            this.radioButton_crypt_2_CBC.TabStop = true;
+            this.radioButton_crypt_2_CBC.UseVisualStyleBackColor = true;
+            this.radioButton_crypt_2_CBC.CheckedChanged += new System.EventHandler(this.radioButton_crypt_2_CBC_CheckedChanged);
+            // 
+            // radioButton_crypt_1_CTR
+            // 
+            resources.ApplyResources(this.radioButton_crypt_1_CTR, "radioButton_crypt_1_CTR");
+            this.radioButton_crypt_1_CTR.Name = "radioButton_crypt_1_CTR";
+            this.radioButton_crypt_1_CTR.TabStop = true;
+            this.radioButton_crypt_1_CTR.UseVisualStyleBackColor = true;
+            this.radioButton_crypt_1_CTR.CheckedChanged += new System.EventHandler(this.radioButton_crypt_1_CTR_CheckedChanged);
             // 
             // checkBox_LockPassword
             // 
@@ -1026,6 +1093,7 @@
             resources.ApplyResources(this.textBox_Password, "textBox_Password");
             this.textBox_Password.Name = "textBox_Password";
             this.textBox_Password.TextChanged += new System.EventHandler(this.textBox_Password_TextChanged);
+            this.textBox_Password.Leave += new System.EventHandler(this.textBox_Password_Leave);
             // 
             // checkBox_cryptfilename
             // 
@@ -1266,6 +1334,9 @@
             this.makeTemporaryLinkToolStripMenuItem,
             this.sendUDPToolStripMenuItem,
             this.playWithFFplayToolStripMenuItem,
+            this.toolStripMenuItem7,
+            this.cutToolStripMenuItem,
+            this.pasteToolStripMenuItem,
             this.toolStripMenuItem3,
             this.renameToolStripMenuItem,
             this.toolStripMenuItem2,
@@ -1382,6 +1453,23 @@
             this.timer4.Interval = 1500;
             this.timer4.Tick += new System.EventHandler(this.timer4_Tick);
             // 
+            // toolStripMenuItem7
+            // 
+            this.toolStripMenuItem7.Name = "toolStripMenuItem7";
+            resources.ApplyResources(this.toolStripMenuItem7, "toolStripMenuItem7");
+            // 
+            // cutToolStripMenuItem
+            // 
+            this.cutToolStripMenuItem.Name = "cutToolStripMenuItem";
+            resources.ApplyResources(this.cutToolStripMenuItem, "cutToolStripMenuItem");
+            this.cutToolStripMenuItem.Click += new System.EventHandler(this.cutToolStripMenuItem_Click);
+            // 
+            // pasteToolStripMenuItem
+            // 
+            this.pasteToolStripMenuItem.Name = "pasteToolStripMenuItem";
+            resources.ApplyResources(this.pasteToolStripMenuItem, "pasteToolStripMenuItem");
+            this.pasteToolStripMenuItem.Click += new System.EventHandler(this.pasteToolStripMenuItem_Click);
+            // 
             // Form1
             // 
             this.AllowDrop = true;
@@ -1420,6 +1508,8 @@
             this.tabPage_Bandwidth.PerformLayout();
             this.tabPage_Crypt.ResumeLayout(false);
             this.tabPage_Crypt.PerformLayout();
+            this.groupBox1.ResumeLayout(false);
+            this.groupBox1.PerformLayout();
             this.menuStrip1.ResumeLayout(false);
             this.menuStrip1.PerformLayout();
             this.splitContainer2.Panel1.ResumeLayout(false);
@@ -1591,6 +1681,16 @@
         private System.Windows.Forms.ToolStripMenuItem makeTemporaryLinkToolStripMenuItem;
         private System.Windows.Forms.ToolStripSeparator toolStripMenuItem6;
         private System.Windows.Forms.ToolStripMenuItem sortBykindOfItemToolStripMenuItem;
+        private System.Windows.Forms.CheckBox checkBox_overrideUpload;
+        private System.Windows.Forms.GroupBox groupBox1;
+        private System.Windows.Forms.RadioButton radioButton_crypt_2_CBC;
+        private System.Windows.Forms.RadioButton radioButton_crypt_1_CTR;
+        private System.Windows.Forms.ComboBox comboBox_CarotDAV_Escape;
+        private System.Windows.Forms.Button button1;
+        private System.Windows.Forms.CheckBox checkBox_decodeView;
+        private System.Windows.Forms.ToolStripSeparator toolStripMenuItem7;
+        private System.Windows.Forms.ToolStripMenuItem cutToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem pasteToolStripMenuItem;
     }
 }
 

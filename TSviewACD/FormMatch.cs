@@ -185,7 +185,7 @@ namespace TSviewACD
             Dictionary<string, LocalItemInfo[]> LocalDup = new Dictionary<string, LocalItemInfo[]>();
             Dictionary<string, RemoteItemInfo[]> RemoteDup = new Dictionary<string, RemoteItemInfo[]>();
 
-            var task = Program.MainForm.CreateTask("match");
+            var task = TaskCanceler.CreateTask("match");
             cts = task.cts;
             try
             {
@@ -197,7 +197,7 @@ namespace TSviewACD
                 if (radioButton_Tree.Checked)
                     remote = remote.Select(x => new RemoteItemInfo(x.info, x.path, x.path.Substring(remotebasepath.Length))).ToArray();
                 if(radioButton_filename.Checked)
-                    remote = remote.Select(x => new RemoteItemInfo(x.info, x.path, x.info.name)).ToArray();
+                    remote = remote.Select(x => new RemoteItemInfo(x.info, x.path, DriveData.AmazonDriveTree[x.info.id].DisplayName)).ToArray();
                 if(radioButton_MD5.Checked)
                     remote = remote.Select(x => new RemoteItemInfo(x.info, x.path, x.info.contentProperties?.md5)).ToArray();
 
@@ -390,7 +390,7 @@ namespace TSviewACD
             finally
             {
                 label_info.Text = "";
-                Program.MainForm.FinishTask(task);
+                TaskCanceler.FinishTask(task);
                 cts = null;
                 button_start.Enabled = true;
             }

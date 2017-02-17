@@ -14,6 +14,17 @@ namespace TSviewACD
 {
     static class Config
     {
+        public readonly static string[] CarotDAV_crypt_names = new string[]
+        {
+            "^_",
+            ":D",
+            ";)",
+            "T-T",
+            "orz",
+            "ノシ",
+            "（´・ω・）"
+        };
+
         public const long SmallFileSize = 10 * 1024 * 1024;
         private static string GetFileSystemPath(Environment.SpecialFolder folder)
         {
@@ -92,6 +103,9 @@ namespace TSviewACD
         public static bool UseFilenameEncryption = false;
         public static string Language = "";
         public static bool debug = false;
+        public static CryptMethods CryptMethod = CryptMethods.Method1_CTR;
+        public static bool AutoDecode = true;
+        public static string CarotDAV_CryptNameHeader = CarotDAV_crypt_names[0];
         // temporary
         public static bool FFmodule_fullscreen = false;
         public static bool FFmodule_display = false;
@@ -101,6 +115,7 @@ namespace TSviewACD
         public static int FFmodule_hight = 0;
         public static int FFmodule_x = 0;
         public static int FFmodule_y = 0;
+        public static int AmazonDriveTempCount = 0;
 
         private static byte[] _salt = Encoding.ASCII.GetBytes("TSviewACD");
         private const string token_password = ConfigAPI.token_save_password;
@@ -320,13 +335,19 @@ namespace TSviewACD
                         UseFilenameEncryption = data.UseFilenameEncryption;
                     if (data.Language != default(string))
                         Language = data.Language;
+                    if (data.CryptMethod != default(CryptMethods))
+                        CryptMethod = data.CryptMethod;
+                    if (data.AutoDecode != default(bool))
+                        AutoDecode = data.AutoDecode;
+                    if (data.CarotDAV_CryptNameHeader != default(string))
+                        CarotDAV_CryptNameHeader = data.CarotDAV_CryptNameHeader;
                     contentUrl = data.contentUrl;
                     metadataUrl = data.metadataUrl;
                     if (data.URL_time < DateTime.Now)
                         URL_time = data.URL_time;
                 }
             }
-            catch (FileNotFoundException)
+            catch (Exception)
             {
                 Save();
             }
@@ -368,6 +389,9 @@ namespace TSviewACD
                         UseEncryption = UseEncryption,
                         UseFilenameEncryption = UseFilenameEncryption,
                         Language = Language,
+                        CryptMethod = CryptMethod,
+                        AutoDecode = AutoDecode,
+                        CarotDAV_CryptNameHeader = CarotDAV_CryptNameHeader,
                     };
                     serializer.WriteObject(xmlw, data);
                 }
@@ -432,6 +456,12 @@ namespace TSviewACD
         public bool UseFilenameEncryption;
         [DataMember]
         public string Language;
+        [DataMember]
+        public CryptMethods CryptMethod;
+        [DataMember]
+        public bool AutoDecode;
+        [DataMember]
+        public string CarotDAV_CryptNameHeader;
     }
 
     [CollectionDataContract

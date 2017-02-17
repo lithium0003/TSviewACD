@@ -8,6 +8,7 @@ using System.Net.Http.Headers;
 using System.Runtime.Serialization;
 using System.Runtime.Serialization.Json;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -15,8 +16,17 @@ namespace TSviewACD
 {
     public class ConfigAPI
     {
-        public const string client_id = "";
-        public const string client_secret = "";
+        readonly static string client_id_enc = "";
+        readonly static string client_secret_enc = "";
+
+        public static string client_id
+        {
+            get { return Encoding.ASCII.GetString(Convert.FromBase64String(client_id_enc)); }
+        }
+        public static string client_secret
+        {
+            get { return Encoding.ASCII.GetString(Convert.FromBase64String(client_secret_enc)); }
+        }
         public const string token_save_password = "cryptpassword";
 
         public const string App_redirect = "https://lithium03.info/login/redirect";
@@ -134,7 +144,9 @@ namespace TSviewACD
                         Config.Log.LogOut("\t[" + LogPrefix + "] wait " + waitsec.ToString() + " sec");
                         await Task.Delay(waitsec * 1000);
                     }
-                    else { break; }
+                    else {
+                        break;
+                    }
                 }
                 catch (OperationCanceledException)
                 {
@@ -380,28 +392,39 @@ namespace TSviewACD
                         //{
                         //    System.Diagnostics.Debug.WriteLine("HTTP pos :" + e.Log);
                         //};
-                        StreamContent fileContent;
+                        StreamContent fileContent = null;
                         if (Config.UseEncryption)
                         {
-                            fileContent = new StreamContent(new AES256CTR_CryptStream(f, Config.DrivePassword, uploadkey), transbufsize);
+                            if (Config.CryptMethod == CryptMethods.Method1_CTR) {
+                                fileContent = new StreamContent(new AES256CTR_CryptStream(f, Config.DrivePassword, uploadkey), transbufsize);
+                                fileContent.Headers.ContentLength = f.Length;
+                            }
+                            if (Config.CryptMethod == CryptMethods.Method2_CBC_CarotDAV){
+                                var cryptstream = new CryptCarotDAV.CryptCarotDAV_CryptStream(f, Config.DrivePassword);
+                                fileContent = new StreamContent(cryptstream, transbufsize);
+                                fileContent.Headers.ContentLength = cryptstream.Length;
+                            }
                         }
                         else
                         {
                             fileContent = new StreamContent(f, transbufsize);
+                            fileContent.Headers.ContentLength = f.Length;
                         }
                         fileContent.Headers.ContentType = new MediaTypeHeaderValue("application/octet-stream");
-                        fileContent.Headers.ContentLength = f.Length;
                         content.Add(fileContent, "content", Path.GetFileName(filename));
 
-                        var response = await client.PostAsync(
-                            Config.contentUrl + "nodes?suppress=deduplication",
-                            content,
-                            ct).ConfigureAwait(false);
-                        response.EnsureSuccessStatusCode();
-                        string responseBody = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
-                        // Above three lines can be replaced with new helper method in following line
-                        // string body = await client.GetStringAsync(uri);
-                        return ParseResponse<FileMetadata_Info>(responseBody);
+                        using (fileContent)
+                        {
+                            var response = await client.PostAsync(
+                                Config.contentUrl + "nodes?suppress=deduplication",
+                                content,
+                                ct).ConfigureAwait(false);
+                            response.EnsureSuccessStatusCode();
+                            string responseBody = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
+                            // Above three lines can be replaced with new helper method in following line
+                            // string body = await client.GetStringAsync(uri);
+                            return ParseResponse<FileMetadata_Info>(responseBody);
+                        }
                     }
                 }
                 catch (HttpRequestException ex)
@@ -481,42 +504,103 @@ namespace TSviewACD
         {
             string id = target.id;
             string filename = target.name;
-            bool Encrypted = false;
+            CryptMethods Encrypted = CryptMethods.Method0_Plain;
             if(enckey != null)
             {
-                Encrypted = true;
+                Encrypted = CryptMethods.Method1_CTR;
             }
-            else if (Config.UseFilenameEncryption)
+            else
             {
-                enckey = DriveData.DecryptFilename(target);
-                if (enckey != null) Encrypted = true;
+                if (filename.StartsWith(Config.CarotDAV_CryptNameHeader))
+                {
+                    Encrypted = CryptMethods.Method2_CBC_CarotDAV;
+                    enckey = "";
+                }
+                else if (Regex.IsMatch(filename, ".*?\\.[a-z0-9]{8}\\.enc$"))
+                {
+                    Encrypted = CryptMethods.Method1_CTR;
+                    enckey = Path.GetFileNameWithoutExtension(filename);
+                }
+                else if (Regex.IsMatch(filename, "^[\u2800-\u28ff]+$"))
+                {
+                    enckey = DriveData.DecryptFilename(target);
+                    if (enckey != null) Encrypted = CryptMethods.Method1_CTR;
+                }
+
+                if(enckey == null) Encrypted = CryptMethods.Method0_Plain;
             }
-            if (Path.GetExtension(filename) == ".enc")
-            {
-                Encrypted = true;
-                enckey = Path.GetFileNameWithoutExtension(filename);
-            }
-            if (!autodecrypt) Encrypted = false;
+            if (!autodecrypt) Encrypted = CryptMethods.Method0_Plain;
             Config.Log.LogOut("\t[downloadFile] " + id);
-            string error_str;
+            string error_str = "";
             var client = new HttpClient();
             client.Timeout = TimeSpan.FromDays(1);
             try
             {
+                long? fix_from = from, fix_to = to;
+
                 client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", Authkey.access_token);
                 if (from != null || to != null)
-                    client.DefaultRequestHeaders.Range = new RangeHeaderValue(from, to);
+                {
+                    if(Encrypted == CryptMethods.Method2_CBC_CarotDAV)
+                    {
+                        if(fix_from != null)
+                        {
+                            // ひとつ前のブロックから要求する
+                            fix_from -= CryptCarotDAV.BlockSizeByte;
+                            if (fix_from < CryptCarotDAV.BlockSizeByte)
+                            {
+                                // 先頭ブロックを取得するときはファイルの先頭から
+                                fix_from = 0;
+                            }
+                            else
+                            {
+                                // ブロックにアライメントを合わせる
+                                fix_from -= ((fix_from - 1) % CryptCarotDAV.BlockSizeByte + 1);
+                                // 途中のブロックを要求された場合は、ヘッダをスキップ
+                                fix_from += CryptCarotDAV.CryptHeaderByte;
+                            }
+                        }
+                        if(fix_to != null)
+                        {
+                            if (fix_to >= target.OrignalLength)
+                            {
+                                // 末尾まで読み込むときは、ハッシュチェックのために最後まで読み込む
+                                fix_to = null;
+                            }
+                            else
+                            {
+                                // オリジナルの位置を、暗号化済みの位置に変更
+                                fix_to += CryptCarotDAV.CryptHeaderByte;
+                            }
+                        }
+                        if(fix_from != null || fix_to != null)
+                            client.DefaultRequestHeaders.Range = new RangeHeaderValue(fix_from, fix_to);
+                    }
+                    else
+                        client.DefaultRequestHeaders.Range = new RangeHeaderValue(from, to);
+                }
                 string url = Config.contentUrl + "nodes/" + id + "/content?download=false";
                 var response = await client.GetAsync(
                     url,
                     HttpCompletionOption.ResponseHeadersRead,
                     ct).ConfigureAwait(false);
                 response.EnsureSuccessStatusCode();
-                if (Encrypted)
+                if (Encrypted == CryptMethods.Method1_CTR)
+                {
                     return new AES256CTR_CryptStream(new ThrottleDownloadStream(await response.Content.ReadAsStreamAsync().ConfigureAwait(false)),
                         Config.DrivePassword,
                         enckey,
                         from ?? 0);
+                }
+                else if (Encrypted == CryptMethods.Method2_CBC_CarotDAV)
+                {
+                    return new CryptCarotDAV.CryptCarotDAV_DecryptStream(new ThrottleDownloadStream(await response.Content.ReadAsStreamAsync().ConfigureAwait(false)),
+                        Config.DrivePassword,
+                        from ?? 0,
+                        fix_from ?? 0,
+                        target.contentProperties?.size ?? -1
+                        );
+                }
                 else
                     return new ThrottleDownloadStream(await response.Content.ReadAsStreamAsync().ConfigureAwait(false));
             }

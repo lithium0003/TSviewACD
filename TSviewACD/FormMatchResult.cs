@@ -289,7 +289,7 @@ namespace TSviewACD
                 bool createdir = items.Count > 1 && items.Cast<FormMatch.MatchItem>().GroupBy(x => Path.GetFileName(x.local.path)).Any(g => g.Count() > 1);
                 var uploadfiles = items.Cast<FormMatch.MatchItem>().Select(x => x.local.path.Substring(pathbase.Length)).ToArray();
 
-                var task = Program.MainForm.CreateTask("match");
+                var task = TaskCanceler.CreateTask("match");
                 var ct = task.cts.Token;
                 try
                 {
@@ -305,9 +305,9 @@ namespace TSviewACD
                             foreach (var p in path.Take(path.Length - 1))
                             {
                                 if (p == "") continue;
-                                if (DriveData.AmazonDriveTree[parentID].children.Values.Select(x => x.info.name).Contains(p))
+                                if (DriveData.AmazonDriveTree[parentID].children.Values.Select(x => x.DisplayName).Contains(p))
                                 {
-                                    parentID = DriveData.AmazonDriveTree[parentID].children.Values.Where(x => x.info.name == p).Select(x => x.info.id).FirstOrDefault();
+                                    parentID = DriveData.AmazonDriveTree[parentID].children.Values.Where(x => x.DisplayName == p).Select(x => x.info.id).FirstOrDefault();
                                 }
                                 else
                                 {
@@ -353,7 +353,7 @@ namespace TSviewACD
                 }
                 finally
                 {
-                    Program.MainForm.FinishTask(task);
+                    TaskCanceler.FinishTask(task);
                 }
             }
             finally

@@ -206,7 +206,7 @@ namespace TSviewACD
     {
         protected int inOperationCount = 0;
 
-        public void EndOperation(uint hResult, IBindCtx pbcReserved, uint dwEffects)
+        virtual public void EndOperation(uint hResult, IBindCtx pbcReserved, uint dwEffects)
         {
             Interlocked.Decrement(ref inOperationCount);
         }
@@ -383,9 +383,10 @@ namespace TSviewACD
             public void Write(byte[] pv, int cb, IntPtr pcbWritten) { }
         };
 
-
+        AmazonDriveBaseStream driveStream;
         private byte[] fileGroupDescriptorBuffer;
         private FileMetadata_Info[] selectedItems;
+        private FileMetadata_Info[] baseItems;
 
         private FORMATETC[] formatetc = new FORMATETC[] {
             new FORMATETC { cfFormat = CF_AMAZON_DRIVE_ITEMS,  dwAspect = DVASPECT.DVASPECT_CONTENT, lindex = -2, ptd = IntPtr.Zero, tymed = TYMED.TYMED_ISTREAM },
@@ -438,10 +439,11 @@ namespace TSviewACD
         private Dictionary<string, FileMetadata_Info> ExpandPath(string basepath, ItemInfo items)
         {
             Dictionary<string, FileMetadata_Info> ret = new Dictionary<string, FileMetadata_Info>();
-            ret[basepath + items.info.name] = items.info;
+            string filename = items.DisplayName;
+            ret[basepath + filename] = items.info;
             if (items.info.kind == "FOLDER")
             {
-                ret = items.children.Values.Select(x => ExpandPath(basepath + items.info.name + "\\", x)).Aggregate((i, j) => i.Concat(j).ToDictionary(y => y.Key, y => y.Value));
+                ret = items.children.Values.Select(x => ExpandPath(basepath + filename + "\\", x)).Aggregate((i, j) => i.Concat(j).ToDictionary(y => y.Key, y => y.Value));
             }
             return ret;
         }
@@ -450,6 +452,7 @@ namespace TSviewACD
         {
             var exItems = items.Select(x => ExpandPath("", x)).Aggregate((i, j) => i.Concat(j).ToDictionary(y => y.Key, y => y.Value));
             selectedItems = exItems.Values.ToArray();
+            baseItems = items.Select(x => x.info).ToArray();
 
             var flist = new List<FORMATETC>();
             using (var stream = new MemoryStream())
@@ -482,7 +485,7 @@ namespace TSviewACD
             {
                 var mem = new MemoryStream();
                 var bf = new BinaryFormatter();
-                bf.Serialize(mem, selectedItems);
+                bf.Serialize(mem, baseItems);
                 mem.Position = 0;
                 medium.tymed = TYMED.TYMED_ISTREAM;
                 medium.unionmember = Marshal.GetComInterfaceForObject(new StreamWrapper(mem), typeof(IStream));
@@ -500,7 +503,8 @@ namespace TSviewACD
             {
                 if (format.lindex >= 0 && format.lindex < selectedItems.Length)
                 {
-                    var driveStream = new AmazonDriveStream(DriveData.Drive, selectedItems[format.lindex]);
+                    driveStream?.Dispose();
+                    driveStream = new AmazonDriveBaseStream(DriveData.Drive, selectedItems[format.lindex]);
                     medium.tymed = TYMED.TYMED_ISTREAM;
                     medium.unionmember = Marshal.GetComInterfaceForObject(new StreamWrapper(driveStream), typeof(IStream));
                     medium.pUnkForRelease = null;
@@ -573,6 +577,13 @@ namespace TSviewACD
         public int EnumDAdvise(out IEnumSTATDATA enumAdvise)
         {
             throw new NotImplementedException();
+        }
+
+        override public void EndOperation(uint hResult, IBindCtx pbcReserved, uint dwEffects)
+        {
+            base.EndOperation(hResult, pbcReserved, dwEffects);
+            driveStream?.Dispose();
+            driveStream = null;
         }
     }
 }

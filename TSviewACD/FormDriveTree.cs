@@ -56,8 +56,8 @@ namespace TSviewACD
             return children.Select(x =>
             {
                 int img = (x.info.kind == "FOLDER") ? 0 : 2;
-                var node = new TreeNode(x.info.name, img, img);
-                node.Name = x.info.name;
+                var node = new TreeNode(x.DisplayName, img, img);
+                node.Name = x.DisplayName;
                 node.Tag = x;
                 if (x.info.kind == "FOLDER" && count > 0)
                 {

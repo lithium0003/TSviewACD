@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -129,7 +130,7 @@ namespace TSviewACD
             cts = CancellationTokenSource.CreateLinkedTokenSource(ct, Internal_cts.Token);
             this.Drive = Drive;
             this.targetItem = targetItem;
-            lastslot = ((targetItem.contentProperties.size ?? 0) - 1) / AmazonDriveStreamConfig.slotsize;
+            lastslot = ((targetItem.OrignalLength ?? 0) - 1) / AmazonDriveStreamConfig.slotsize;
         }
 
         public void StartDownload(long slotno, ConcurrentDictionary<long, MemoryStreamSlot> slot, BlockingCollection<KeyValuePair<long, MemoryStreamSlot>> SlotBuffer)
@@ -137,9 +138,9 @@ namespace TSviewACD
             int timeout = (int)(1000 * AmazonDriveStreamConfig.shortbuflen / (Config.FFmodule_TransferLimit * 1024));
             long start = slotno * AmazonDriveStreamConfig.slotsize;
             long length = AmazonDriveStreamConfig.slotsize;
-            if (start + length > (targetItem.contentProperties.size ?? 0))
+            if (start + length > (targetItem.OrignalLength ?? 0))
             {
-                length = (targetItem.contentProperties.size ?? 0) - start;
+                length = (targetItem.OrignalLength ?? 0) - start;
             }
             if (length <= 0) return;
             readslot = slotno;
@@ -231,9 +232,9 @@ namespace TSviewACD
 
                         start = ++slotno * AmazonDriveStreamConfig.slotsize;
                         length = AmazonDriveStreamConfig.slotsize;
-                        if (start + length > (targetItem.contentProperties.size ?? 0))
+                        if (start + length > (targetItem.OrignalLength ?? 0))
                         {
-                            length = (targetItem.contentProperties.size ?? 0) - start;
+                            length = (targetItem.OrignalLength ?? 0) - start;
                         }
                         if (length <= 0)
                         {
@@ -349,7 +350,7 @@ namespace TSviewACD
             cts = CancellationTokenSource.CreateLinkedTokenSource(cts_internal.Token, ct);
             this.Drive = Drive;
             targetItem = downitem;
-            lastslot = ((downitem.contentProperties.size ?? 0) - 1) / AmazonDriveStreamConfig.slotsize;
+            lastslot = ((downitem.OrignalLength ?? 0) - 1) / AmazonDriveStreamConfig.slotsize;
             lockslot1 = AmazonDriveStreamConfig.lockslotfirstnum;
             lockslot2 = lastslot - AmazonDriveStreamConfig.lockslotlastnum;
             if (lockslot2 < lockslot1)
@@ -357,8 +358,9 @@ namespace TSviewACD
                 lockslot2 = lockslot1;
             }
             int extraslot = 0;
-            Task.Run(() => {
-                foreach(var newitem in SlotBuffer.GetConsumingEnumerable(cts.Token))
+            Task.Run(() =>
+            {
+                foreach (var newitem in SlotBuffer.GetConsumingEnumerable(cts.Token))
                 {
                     try
                     {
@@ -441,7 +443,7 @@ namespace TSviewACD
                             {
                                 var deleteitem = Tasks.Where(x => x.ReadingSlotno < min_point && x.ReadingSlotno > lockslot1).ToList();
                                 SlotTask o;
-                                while(deleteitem.Count > 0 && Tasks.TryTake(out o))
+                                while (deleteitem.Count > 0 && Tasks.TryTake(out o))
                                 {
                                     if (deleteitem.Contains(o))
                                     {
@@ -596,7 +598,7 @@ namespace TSviewACD
         }
     }
 
-    class AmazonDriveStream : Stream
+    class AmazonDriveSeekableStream : Stream
     {
         long FileSize;
         long _Position;
@@ -611,11 +613,11 @@ namespace TSviewACD
         long lockslot1;
         long lockslot2;
 
-        public AmazonDriveStream(AmazonDrive Drive, FileMetadata_Info downitem) : base()
+        public AmazonDriveSeekableStream(AmazonDrive Drive, FileMetadata_Info downitem) : base()
         {
             this.Drive = Drive;
             targetItem = downitem;
-            FileSize = targetItem.contentProperties.size ?? 0;
+            FileSize = targetItem.OrignalLength ?? 0;
 
             if (FileSize <= 0) return;
 
@@ -623,15 +625,15 @@ namespace TSviewACD
 
             _Position = 0;
 
-            if (downitem.contentProperties.size > ConfigAPI.FilenameChangeTrickSize)
+            if (downitem.contentProperties?.size > ConfigAPI.FilenameChangeTrickSize && !Regex.IsMatch(downitem.name, "^[\x20-\x7e]*$"))
             {
                 OrgFilename = downitem.name;
-                Config.Log.LogOut("AmazonDriveStream : <BIG FILE> temporary filename change");
-                Config.Log.LogOut("AmazonDriveStream : orgnal name : "+OrgFilename);
+                Config.Log.LogOut("AmazonDriveSeekableStream : <BIG FILE> temporary filename change");
+                Config.Log.LogOut("AmazonDriveSeekableStream : orgnal name : " + OrgFilename);
                 Drive.renameItem(downitem.id, ConfigAPI.temporaryFilename + downitem.id).Wait();
             }
 
-            lastslot = ((downitem.contentProperties.size ?? 0) - 1) / AmazonDriveStreamConfig.slotsize;
+            lastslot = ((downitem.OrignalLength ?? 0) - 1) / AmazonDriveStreamConfig.slotsize;
             lockslot1 = AmazonDriveStreamConfig.lockslotfirstnum;
             lockslot2 = lastslot - AmazonDriveStreamConfig.lockslotlastnum;
             if (lockslot2 < lockslot1)
@@ -653,7 +655,7 @@ namespace TSviewACD
 
             if (OrgFilename != null)
             {
-                Config.Log.LogOut("AmazonDriveStream : rename to orignal");
+                Config.Log.LogOut("AmazonDriveSeekableStream : rename to orignal");
                 Drive.renameItem(targetItem.id, OrgFilename).Wait();
                 OrgFilename = null;
             }
@@ -676,7 +678,7 @@ namespace TSviewACD
             set
             {
                 _ReadTimeout = value;
-                if(value == 0)
+                if (value == 0)
                 {
                     cts.Cancel();
                 }
@@ -811,6 +813,175 @@ namespace TSviewACD
                 return false;
             }
             return true;
+        }
+    }
+
+    class AmazonDriveBaseStream : Stream
+    {
+        AmazonDrive Drive;
+        FileMetadata_Info targetItem;
+        long FileSize;
+        string OrgFilename = null;
+        Stream innerStream;
+        int failcount = 0;
+        TaskCanselToken task = TaskCanceler.CreateTask("AmazonDriveBaseStream");
+        CancellationTokenSource cts;
+        bool autodecrypt;
+
+        protected void InitStream()
+        {
+            Drive.downloadFile(targetItem, ct: cts.Token, autodecrypt: autodecrypt).ContinueWith(x =>
+            {
+                innerStream = x.Result;
+            }, cts.Token)
+            .ContinueWith(task =>
+            {
+                if (task.IsFaulted)
+                {
+                    var e = task.Exception;
+                    e.Flatten().Handle(ex =>
+                    {
+                        Config.Log.LogOut(string.Format("AmazonDriveBaseStream : ERROR {0}", ex.Message));
+                        return true;
+                    });
+                    e.Handle(ex =>
+                    {
+                        return true;
+                    });
+                    if (++failcount < 10)
+                    {
+                        Config.Log.LogOut(string.Format("AmazonDriveBaseStream : ERROR restart to download"));
+                        cts.Cancel(true);
+                        InitStream();
+                    }
+                    else
+                    {
+                        Config.Log.LogOut(string.Format("AmazonDriveBaseStream : ERROR too much fail stop."));
+                        cts.Cancel(true);
+                    }
+                }
+            })
+            .Wait(cts.Token);
+        }
+
+        public override bool CanRead
+        {
+            get
+            {
+                return innerStream?.CanRead ?? false;
+            }
+        }
+
+        public override bool CanSeek
+        {
+            get
+            {
+                return true;
+            }
+        }
+
+        public override bool CanWrite
+        {
+            get
+            {
+                return false;
+            }
+        }
+
+        public override long Length
+        {
+            get
+            {
+                return FileSize;
+            }
+        }
+
+        public override long Position
+        {
+            get
+            {
+                return innerStream?.Position ?? 0;
+            }
+
+            set
+            {
+                if (innerStream != null) innerStream.Position = value;
+            }
+        }
+
+        public AmazonDriveBaseStream(AmazonDrive Drive, FileMetadata_Info downitem, bool autodecrypt = true) : base()
+        {
+            this.Drive = Drive;
+            targetItem = downitem;
+            FileSize = targetItem.OrignalLength ?? 0;
+            this.autodecrypt = autodecrypt;
+            cts = task.cts;
+
+            if (FileSize < 0) return;
+
+            if (downitem.contentProperties?.size > ConfigAPI.FilenameChangeTrickSize && !Regex.IsMatch(downitem.name, "^[\x20-\x7e]*$"))
+            {
+                Interlocked.Increment(ref Config.AmazonDriveTempCount);
+                OrgFilename = targetItem.name;
+                Config.Log.LogOut("AmazonDriveBaseStream : <BIG FILE> temporary filename change");
+                Config.Log.LogOut("AmazonDriveBaseStream : orgnal name : " + OrgFilename);
+                Drive.renameItem(targetItem.id, ConfigAPI.temporaryFilename + targetItem.id).Wait();
+            }
+
+            InitStream();
+        }
+
+        protected override void Dispose(bool disposing)
+        {
+            if (disposing)
+            {
+                cts.Cancel();
+                TaskCanceler.FinishTask(task);
+                innerStream?.Dispose();
+            }
+
+            if (OrgFilename != null)
+            {
+                Config.Log.LogOut("AmazonDriveBaseStream : rename to orignal");
+                Drive.renameItem(targetItem.id, OrgFilename).Wait();
+                OrgFilename = null;
+                Interlocked.Decrement(ref Config.AmazonDriveTempCount);
+            }
+
+            base.Dispose(disposing);
+        }
+
+        public override void Flush()
+        {
+            innerStream?.Flush();
+        }
+
+        public override long Seek(long offset, SeekOrigin origin)
+        {
+            if(origin == SeekOrigin.Begin && offset == 0)
+            {
+                if(innerStream?.Position > 0)
+                {
+                    InitStream();
+                }
+            }
+            return innerStream?.Seek(offset, origin) ?? 0;
+        }
+
+        public override void SetLength(long value)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override int Read(byte[] buffer, int offset, int count)
+        {
+            cts.Token.ThrowIfCancellationRequested();
+            return innerStream?.Read(buffer, offset, count) ?? -1;
+        }
+
+        public override void Write(byte[] buffer, int offset, int count)
+        {
+            throw new NotImplementedException();
         }
     }
 }

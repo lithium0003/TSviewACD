@@ -7,6 +7,7 @@ using System.IO;
 using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
@@ -57,7 +58,7 @@ namespace TSviewACD
         {
             if (SelectedRemoteFiles == null) return;
 
-            var task = Program.MainForm.CreateTask("test download");
+            var task = TaskCanceler.CreateTask("test download");
             cts = task.cts;
             try
             {
@@ -137,7 +138,7 @@ namespace TSviewACD
 
                             try
                             {
-                                if (item.contentProperties.size > ConfigAPI.FilenameChangeTrickSize)
+                                if (item.contentProperties.size > ConfigAPI.FilenameChangeTrickSize && !Regex.IsMatch(item.name, "^[\x20-\x7e]*$"))
                                 {
                                     Config.Log.LogOut("Download : <BIG FILE> temporary filename change");
                                     try
@@ -186,7 +187,7 @@ namespace TSviewACD
             }
             finally
             {
-                Program.MainForm.FinishTask(task);
+                TaskCanceler.FinishTask(task);
                 cts = null;
                 button_Start.Enabled = true;
             }
