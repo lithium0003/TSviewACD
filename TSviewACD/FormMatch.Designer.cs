@@ -31,7 +31,8 @@
             this.components = new System.ComponentModel.Container();
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(FormMatch));
             this.panel1 = new System.Windows.Forms.Panel();
-            this.checkBox_tree = new System.Windows.Forms.CheckBox();
+            this.button_clearRemote = new System.Windows.Forms.Button();
+            this.button_clearLocal = new System.Windows.Forms.Button();
             this.button_AddRemote = new System.Windows.Forms.Button();
             this.button_cancel = new System.Windows.Forms.Button();
             this.label_info = new System.Windows.Forms.Label();
@@ -50,8 +51,9 @@
             this.openFileDialog1 = new System.Windows.Forms.OpenFileDialog();
             this.folderBrowserDialog1 = new System.Windows.Forms.FolderBrowserDialog();
             this.toolTip1 = new System.Windows.Forms.ToolTip(this.components);
-            this.button_clearLocal = new System.Windows.Forms.Button();
-            this.button_clearRemote = new System.Windows.Forms.Button();
+            this.radioButton_Tree = new System.Windows.Forms.RadioButton();
+            this.radioButton_filename = new System.Windows.Forms.RadioButton();
+            this.radioButton_MD5 = new System.Windows.Forms.RadioButton();
             this.panel1.SuspendLayout();
             this.panel2.SuspendLayout();
             this.contextMenuStrip2.SuspendLayout();
@@ -60,9 +62,11 @@
             // 
             // panel1
             // 
+            this.panel1.Controls.Add(this.radioButton_MD5);
+            this.panel1.Controls.Add(this.radioButton_filename);
+            this.panel1.Controls.Add(this.radioButton_Tree);
             this.panel1.Controls.Add(this.button_clearRemote);
             this.panel1.Controls.Add(this.button_clearLocal);
-            this.panel1.Controls.Add(this.checkBox_tree);
             this.panel1.Controls.Add(this.button_AddRemote);
             this.panel1.Controls.Add(this.button_cancel);
             this.panel1.Controls.Add(this.label_info);
@@ -76,18 +80,25 @@
             this.panel1.Size = new System.Drawing.Size(765, 116);
             this.panel1.TabIndex = 0;
             // 
-            // checkBox_tree
+            // button_clearRemote
             // 
-            this.checkBox_tree.AutoSize = true;
-            this.checkBox_tree.Checked = true;
-            this.checkBox_tree.CheckState = System.Windows.Forms.CheckState.Checked;
-            this.checkBox_tree.Location = new System.Drawing.Point(278, 55);
-            this.checkBox_tree.Name = "checkBox_tree";
-            this.checkBox_tree.Size = new System.Drawing.Size(73, 16);
-            this.checkBox_tree.TabIndex = 7;
-            this.checkBox_tree.Text = "Keep tree";
-            this.toolTip1.SetToolTip(this.checkBox_tree, "比較をする際に、フォルダ構造を考慮して比較します");
-            this.checkBox_tree.UseVisualStyleBackColor = true;
+            this.button_clearRemote.Location = new System.Drawing.Point(529, 77);
+            this.button_clearRemote.Name = "button_clearRemote";
+            this.button_clearRemote.Size = new System.Drawing.Size(85, 23);
+            this.button_clearRemote.TabIndex = 9;
+            this.button_clearRemote.Text = "Clear Remote";
+            this.button_clearRemote.UseVisualStyleBackColor = true;
+            this.button_clearRemote.Click += new System.EventHandler(this.button_clearRemote_Click);
+            // 
+            // button_clearLocal
+            // 
+            this.button_clearLocal.Location = new System.Drawing.Point(149, 77);
+            this.button_clearLocal.Name = "button_clearLocal";
+            this.button_clearLocal.Size = new System.Drawing.Size(75, 23);
+            this.button_clearLocal.TabIndex = 8;
+            this.button_clearLocal.Text = "Clear Local";
+            this.button_clearLocal.UseVisualStyleBackColor = true;
+            this.button_clearLocal.Click += new System.EventHandler(this.button_clearLocal_Click);
             // 
             // button_AddRemote
             // 
@@ -122,11 +133,11 @@
             // checkBox_MD5
             // 
             this.checkBox_MD5.AutoSize = true;
-            this.checkBox_MD5.Location = new System.Drawing.Point(278, 77);
+            this.checkBox_MD5.Location = new System.Drawing.Point(376, 52);
             this.checkBox_MD5.Name = "checkBox_MD5";
-            this.checkBox_MD5.Size = new System.Drawing.Size(171, 16);
+            this.checkBox_MD5.Size = new System.Drawing.Size(99, 16);
             this.checkBox_MD5.TabIndex = 3;
-            this.checkBox_MD5.Text = "Calculate MD5 and Matching";
+            this.checkBox_MD5.Text = "Calculate MD5";
             this.toolTip1.SetToolTip(this.checkBox_MD5, "比較する際、ローカルのファイルのMD5ハッシュを算出し\r\nリモートのファイルのMD5と比較します。\r\nチェックされていない場合は、ファイルサイズのみの比較となりま" +
         "す。");
             this.checkBox_MD5.UseVisualStyleBackColor = true;
@@ -252,25 +263,38 @@
             this.openFileDialog1.FileName = "openFileDialog1";
             this.openFileDialog1.Multiselect = true;
             // 
-            // button_clearLocal
+            // radioButton_Tree
             // 
-            this.button_clearLocal.Location = new System.Drawing.Point(149, 77);
-            this.button_clearLocal.Name = "button_clearLocal";
-            this.button_clearLocal.Size = new System.Drawing.Size(75, 23);
-            this.button_clearLocal.TabIndex = 8;
-            this.button_clearLocal.Text = "Clear Local";
-            this.button_clearLocal.UseVisualStyleBackColor = true;
-            this.button_clearLocal.Click += new System.EventHandler(this.button_clearLocal_Click);
+            this.radioButton_Tree.AutoSize = true;
+            this.radioButton_Tree.Checked = true;
+            this.radioButton_Tree.Location = new System.Drawing.Point(278, 51);
+            this.radioButton_Tree.Name = "radioButton_Tree";
+            this.radioButton_Tree.Size = new System.Drawing.Size(75, 16);
+            this.radioButton_Tree.TabIndex = 10;
+            this.radioButton_Tree.TabStop = true;
+            this.radioButton_Tree.Text = "Keep Tree";
+            this.radioButton_Tree.UseVisualStyleBackColor = true;
             // 
-            // button_clearRemote
+            // radioButton_filename
             // 
-            this.button_clearRemote.Location = new System.Drawing.Point(529, 77);
-            this.button_clearRemote.Name = "button_clearRemote";
-            this.button_clearRemote.Size = new System.Drawing.Size(85, 23);
-            this.button_clearRemote.TabIndex = 9;
-            this.button_clearRemote.Text = "Clear Remote";
-            this.button_clearRemote.UseVisualStyleBackColor = true;
-            this.button_clearRemote.Click += new System.EventHandler(this.button_clearRemote_Click);
+            this.radioButton_filename.AutoSize = true;
+            this.radioButton_filename.Location = new System.Drawing.Point(278, 72);
+            this.radioButton_filename.Name = "radioButton_filename";
+            this.radioButton_filename.Size = new System.Drawing.Size(96, 16);
+            this.radioButton_filename.TabIndex = 11;
+            this.radioButton_filename.Text = "Filename Only";
+            this.radioButton_filename.UseVisualStyleBackColor = true;
+            // 
+            // radioButton_MD5
+            // 
+            this.radioButton_MD5.AutoSize = true;
+            this.radioButton_MD5.Location = new System.Drawing.Point(278, 94);
+            this.radioButton_MD5.Name = "radioButton_MD5";
+            this.radioButton_MD5.Size = new System.Drawing.Size(70, 16);
+            this.radioButton_MD5.TabIndex = 12;
+            this.radioButton_MD5.Text = "Use MD5";
+            this.radioButton_MD5.UseVisualStyleBackColor = true;
+            this.radioButton_MD5.CheckedChanged += new System.EventHandler(this.radioButton_MD5_CheckedChanged);
             // 
             // FormMatch
             // 
@@ -313,9 +337,11 @@
         private System.Windows.Forms.ListBox listBox_remote;
         private System.Windows.Forms.ContextMenuStrip contextMenuStrip2;
         private System.Windows.Forms.ToolStripMenuItem toolStripMenuItem1;
-        private System.Windows.Forms.CheckBox checkBox_tree;
         private System.Windows.Forms.ToolTip toolTip1;
         private System.Windows.Forms.Button button_clearRemote;
         private System.Windows.Forms.Button button_clearLocal;
+        private System.Windows.Forms.RadioButton radioButton_MD5;
+        private System.Windows.Forms.RadioButton radioButton_filename;
+        private System.Windows.Forms.RadioButton radioButton_Tree;
     }
 }

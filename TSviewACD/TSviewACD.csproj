@@ -103,12 +103,26 @@
     <Compile Include="AmazonDriveStream.cs" />
     <Compile Include="Config.cs" />
     <Compile Include="Console.cs" />
+    <Compile Include="CryptStream.cs" />
+    <Compile Include="DriveData.cs" />
     <Compile Include="FFplay.cs" />
     <Compile Include="Form1.cs">
       <SubType>Form</SubType>
     </Compile>
     <Compile Include="Form1.Designer.cs">
       <DependentUpon>Form1.cs</DependentUpon>
+    </Compile>
+    <Compile Include="FormDriveLog.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="FormDriveLog.Designer.cs">
+      <DependentUpon>FormDriveLog.cs</DependentUpon>
+    </Compile>
+    <Compile Include="FormDriveTree.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="FormDriveTree.Designer.cs">
+      <DependentUpon>FormDriveTree.cs</DependentUpon>
     </Compile>
     <Compile Include="FormFFmoduleConfig.cs">
       <SubType>Form</SubType>
@@ -161,6 +175,12 @@
     </EmbeddedResource>
     <EmbeddedResource Include="Form1.resx">
       <DependentUpon>Form1.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="FormDriveLog.resx">
+      <DependentUpon>FormDriveLog.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="FormDriveTree.resx">
+      <DependentUpon>FormDriveTree.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="FormFFmoduleConfig.resx">
       <DependentUpon>FormFFmoduleConfig.cs</DependentUpon>
@@ -216,9 +236,9 @@
     <Content Include="logo.ico" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\ffmodule\ffmodule.vcxproj">
-      <Project>{9affb411-07d7-4e7c-8b6e-60bae66dc530}</Project>
-      <Name>ffmodule</Name>
+    <ProjectReference Include="..\ffmodule_conf\ffmodule_conf.csproj">
+      <Project>{35e17767-09ac-4999-954f-4b0b23d85f99}</Project>
+      <Name>ffmodule_conf</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

@@ -101,6 +101,47 @@ namespace TSviewACD
             }
         }
 
+        delegate Task<T> DoConnection<T>();
+        private async Task<T> DoWithRetry<T>(DoConnection<T> func, string LogPrefix = "DoWithRetry")
+        {
+            Random rnd = new Random();
+            var retry = 0;
+            while (++retry < 30)
+            {
+                try
+                {
+                    return await func();
+                }
+                catch (HttpRequestException ex)
+                {
+                    var error_str = ex.Message;
+                    Config.Log.LogOut("\t[" + LogPrefix + "] " + error_str);
+
+                    if (ex.Message.Contains("401 (Unauthorized)") ||
+                        ex.Message.Contains("500 (Internal Server Error)") ||
+                        ex.Message.Contains("503 (Service Unavailable)"))
+                    {
+                        var waitsec = rnd.Next((int)Math.Pow(2, Math.Min(retry - 1, 8)));
+                        Config.Log.LogOut("\t[" + LogPrefix + "] wait " + waitsec.ToString() + " sec");
+                        await Task.Delay(waitsec * 1000);
+                    }
+                    else { break; }
+                }
+                catch (OperationCanceledException)
+                {
+                    throw;
+                }
+                catch (Exception ex)
+                {
+                    var error_str = ex.ToString();
+                    Config.Log.LogOut("\t[" + LogPrefix + "] " + error_str);
+                    break;
+                }
+            }
+            throw new SystemException(LogPrefix+" Failed. ");
+        }
+
+
         public async Task EnsureToken(CancellationToken ct = default(CancellationToken))
         {
             if (DateTime.Now - key_timer < TimeSpan.FromMinutes(50) && await GetAccountInfo(ct).ConfigureAwait(false)) return;
@@ -110,99 +151,87 @@ namespace TSviewACD
         public async Task<bool> GetEndpoint(CancellationToken ct = default(CancellationToken))
         {
             Config.Log.LogOut("\t[GetEndpoint]");
-            string error_str;
             if (DateTime.Now - Config.URL_time < TimeSpan.FromDays(3))
             {
                 metadataUrl = Config.metadataUrl;
                 contentUrl = Config.contentUrl;
                 if (await GetAccountInfo(ct).ConfigureAwait(false)) return true;
             }
-
-            using (var client = new HttpClient())
+            try
             {
-                try
+                using (var client = new HttpClient())
                 {
-                    client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", Authkey.access_token);
-                    var response = await client.GetAsync(
-                        ConfigAPI.getEndpoint,
-                        ct
-                    ).ConfigureAwait(false);
-                    response.EnsureSuccessStatusCode();
-                    string responseBody = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
-                    // Above three lines can be replaced with new helper method in following line
-                    // string body = await client.GetStringAsync(uri);
-                    var data = ParseResponse<getEndpoint_Info>(responseBody);
-                    contentUrl = data.contentUrl;
-                    metadataUrl = data.metadataUrl;
-                    Config.contentUrl = contentUrl;
-                    Config.metadataUrl = metadataUrl;
-                    Config.URL_time = DateTime.Now;
-                    Config.Save();
-                    return true;
-                }
-                catch (HttpRequestException ex)
-                {
-                    error_str = ex.Message;
-                    Config.Log.LogOut("\t[GetEndpoint] " + error_str);
-                }
-                catch (OperationCanceledException)
-                {
-                    throw;
-                }
-                catch (Exception ex)
-                {
-                    error_str = ex.ToString();
-                    Config.Log.LogOut("\t[GetEndpoint] " + error_str);
+                    return await DoWithRetry(async () =>
+                    {
+                        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", Authkey.access_token);
+                        var response = await client.GetAsync(
+                            ConfigAPI.getEndpoint,
+                            ct
+                        ).ConfigureAwait(false);
+                        response.EnsureSuccessStatusCode();
+                        string responseBody = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
+                        // Above three lines can be replaced with new helper method in following line
+                        // string body = await client.GetStringAsync(uri);
+                        var data = ParseResponse<getEndpoint_Info>(responseBody);
+                        contentUrl = data.contentUrl;
+                        metadataUrl = data.metadataUrl;
+                        Config.contentUrl = contentUrl;
+                        Config.metadataUrl = metadataUrl;
+                        Config.URL_time = DateTime.Now;
+                        Config.Save();
+                        return true;
+                    }, "GetEndpoint");
                 }
             }
-            return false;
+            catch (OperationCanceledException)
+            {
+                throw;
+            }
+            catch (Exception)
+            {
+                return false;
+            }
         }
 
         public async Task<bool> GetAccountInfo(CancellationToken ct = default(CancellationToken))
         {
             Config.Log.LogOut("\t[GetAccountInfo]");
-            string error_str;
-            using (var client = new HttpClient())
+            try
             {
-                try
+                using (var client = new HttpClient())
                 {
-                    client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", key.access_token);
-                    var response = await client.GetAsync(
-                        metadataUrl + "account/info",
-                        ct
-                    ).ConfigureAwait(false);
-                    response.EnsureSuccessStatusCode();
-                    string responseBody = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
-                    // Above three lines can be replaced with new helper method in following line
-                    // string body = await client.GetStringAsync(uri);
-                    var data = ParseResponse<getAccountInfo_Info>(responseBody);
-                    return true;
-                }
-                catch (HttpRequestException ex)
-                {
-                    error_str = ex.Message;
-                    Config.Log.LogOut("\t[GetAccountInfo] " + error_str);
-                }
-                catch (OperationCanceledException)
-                {
-                    throw;
-                }
-                catch (Exception ex)
-                {
-                    error_str = ex.ToString();
-                    Config.Log.LogOut("\t[GetAccountInfo] " + error_str);
+                    return await DoWithRetry(async () =>
+                    {
+                        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", key.access_token);
+                        var response = await client.GetAsync(
+                            metadataUrl + "account/info",
+                            ct
+                        ).ConfigureAwait(false);
+                        response.EnsureSuccessStatusCode();
+                        string responseBody = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
+                        // Above three lines can be replaced with new helper method in following line
+                        // string body = await client.GetStringAsync(uri);
+                        var data = ParseResponse<getAccountInfo_Info>(responseBody);
+                        return true;
+                    }, "GetAccountInfo");
                 }
             }
-            return false;
+            catch (OperationCanceledException)
+            {
+                throw;
+            }
+            catch (Exception)
+            {
+                return false;
+            }
         }
 
         public async Task<FileMetadata_Info> GetFileMetadata(string id, CancellationToken ct = default(CancellationToken), bool templink = false)
         {
             Config.Log.LogOut("\t[GetFileMetadata] " + id);
-            string error_str;
             using (var client = new HttpClient())
             {
-                try
+                return await DoWithRetry(async () =>
                 {
                     client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", Authkey.access_token);
                     var response = await client.GetAsync(
@@ -214,146 +243,67 @@ namespace TSviewACD
                     // Above three lines can be replaced with new helper method in following line
                     // string body = await client.GetStringAsync(uri);
                     return ParseResponse<FileMetadata_Info>(responseBody);
-                }
-                catch (HttpRequestException ex)
-                {
-                    error_str = ex.Message;
-                    Config.Log.LogOut("\t[GetFileMetadata] " + error_str);
-                }
-                catch (OperationCanceledException)
-                {
-                    throw;
-                }
-                catch (Exception ex)
-                {
-                    error_str = ex.ToString();
-                    Config.Log.LogOut("\t[GetFileMetadata] " + error_str);
-                }
+                }, "GetFileMetadata");
             }
-            throw new SystemException("GetFileMetadata Failed. " + error_str);
         }
 
         public async Task<FileListdata_Info> ListMetadata(string filters = null, string startToken = null, CancellationToken ct = default(CancellationToken))
         {
             Config.Log.LogOut("\t[ListMetadata]");
-            string error_str = "";
             using (var client = new HttpClient())
             {
-                Random rnd = new Random();
-                var retry = 0;
-                while (++retry < 30)
+                return await DoWithRetry(async () =>
                 {
-                    try
+                    client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", Authkey.access_token);
+                    var url = metadataUrl + "nodes?";
+                    if (!string.IsNullOrEmpty(filters)) url += "filters=" + filters + '&';
+                    if (!string.IsNullOrEmpty(startToken)) url += "startToken=" + startToken + '&';
+                    url = url.Trim('?', '&');
+                    var response = await client.GetAsync(
+                        url,
+                        ct
+                    ).ConfigureAwait(false);
+                    response.EnsureSuccessStatusCode();
+                    string responseBody = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
+                    // Above three lines can be replaced with new helper method in following line
+                    // string body = await client.GetStringAsync(uri);
+                    var info = ParseResponse<FileListdata_Info>(responseBody);
+                    if (!string.IsNullOrEmpty(info.nextToken))
                     {
-                        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", Authkey.access_token);
-                        var url = metadataUrl + "nodes?";
-                        if (!string.IsNullOrEmpty(filters)) url += "filters=" + filters + '&';
-                        if (!string.IsNullOrEmpty(startToken)) url += "startToken=" + startToken + '&';
-                        url = url.Trim('?', '&');
-                        var response = await client.GetAsync(
-                            url,
-                            ct
-                        ).ConfigureAwait(false);
-                        response.EnsureSuccessStatusCode();
-                        string responseBody = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
-                        // Above three lines can be replaced with new helper method in following line
-                        // string body = await client.GetStringAsync(uri);
-                        var info = ParseResponse<FileListdata_Info>(responseBody);
-                        if (!string.IsNullOrEmpty(info.nextToken))
-                        {
-                            var next_info = await ListMetadata(filters, info.nextToken, ct: ct).ConfigureAwait(false);
-                            info.data = info.data.Concat(next_info.data).ToArray();
-                        }
-                        return info;
+                        var next_info = await ListMetadata(filters, info.nextToken, ct: ct).ConfigureAwait(false);
+                        info.data = info.data.Concat(next_info.data).ToArray();
                     }
-                    catch (HttpRequestException ex)
-                    {
-                        error_str = ex.Message;
-                        Config.Log.LogOut("\t[ListMetadata] " + error_str);
-
-                        if (ex.Message.Contains("401 (Unauthorized)") ||
-                            ex.Message.Contains("500 (Internal Server Error)") ||
-                            ex.Message.Contains("503 (Service Unavailable)"))
-                        {
-                            var waitsec = rnd.Next((int)Math.Pow(2, Math.Min(retry - 1, 8)));
-                            Config.Log.LogOut("\t[ListMetadata] wait " + waitsec.ToString() + " sec");
-                            await Task.Delay(waitsec * 1000);
-                        }
-                        else { break; }
-                    }
-                    catch (OperationCanceledException)
-                    {
-                        throw;
-                    }
-                    catch (Exception ex)
-                    {
-                        error_str = ex.ToString();
-                        Config.Log.LogOut("\t[ListMetadata] " + error_str);
-                        break;
-                    }
-                }
+                    return info;
+                }, "ListMetadata");
             }
-            throw new SystemException("ListMetadata Failed. " + error_str);
         }
 
         public async Task<FileListdata_Info> ListChildren(string id, string startToken = null, CancellationToken ct = default(CancellationToken))
         {
             Config.Log.LogOut("\t[ListChildren] " + id);
-            string error_str = "";
             using (var client = new HttpClient())
             {
-                Random rnd = new Random();
-                var retry = 0;
-                while (++retry < 30)
+                return await DoWithRetry(async () =>
                 {
                     ct.ThrowIfCancellationRequested();
-                    try
+                    client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", Authkey.access_token);
+                    var response = await client.GetAsync(
+                        metadataUrl + "nodes/" + id + "/children" + (string.IsNullOrEmpty(startToken) ? "" : "?startToken=" + startToken),
+                        ct
+                    ).ConfigureAwait(false);
+                    response.EnsureSuccessStatusCode();
+                    string responseBody = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
+                    // Above three lines can be replaced with new helper method in following line
+                    // string body = await client.GetStringAsync(uri);
+                    var info = ParseResponse<FileListdata_Info>(responseBody);
+                    if (!string.IsNullOrEmpty(info.nextToken))
                     {
-                        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", Authkey.access_token);
-                        var response = await client.GetAsync(
-                            metadataUrl + "nodes/" + id + "/children" + (string.IsNullOrEmpty(startToken) ? "" : "?startToken=" + startToken),
-                            ct
-                        ).ConfigureAwait(false);
-                        response.EnsureSuccessStatusCode();
-                        string responseBody = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
-                        // Above three lines can be replaced with new helper method in following line
-                        // string body = await client.GetStringAsync(uri);
-                        var info = ParseResponse<FileListdata_Info>(responseBody);
-                        if (!string.IsNullOrEmpty(info.nextToken))
-                        {
-                            var next_info = await ListChildren(id, info.nextToken, ct: ct).ConfigureAwait(false);
-                            info.data = info.data.Concat(next_info.data).ToArray();
-                        }
-                        return info;
+                        var next_info = await ListChildren(id, info.nextToken, ct: ct).ConfigureAwait(false);
+                        info.data = info.data.Concat(next_info.data).ToArray();
                     }
-                    catch (HttpRequestException ex)
-                    {
-                        error_str = ex.Message;
-                        Config.Log.LogOut("\t[ListChildren] " + error_str);
-
-                        if (ex.Message.Contains("401 (Unauthorized)") ||
-                            ex.Message.Contains("500 (Internal Server Error)") ||
-                            ex.Message.Contains("503 (Service Unavailable)"))
-                        {
-                            var waitsec = rnd.Next((int)Math.Pow(2, Math.Min(retry - 1, 8)));
-                            Config.Log.LogOut("\t[ListChildren] wait " + waitsec.ToString() + " sec");
-                            await Task.Delay(waitsec * 1000);
-                        }
-                        else { break; }
-                    }
-                    catch (OperationCanceledException)
-                    {
-                        throw;
-                    }
-                    catch (Exception ex)
-                    {
-                        error_str = ex.ToString();
-                        Config.Log.LogOut("\t[ListChildren] " + error_str);
-                        break;
-                    }
-                }
+                    return info;
+                }, "ListChildren");
             }
-            throw new SystemException("ListMetadata Failed. " + error_str);
         }
 
         [DataContract]
@@ -369,7 +319,7 @@ namespace TSviewACD
             public string[] parents;
         }
 
-        public async Task<FileMetadata_Info> uploadFile(string filename, string parent_id = null, PoschangeEventHandler process = null, CancellationToken ct = default(CancellationToken))
+        public async Task<FileMetadata_Info> uploadFile(string filename, string parent_id = null, string uploadname = null, string uploadkey = null, PoschangeEventHandler process = null, CancellationToken ct = default(CancellationToken))
         {
             Config.Log.LogOut("\t[uploadFile] " + filename);
             string error_str;
@@ -385,10 +335,22 @@ namespace TSviewACD
 
                     // Serializerを使ってオブジェクトをMemoryStream に書き込み
                     MemoryStream ms = new MemoryStream();
+                    var short_filename = Path.GetFileName(filename);
 
+                    if(uploadname == null)
+                    {
+                        uploadname = (Config.UseEncryption) ? short_filename + ".enc" : short_filename;
+                        if(uploadkey == null)
+                            uploadkey = short_filename;
+                    }
+                    else
+                    {
+                        if (uploadkey == null)
+                            uploadkey = Path.GetFileNameWithoutExtension(uploadname);
+                    }
                     jsonSer.WriteObject(ms, new ItemUpload_Info
                     {
-                        name = Path.GetFileName(filename),
+                        name = uploadname,
                         kind = "FILE",
                         parents = string.IsNullOrEmpty(parent_id) ? null : new string[] { parent_id }
                     });
@@ -398,7 +360,8 @@ namespace TSviewACD
                     StreamReader sr = new StreamReader(ms);
                     content.Add(new StringContent(sr.ReadToEnd(), System.Text.Encoding.UTF8, "application/json"), "metadata");
 
-                    using (var thstream = new ThrottleUploadStream(File.OpenRead(filename)))
+                    using (var file = File.OpenRead(filename))
+                    using (var thstream = new ThrottleUploadStream(file))
                     using (var f = new PositionStream(thstream))
                     {
                         if (process != null)
@@ -407,7 +370,15 @@ namespace TSviewACD
                         //{
                         //    System.Diagnostics.Debug.WriteLine("HTTP pos :" + e.Log);
                         //};
-                        var fileContent = new StreamContent(f);
+                        StreamContent fileContent;
+                        if (Config.UseEncryption)
+                        {
+                            fileContent = new StreamContent(new AES256CTR_CryptStream(f, Config.DrivePassword, uploadkey));
+                        }
+                        else
+                        {
+                            fileContent = new StreamContent(f);
+                        }
                         fileContent.Headers.ContentType = new MediaTypeHeaderValue("application/octet-stream");
                         fileContent.Headers.ContentLength = f.Length;
                         content.Add(fileContent, "content", Path.GetFileName(filename));
@@ -496,8 +467,25 @@ namespace TSviewACD
             return false;
         }
 
-        public async Task<Stream> downloadFile(string id, long? from = null, long? to = null, CancellationToken ct = default(CancellationToken))
+        public async Task<Stream> downloadFile(FileMetadata_Info target, long? from = null, long? to = null, string enckey = null, CancellationToken ct = default(CancellationToken))
         {
+            string id = target.id;
+            string filename = target.name;
+            bool Encrypted = false;
+            if(enckey != null)
+            {
+                Encrypted = true;
+            }
+            else if (Config.UseFilenameEncryption)
+            {
+                enckey = DriveData.DecryptFilename(target);
+                if (enckey != null) Encrypted = true;
+            }
+            if (Path.GetExtension(filename) == ".enc")
+            {
+                Encrypted = true;
+                enckey = Path.GetFileNameWithoutExtension(filename);
+            }
             Config.Log.LogOut("\t[downloadFile] " + id);
             string error_str;
             var client = new HttpClient();
@@ -511,9 +499,15 @@ namespace TSviewACD
                 var response = await client.GetAsync(
                     url,
                     HttpCompletionOption.ResponseHeadersRead,
-                    ct);
+                    ct).ConfigureAwait(false);
                 response.EnsureSuccessStatusCode();
-                return new ThrottleDownloadStream(await response.Content.ReadAsStreamAsync());
+                if (Encrypted)
+                    return new AES256CTR_CryptStream(new ThrottleDownloadStream(await response.Content.ReadAsStreamAsync().ConfigureAwait(false)),
+                        Config.DrivePassword,
+                        enckey,
+                        from ?? 0);
+                else
+                    return new ThrottleDownloadStream(await response.Content.ReadAsStreamAsync().ConfigureAwait(false));
             }
             catch (HttpRequestException ex)
             {
@@ -690,6 +684,72 @@ namespace TSviewACD
                 }
             }
             throw new SystemException("moveChild failed. " + error_str);
+        }
+
+
+        [DataContract]
+        public class changesreq_Info
+        {
+            [DataMember(EmitDefaultValue = false)]
+            public string checkpoint;
+
+            [DataMember(EmitDefaultValue = false)]
+            public int? chunkSize;
+
+            [DataMember(EmitDefaultValue = false)]
+            public int? maxNodes;
+
+            [DataMember(EmitDefaultValue = false)]
+            public bool? includePurged;
+        }
+
+        public async Task<Changes_Info[]> changes(string checkpoint = null, int? chankSize = null, CancellationToken ct = default(CancellationToken))
+        {
+            Config.Log.LogOut("\t[changes]");
+            using(var handler = new HttpClientHandler())
+            {
+                handler.AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate;
+                using (var client = new HttpClient(handler))
+                {
+                    client.Timeout = TimeSpan.FromDays(1);
+                    return await DoWithRetry(async () => {
+                        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", Authkey.access_token);
+
+                        DataContractJsonSerializer jsonSer = new DataContractJsonSerializer(typeof(changesreq_Info));
+
+                        MemoryStream ms = new MemoryStream();
+
+                        jsonSer.WriteObject(ms, new changesreq_Info
+                        {
+                            checkpoint = checkpoint,
+                            chunkSize = chankSize,
+                        });
+                        ms.Position = 0;
+
+                        // StreamReader で StringContent (Json) をコンストラクトします。
+                        StreamReader sr = new StreamReader(ms);
+
+                        var response = await client.PostAsync(
+                            Config.metadataUrl + "changes",
+                            new StringContent(sr.ReadToEnd(), System.Text.Encoding.UTF8, "application/json"),
+                            ct).ConfigureAwait(false);
+                        response.EnsureSuccessStatusCode();
+                        string responseBody = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
+                        // Above three lines can be replaced with new helper method in following line
+                        // string body = await client.GetStringAsync(uri);
+                        var res = responseBody.Split(new string[] { "}\n{" }, StringSplitOptions.None);
+                        return res.Select(x =>
+                        {
+                            string pre = "{";
+                            string post = "}";
+                            if (x.StartsWith("{")) pre = "";
+                            if (x.EndsWith("}")) post = "";
+                            return pre + x + post;
+                        })
+                        .Select(x => ParseResponse<Changes_Info>(x)).ToArray();
+                    }, "changes");
+                }
+            }
         }
     }
 }

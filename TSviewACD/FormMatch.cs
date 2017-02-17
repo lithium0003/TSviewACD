@@ -50,7 +50,7 @@ namespace TSviewACD
                 else
                 {
                     _SelectedRemoteFiles = value.ToArray()
-                        .Select(x => Program.MainForm.GetAllChildrenfromId(x.id))
+                        .Select(x => DriveData.GetAllChildrenfromId(x.id))
                         .SelectMany(x => x.Select(y => y))
                         .Distinct()
                         .Where(x => x.kind != "ASSET")
@@ -115,7 +115,7 @@ namespace TSviewACD
             }
         }
 
-        private string GetBasePath(IEnumerable<string> paths)
+        static public string GetBasePath(IEnumerable<string> paths)
         {
             string prefix = null;
             foreach(var p in paths)
@@ -192,18 +192,17 @@ namespace TSviewACD
                 button_start.Enabled = false;
                 var synchronizationContext = SynchronizationContext.Current;
 
-                var remote = SelectedRemoteFiles.Select(x => new RemoteItemInfo(x, Program.MainForm.GetFullPathfromId(x.id), null)).ToArray();
+                var remote = SelectedRemoteFiles.Select(x => new RemoteItemInfo(x, DriveData.GetFullPathfromId(x.id), null)).ToArray();
                 var remotebasepath = GetBasePath(remote.Select(x => x.path));
-                remote = (checkBox_tree.Checked) ?
-                    remote.Select(x => new RemoteItemInfo(x.info, x.path, x.path.Substring(remotebasepath.Length))).ToArray() :
-                    remote.Select(x => new RemoteItemInfo(x.info, x.path, x.info.name)).ToArray();
+                if (radioButton_Tree.Checked)
+                    remote = remote.Select(x => new RemoteItemInfo(x.info, x.path, x.path.Substring(remotebasepath.Length))).ToArray();
+                if(radioButton_filename.Checked)
+                    remote = remote.Select(x => new RemoteItemInfo(x.info, x.path, x.info.name)).ToArray();
+                if(radioButton_MD5.Checked)
+                    remote = remote.Select(x => new RemoteItemInfo(x.info, x.path, x.info.contentProperties?.md5)).ToArray();
 
                 var localpath = listBox_local.Items.Cast<string>();
                 var localbasepath = GetBasePath(localpath);
-                var local = ((checkBox_tree.Checked) ? 
-                    localpath.Select(x => new LocalItemInfo(x, x.Substring(localbasepath.Length).Replace('\\', '/'), 0, null)) :
-                    localpath.Select(x => new LocalItemInfo(x, Path.GetFileName(x), 0, null)))
-                    .GroupBy(x => x.name).ToArray();
                 var len = localpath.Count();
                 int i = 0;
                 await Task.Run(() =>
@@ -213,6 +212,93 @@ namespace TSviewACD
                         RemoteDup[ritem.Key] = ritem.ToArray();
                     }
 
+                    var local = ((radioButton_MD5.Checked) ?
+                        (localpath.Select(x =>
+                        {
+                            byte[] md5 = null;
+                            ++i;
+                            synchronizationContext.Send(
+                                (o) =>
+                                {
+                                    if (cts.IsCancellationRequested) return;
+                                    label_info.Text = o as string;
+                                }, string.Format("{0}/{1} Check file MD5...{2}", i, len, x));
+                            using (var md5calc = new System.Security.Cryptography.MD5CryptoServiceProvider())
+                            using (var hfile = File.Open(x, FileMode.Open, FileAccess.Read, FileShare.Read))
+                            {
+                                md5 = md5calc.ComputeHash(hfile);
+                                var MD5 = BitConverter.ToString(md5).ToLower().Replace("-", "");
+                                return new LocalItemInfo(x, MD5, hfile.Length, MD5);
+                            }
+                        })) :
+                        (radioButton_Tree.Checked) ?
+                            localpath.Select(x =>
+                            {
+                                if (checkBox_MD5.Checked)
+                                {
+                                    byte[] md5 = null;
+                                    ++i;
+                                    synchronizationContext.Send(
+                                        (o) =>
+                                        {
+                                            if (cts.IsCancellationRequested) return;
+                                            label_info.Text = o as string;
+                                        }, string.Format("{0}/{1} Check file MD5...{2}", i, len, x));
+                                    using (var md5calc = new System.Security.Cryptography.MD5CryptoServiceProvider())
+                                    using (var hfile = File.Open(x, FileMode.Open, FileAccess.Read, FileShare.Read))
+                                    {
+                                        md5 = md5calc.ComputeHash(hfile);
+                                        var MD5 = BitConverter.ToString(md5).ToLower().Replace("-", "");
+                                        return new LocalItemInfo(x, x.Substring(localbasepath.Length).Replace('\\', '/'), hfile.Length, MD5);
+                                    }
+                                }
+                                else
+                                {
+                                    ++i;
+                                    synchronizationContext.Send(
+                                        (o) =>
+                                        {
+                                            if (cts.IsCancellationRequested) return;
+                                            label_info.Text = o as string;
+                                        }, string.Format("{0}/{1} Check file ...{2}", i, len, x));
+                                    return new LocalItemInfo(x, x.Substring(localbasepath.Length).Replace('\\', '/'), new FileInfo(x).Length, null);
+                                }
+                            }) :
+                            localpath.Select(x =>
+                           {
+                               if (checkBox_MD5.Checked)
+                               {
+                                   byte[] md5 = null;
+                                   ++i;
+                                   synchronizationContext.Send(
+                                       (o) =>
+                                       {
+                                           if (cts.IsCancellationRequested) return;
+                                           label_info.Text = o as string;
+                                       }, string.Format("{0}/{1} Check file MD5...{2}", i, len, x));
+                                   using (var md5calc = new System.Security.Cryptography.MD5CryptoServiceProvider())
+                                   using (var hfile = File.Open(x, FileMode.Open, FileAccess.Read, FileShare.Read))
+                                   {
+                                       md5 = md5calc.ComputeHash(hfile);
+                                       var MD5 = BitConverter.ToString(md5).ToLower().Replace("-", "");
+                                       return new LocalItemInfo(x, Path.GetFileName(x), hfile.Length, MD5);
+                                   }
+                               }
+                               else
+                               {
+                                   ++i;
+                                   synchronizationContext.Send(
+                                       (o) =>
+                                       {
+                                           if (cts.IsCancellationRequested) return;
+                                           label_info.Text = o as string;
+                                       }, string.Format("{0}/{1} Check file ...{2}", i, len, x));
+                                   return new LocalItemInfo(x, Path.GetFileName(x), new FileInfo(x).Length, null);
+                               }
+                           }))
+                    .GroupBy(x => x.name).ToArray();
+
+                    i = 0;
                     foreach (var litem in local)
                     {
                         cts.Token.ThrowIfCancellationRequested();
@@ -239,41 +325,17 @@ namespace TSviewACD
                                     }, string.Format("{0}/{1} {2}", i, len, item.path));
 
                                 List<RemoteItemInfo> Matched = new List<RemoteItemInfo>();
-                                item.size = new FileInfo(item.path).Length;
                                 foreach (var ritem in matchitem)
                                 {
                                     if (item.size == ritem.info.contentProperties?.size)
                                     {
-                                        Matched.Add(ritem);
-                                    }
-                                }
-
-                                if (Matched.Count > 0 && checkBox_MD5.Checked)
-                                {
-                                    byte[] md5 = null;
-                                    synchronizationContext.Send(
-                                        (o) =>
+                                        if(item.MD5 == null || item.MD5 == ritem.info.contentProperties?.md5)
                                         {
-                                            if (cts.IsCancellationRequested) return;
-                                            label_info.Text = o as string;
-                                        }, string.Format("{0}/{1} Check file MD5...{2}", i, len, item.path));
-                                    using (var md5calc = new System.Security.Cryptography.MD5CryptoServiceProvider())
-                                    using (var hfile = File.Open(item.path, FileMode.Open, FileAccess.Read, FileShare.Read))
-                                    {
-                                        md5 = md5calc.ComputeHash(hfile);
-                                        item.MD5 = BitConverter.ToString(md5).ToLower().Replace("-", "");
-                                        var sizeMatched = new List<RemoteItemInfo>(Matched);
-                                        Matched.Clear();
-                                        foreach (var ritem in sizeMatched)
-                                        {
-                                            if (item.MD5 == ritem.info.contentProperties?.md5)
-                                            {
-                                                //match
-                                                Matched.Add(ritem);
-                                            }
+                                            Matched.Add(ritem);
                                         }
                                     }
                                 }
+
                                 if(Matched.Count() == 0)
                                 {
                                     LocalUnMatched.Add(item);
@@ -339,7 +401,7 @@ namespace TSviewACD
             result.Match = BothAndMatch;
             result.RemoteDup = RemoteDup;
             result.LocalDup = LocalDup;
-            result.ShowDialog();
+            result.Show();
         }
 
         private void FormMatch_FormClosing(object sender, FormClosingEventArgs e)
@@ -351,7 +413,7 @@ namespace TSviewACD
 
         private void listBox_remote_Format(object sender, ListControlConvertEventArgs e)
         {
-            e.Value = Program.MainForm.GetFullPathfromId((e.ListItem as FileMetadata_Info).id);
+            e.Value = DriveData.GetFullPathfromId((e.ListItem as FileMetadata_Info).id);
         }
 
         private void button_AddRemote_Click(object sender, EventArgs e)
@@ -453,6 +515,19 @@ namespace TSviewACD
         {
             SelectedRemoteFiles = null;
             listBox_remote.DataSource = null;
+        }
+
+        private void radioButton_MD5_CheckedChanged(object sender, EventArgs e)
+        {
+            if (radioButton_MD5.Checked)
+            {
+                checkBox_MD5.Checked = true;
+                checkBox_MD5.Enabled = false;
+            }
+            else
+            {
+                checkBox_MD5.Enabled = true;
+            }
         }
     }
 }

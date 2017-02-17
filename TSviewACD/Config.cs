@@ -57,6 +57,10 @@ namespace TSviewACD
         public static int FontPtSize = 48;
         public static double FFmodule_TransferLimit = 512;
         public static bool FFmodule_AutoResize = true;
+        public static string DrivePassword = "";
+        public static bool LockPassword = false;
+        public static bool UseEncryption = false;
+        public static bool UseFilenameEncryption = false;
         public static bool debug = false;
         // temporary
         public static bool FFmodule_fullscreen = false;
@@ -69,7 +73,8 @@ namespace TSviewACD
         public static int FFmodule_y = 0;
 
         private static byte[] _salt = Encoding.ASCII.GetBytes("TSviewACD");
-        private const string password = ConfigAPI.token_save_password;
+        private const string token_password = ConfigAPI.token_save_password;
+        private const string pass_password = "crypt for password";
 
         public static FormLogWindow Log = new FormLogWindow();
         public static bool LogToFile
@@ -103,17 +108,36 @@ namespace TSviewACD
         {
             get
             {
-                return (string.IsNullOrEmpty(refresh_token)) ? "" : Encrypt(refresh_token, password);
+                return (string.IsNullOrEmpty(refresh_token)) ? "" : Encrypt(refresh_token, token_password);
             }
             set
             {
                 try
                 {
-                    refresh_token = Decrypt(value, password);
+                    refresh_token = Decrypt(value, token_password);
                 }
                 catch
                 {
                     refresh_token = "";
+                }
+            }
+        }
+
+        public static string enc_drive_password
+        {
+            get
+            {
+                return (string.IsNullOrEmpty(DrivePassword)) ? "" : Encrypt(DrivePassword, pass_password);
+            }
+            set
+            {
+                try
+                {
+                    DrivePassword = Decrypt(value, pass_password);
+                }
+                catch
+                {
+                    DrivePassword = "";
                 }
             }
         }
@@ -217,7 +241,7 @@ namespace TSviewACD
                 using (var xmlr = XmlReader.Create(filepath))
                 {
                     var data = (Savedata)serializer.ReadObject(xmlr);
-                    if(data.LogToFile)
+                    if (data.LogToFile)
                         LogToFile = data.LogToFile;
                     enc_refresh_token = data.refresh_token;
                     if(!string.IsNullOrWhiteSpace(data.SendToHost))
@@ -257,6 +281,13 @@ namespace TSviewACD
                         FFmodule_TransferLimit = data.FFmodule_TransferLimit;
                     if (data.FFmodule_AutoResize != default(bool))
                         FFmodule_AutoResize = data.FFmodule_AutoResize;
+                    enc_drive_password = data.DrivePassword;
+                    if (data.LockPassword != default(bool))
+                        LockPassword = data.LockPassword;
+                    if (data.UseEncryption != default(bool))
+                        UseEncryption = data.UseEncryption;
+                    if (data.UseFilenameEncryption != default(bool))
+                        UseFilenameEncryption = data.UseFilenameEncryption;
                     contentUrl = data.contentUrl;
                     metadataUrl = data.metadataUrl;
                     if (data.URL_time < DateTime.Now)
@@ -300,6 +331,10 @@ namespace TSviewACD
                         FontFilepath = FontFilepath,
                         FFmodule_TransferLimit = FFmodule_TransferLimit,
                         FFmodule_AutoResize = FFmodule_AutoResize,
+                        DrivePassword = enc_drive_password,
+                        LockPassword = LockPassword,
+                        UseEncryption = UseEncryption,
+                        UseFilenameEncryption = UseFilenameEncryption,
                     };
                     serializer.WriteObject(xmlw, data);
                 }
@@ -354,6 +389,14 @@ namespace TSviewACD
         public double FFmodule_TransferLimit;
         [DataMember]
         public bool FFmodule_AutoResize;
+        [DataMember]
+        public string DrivePassword;
+        [DataMember]
+        public bool LockPassword;
+        [DataMember]
+        public bool UseEncryption;
+        [DataMember]
+        public bool UseFilenameEncryption;
     }
 
     [CollectionDataContract

@@ -121,6 +121,12 @@
             this.textBox_UploadBandwidthLimit = new System.Windows.Forms.TextBox();
             this.label22 = new System.Windows.Forms.Label();
             this.label21 = new System.Windows.Forms.Label();
+            this.tabPage_Crypt = new System.Windows.Forms.TabPage();
+            this.checkBox_LockPassword = new System.Windows.Forms.CheckBox();
+            this.label27 = new System.Windows.Forms.Label();
+            this.textBox_Password = new System.Windows.Forms.TextBox();
+            this.checkBox_cryptfilename = new System.Windows.Forms.CheckBox();
+            this.checkBox_crypt = new System.Windows.Forms.CheckBox();
             this.menuStrip1 = new System.Windows.Forms.MenuStrip();
             this.fileToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.loginToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
@@ -135,8 +141,9 @@
             this.detailToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.logToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.logWindowToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.toolStripMenuItem4 = new System.Windows.Forms.ToolStripSeparator();
             this.logToFileToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.toolStripMenuItem5 = new System.Windows.Forms.ToolStripSeparator();
+            this.amazonDriveHistoryToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.helpToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.aboutToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.splitContainer2 = new System.Windows.Forms.SplitContainer();
@@ -178,6 +185,7 @@
             this.tabPage_FFmpeg.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.trackBar_FFplay_pos)).BeginInit();
             this.tabPage_Bandwidth.SuspendLayout();
+            this.tabPage_Crypt.SuspendLayout();
             this.menuStrip1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.splitContainer2)).BeginInit();
             this.splitContainer2.Panel1.SuspendLayout();
@@ -216,6 +224,7 @@
             this.tabControl1.Controls.Add(this.tabPage_UDPConfig);
             this.tabControl1.Controls.Add(this.tabPage_FFmpeg);
             this.tabControl1.Controls.Add(this.tabPage_Bandwidth);
+            this.tabControl1.Controls.Add(this.tabPage_Crypt);
             this.tabControl1.Dock = System.Windows.Forms.DockStyle.Fill;
             this.tabControl1.HotTrack = true;
             this.tabControl1.Location = new System.Drawing.Point(0, 24);
@@ -1244,6 +1253,70 @@
             this.label21.TabIndex = 0;
             this.label21.Text = "Upload Bandwidth Limit";
             // 
+            // tabPage_Crypt
+            // 
+            this.tabPage_Crypt.Controls.Add(this.checkBox_LockPassword);
+            this.tabPage_Crypt.Controls.Add(this.label27);
+            this.tabPage_Crypt.Controls.Add(this.textBox_Password);
+            this.tabPage_Crypt.Controls.Add(this.checkBox_cryptfilename);
+            this.tabPage_Crypt.Controls.Add(this.checkBox_crypt);
+            this.tabPage_Crypt.Location = new System.Drawing.Point(4, 4);
+            this.tabPage_Crypt.Name = "tabPage_Crypt";
+            this.tabPage_Crypt.Size = new System.Drawing.Size(866, 72);
+            this.tabPage_Crypt.TabIndex = 7;
+            this.tabPage_Crypt.Text = "Crypt";
+            this.tabPage_Crypt.UseVisualStyleBackColor = true;
+            // 
+            // checkBox_LockPassword
+            // 
+            this.checkBox_LockPassword.AutoSize = true;
+            this.checkBox_LockPassword.Location = new System.Drawing.Point(259, 17);
+            this.checkBox_LockPassword.Name = "checkBox_LockPassword";
+            this.checkBox_LockPassword.Size = new System.Drawing.Size(101, 16);
+            this.checkBox_LockPassword.TabIndex = 4;
+            this.checkBox_LockPassword.Text = "Lock Password";
+            this.checkBox_LockPassword.UseVisualStyleBackColor = true;
+            this.checkBox_LockPassword.CheckedChanged += new System.EventHandler(this.checkBox_LockPassword_CheckedChanged);
+            // 
+            // label27
+            // 
+            this.label27.AutoSize = true;
+            this.label27.Location = new System.Drawing.Point(181, 21);
+            this.label27.Name = "label27";
+            this.label27.Size = new System.Drawing.Size(54, 12);
+            this.label27.TabIndex = 3;
+            this.label27.Text = "Password";
+            // 
+            // textBox_Password
+            // 
+            this.textBox_Password.Location = new System.Drawing.Point(183, 36);
+            this.textBox_Password.Name = "textBox_Password";
+            this.textBox_Password.Size = new System.Drawing.Size(177, 19);
+            this.textBox_Password.TabIndex = 2;
+            this.textBox_Password.TextChanged += new System.EventHandler(this.textBox_Password_TextChanged);
+            // 
+            // checkBox_cryptfilename
+            // 
+            this.checkBox_cryptfilename.AutoSize = true;
+            this.checkBox_cryptfilename.Location = new System.Drawing.Point(48, 36);
+            this.checkBox_cryptfilename.Name = "checkBox_cryptfilename";
+            this.checkBox_cryptfilename.Size = new System.Drawing.Size(113, 16);
+            this.checkBox_cryptfilename.TabIndex = 1;
+            this.checkBox_cryptfilename.Text = "Encrypt Filename";
+            this.checkBox_cryptfilename.UseVisualStyleBackColor = true;
+            this.checkBox_cryptfilename.CheckedChanged += new System.EventHandler(this.checkBox_cryptfilename_CheckedChanged);
+            // 
+            // checkBox_crypt
+            // 
+            this.checkBox_crypt.AutoSize = true;
+            this.checkBox_crypt.Location = new System.Drawing.Point(18, 13);
+            this.checkBox_crypt.Name = "checkBox_crypt";
+            this.checkBox_crypt.Size = new System.Drawing.Size(102, 16);
+            this.checkBox_crypt.TabIndex = 0;
+            this.checkBox_crypt.Text = "Use Encryption";
+            this.checkBox_crypt.UseVisualStyleBackColor = true;
+            this.checkBox_crypt.CheckedChanged += new System.EventHandler(this.checkBox_crypt_CheckedChanged);
+            // 
             // menuStrip1
             // 
             this.menuStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
@@ -1347,8 +1420,9 @@
             // 
             this.logToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.logWindowToolStripMenuItem,
-            this.toolStripMenuItem4,
-            this.logToFileToolStripMenuItem});
+            this.logToFileToolStripMenuItem,
+            this.toolStripMenuItem5,
+            this.amazonDriveHistoryToolStripMenuItem});
             this.logToolStripMenuItem.Name = "logToolStripMenuItem";
             this.logToolStripMenuItem.Size = new System.Drawing.Size(39, 20);
             this.logToolStripMenuItem.Text = "&Log";
@@ -1356,21 +1430,28 @@
             // logWindowToolStripMenuItem
             // 
             this.logWindowToolStripMenuItem.Name = "logWindowToolStripMenuItem";
-            this.logWindowToolStripMenuItem.Size = new System.Drawing.Size(141, 22);
+            this.logWindowToolStripMenuItem.Size = new System.Drawing.Size(188, 22);
             this.logWindowToolStripMenuItem.Text = "Log &Window";
             this.logWindowToolStripMenuItem.Click += new System.EventHandler(this.logToolStripMenuItem_Click);
-            // 
-            // toolStripMenuItem4
-            // 
-            this.toolStripMenuItem4.Name = "toolStripMenuItem4";
-            this.toolStripMenuItem4.Size = new System.Drawing.Size(138, 6);
             // 
             // logToFileToolStripMenuItem
             // 
             this.logToFileToolStripMenuItem.Name = "logToFileToolStripMenuItem";
-            this.logToFileToolStripMenuItem.Size = new System.Drawing.Size(141, 22);
+            this.logToFileToolStripMenuItem.Size = new System.Drawing.Size(188, 22);
             this.logToFileToolStripMenuItem.Text = "Log to &File";
             this.logToFileToolStripMenuItem.Click += new System.EventHandler(this.logToFileToolStripMenuItem_Click);
+            // 
+            // toolStripMenuItem5
+            // 
+            this.toolStripMenuItem5.Name = "toolStripMenuItem5";
+            this.toolStripMenuItem5.Size = new System.Drawing.Size(185, 6);
+            // 
+            // amazonDriveHistoryToolStripMenuItem
+            // 
+            this.amazonDriveHistoryToolStripMenuItem.Name = "amazonDriveHistoryToolStripMenuItem";
+            this.amazonDriveHistoryToolStripMenuItem.Size = new System.Drawing.Size(188, 22);
+            this.amazonDriveHistoryToolStripMenuItem.Text = "&Amazon Drive History";
+            this.amazonDriveHistoryToolStripMenuItem.Click += new System.EventHandler(this.amazonDriveHistoryToolStripMenuItem_Click);
             // 
             // helpToolStripMenuItem
             // 
@@ -1602,6 +1683,8 @@
             ((System.ComponentModel.ISupportInitialize)(this.trackBar_FFplay_pos)).EndInit();
             this.tabPage_Bandwidth.ResumeLayout(false);
             this.tabPage_Bandwidth.PerformLayout();
+            this.tabPage_Crypt.ResumeLayout(false);
+            this.tabPage_Crypt.PerformLayout();
             this.menuStrip1.ResumeLayout(false);
             this.menuStrip1.PerformLayout();
             this.splitContainer2.Panel1.ResumeLayout(false);
@@ -1714,7 +1797,6 @@
         private System.Windows.Forms.Label label16;
         private System.Windows.Forms.ComboBox comboBox_FindStr;
         private System.Windows.Forms.ToolStripMenuItem logWindowToolStripMenuItem;
-        private System.Windows.Forms.ToolStripSeparator toolStripMenuItem4;
         private System.Windows.Forms.ToolStripMenuItem logToFileToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem helpToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem aboutToolStripMenuItem;
@@ -1752,6 +1834,14 @@
         private System.Windows.Forms.ToolStripMenuItem toolStripMenuItem_Logout;
         private System.Windows.Forms.Timer timer3;
         private System.Windows.Forms.Timer timer4;
+        private System.Windows.Forms.ToolStripSeparator toolStripMenuItem5;
+        private System.Windows.Forms.ToolStripMenuItem amazonDriveHistoryToolStripMenuItem;
+        private System.Windows.Forms.TabPage tabPage_Crypt;
+        private System.Windows.Forms.CheckBox checkBox_LockPassword;
+        private System.Windows.Forms.Label label27;
+        private System.Windows.Forms.TextBox textBox_Password;
+        private System.Windows.Forms.CheckBox checkBox_cryptfilename;
+        private System.Windows.Forms.CheckBox checkBox_crypt;
     }
 }
 

@@ -148,7 +148,7 @@ namespace TSviewACD
 
             //Config.Log.LogOut(string.Format("AmazonDriveStream : start to download {0:#,0} - ", start));
 
-            Drive.downloadFile(targetItem.id, start, ct: cts_1.Token)
+            Drive.downloadFile(targetItem, start, ct: cts_1.Token)
             .ContinueWith(task =>
             {
                 if (!task.Wait(timeout, cts_1.Token))
@@ -580,7 +580,7 @@ namespace TSviewACD
 
             _Position = 0;
 
-            if (downitem.contentProperties.size > 10 * 1024 * 1024 * 1024L)
+            if (downitem.contentProperties.size > ConfigAPI.FilenameChangeTrickSize)
             {
                 OrgFilename = downitem.name;
                 Config.Log.LogOut("AmazonDriveStream : <BIG FILE> temporary filename change");
@@ -746,7 +746,7 @@ namespace TSviewACD
                     MemoryStreamSlot o;
                     while (!slots.TryGetSlot(s, out o))
                     {
-                        if ((DateTime.Now - stime).TotalSeconds > 60)
+                        if ((DateTime.Now - stime).TotalSeconds > 60*60)
                         {
                             Config.Log.LogOut(string.Format("AmazonDriveStream : ERROR timeout Ensure pos {0:#,0}({2}) end {1:#,0}({3})", Offset, LastOffset, s, e));
                             return false;

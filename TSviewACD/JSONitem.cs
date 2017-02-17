@@ -117,6 +117,7 @@ namespace TSviewACD
     }
 
 
+    [Serializable()]
     [DataContract]
     public class Changes_Info
     {
@@ -131,4 +132,5 @@ namespace TSviewACD
         [DataMember]
         public FileMetadata_Info[] nodes;
     }
+
 }

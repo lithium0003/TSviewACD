@@ -878,29 +878,31 @@ namespace ffmodule {
 
 		while(true) {
 			int ret;
-			if ((ret = audioq.get(inpkt, 0)) < 0) {
-				av_log(NULL, AV_LOG_INFO, "audio Quit\n");
-				audio_eof = audio_eof_enum::eof;
-				goto quit_audio;
-			}
-			if (audio_eof == audio_eof_enum::playing && ret == 0) {
-				av_log(NULL, AV_LOG_INFO, "audio queue empty\n");
-				SDL_PauseAudioDevice(audio_deviceID, 1);
-				audio_pause = true;
-				return -1;
-			}
-			if (inpkt->data == flush_pkt.data) {
-				av_log(NULL, AV_LOG_INFO, "audio buffer flush\n");
-				avcodec_flush_buffers(aCodecCtx);
-				pkt = { 0 };
-				audio_serial = av_gettime();
-				inpkt = &pkt;
-				inframe = &audio_frame_in;
-				continue;
-			}
-			if (inpkt->data == eof_pkt.data) {
-				av_log(NULL, AV_LOG_INFO, "audio buffer EOF\n");
-				audio_eof = audio_eof_enum::input_eof;
+			if (inpkt) {
+				if ((ret = audioq.get(inpkt, 0)) < 0) {
+					av_log(NULL, AV_LOG_INFO, "audio Quit\n");
+					audio_eof = audio_eof_enum::eof;
+					goto quit_audio;
+				}
+				if (audio_eof == audio_eof_enum::playing && ret == 0) {
+					av_log(NULL, AV_LOG_INFO, "audio queue empty\n");
+					SDL_PauseAudioDevice(audio_deviceID, 1);
+					audio_pause = true;
+					return -1;
+				}
+				if (inpkt->data == flush_pkt.data) {
+					av_log(NULL, AV_LOG_INFO, "audio buffer flush\n");
+					avcodec_flush_buffers(aCodecCtx);
+					pkt = { 0 };
+					audio_serial = av_gettime();
+					inpkt = &pkt;
+					inframe = &audio_frame_in;
+					continue;
+				}
+				if (inpkt->data == eof_pkt.data) {
+					av_log(NULL, AV_LOG_INFO, "audio buffer EOF\n");
+					audio_eof = audio_eof_enum::input_eof;
+				}
 			}
 			if (audio_eof >= audio_eof_enum::input_eof) {
 				inpkt = NULL;
@@ -3282,32 +3284,6 @@ namespace ffmodule {
 
 	///////////////////////////////////////////////////////////////////////////////////////////
 
-	public enum class FFplayerKeymapFunction {
-		FuncPlayExit,
-		FuncSeekPlus10sec,
-		FuncSeekMinus10sec,
-		FuncSeekPlus60sec,
-		FuncSeekMinus60sec,
-		FuncVolumeUp,
-		FuncVolumeDown,
-		FuncToggleFullscreen,
-		FuncToggleDisplay,
-		FuncToggleMute,
-		FuncCycleChannel,
-		FuncCycleAudio,
-		FuncCycleSubtitle,
-		FuncForwardChapter,
-		FuncRewindChapter,
-		FuncTogglePause,
-		FuncResizeOriginal,
-		FuncSrcVolumeUp,
-		FuncSrcVolumeDown,
-		FuncSrcAutoVolume,
-	};
-
-	ref class FFplayer;
-
-	public delegate System::Drawing::Bitmap^ GetImageDelegate(FFplayer^ sender);
 	delegate int CppGetImageDelegate(void**);
 
 	public ref class FFplayer : public IDisposable {
@@ -3367,7 +3343,7 @@ namespace ffmodule {
 			}
 		}
 
-		static void SetLogger(TextWriter^ output) {
+		void SetLogger(TextWriter^ output) {
 			outstream = output;
 		}
 
