@@ -231,7 +231,7 @@ namespace TSviewACD
                             rootdata.data[0].id,
                             "",
                         }, 0);
-                    rootitem.Name = ".";
+                    rootitem.Name = "/";
                     root_entry = new ListViewItem(
                         new string[] {
                             "..",
@@ -242,7 +242,7 @@ namespace TSviewACD
                             rootdata.data[0].id,
                             ""
                         }, 0);
-                    root_entry.Name = "..";
+                    root_entry.Name = "/";
                     listView1.Items.Add(rootitem);
                     listView1.Items.Add(root_entry);
                     var childitem = children.data.Select(x =>
@@ -344,7 +344,7 @@ namespace TSviewACD
                     selectdata.id,
                     selectdata.contentProperties?.md5,
                     }, 0);
-                rootitem.Name = ".";
+                rootitem.Name = string.IsNullOrEmpty(tree.FullPath) ? "/" : ".";
                 rootitem.Tag = tree;
                 listView1.Items.Add(rootitem);
 
@@ -362,7 +362,7 @@ namespace TSviewACD
                             updata.id,
                             updata.contentProperties?.md5,
                         }, 0);
-                    upitem.Name = "..";
+                    upitem.Name = string.IsNullOrEmpty(parent.FullPath) ? "/" : "..";
                     upitem.Tag = parent;
                     listView1.Items.Add(upitem);
                 }
@@ -459,6 +459,7 @@ namespace TSviewACD
 
         private void FollowPath(string path_str)
         {
+            if (string.IsNullOrEmpty(path_str)) return;
             var path = path_str.Split('\\');
             TreeNodeCollection current = null;
             foreach (var p in path)
@@ -1332,22 +1333,27 @@ namespace TSviewACD
                 ListViewItem item = listView1.GetItemAt(p.X, p.Y);
                 var current = listView1.Items.Find(".", false);
 
-                if (listView1.Items.IndexOf(item) < 0)
+                if (listView1.Items.IndexOf(item) < 0 || (item.Name != "/" && ((item?.Tag as TreeNode).Tag as FileMetadata_Info).kind != "FOLDER"))
                 {
                     if (current.Length > 0) item = current[0];
                 }
 
                 if (item != null)
                 {
-                    if ((item.Tag == null) || ((item.Tag as TreeNode).Tag as FileMetadata_Info).kind == "FOLDER")
+                    if (item.Tag == null || item.Name == "/" || ((item.Tag as TreeNode).Tag as FileMetadata_Info).kind == "FOLDER")
                     {
                         if (e.Data.GetDataPresent(DataFormats.FileDrop))
                             e.Effect = DragDropEffects.Copy;
                         else
                         {
                             if(item != ((current.Length > 0)? current[0]: null) &&
-                                (((ListView.SelectedListViewItemCollection)e.Data.GetData(typeof(ListView.SelectedListViewItemCollection)))?.Contains(item)?? false))
+                                ((item.Name == "/" && ((current.Length > 0) ? current[0] : null).Name != "/") ||
+                                !(((ListView.SelectedListViewItemCollection)e.Data.GetData(typeof(ListView.SelectedListViewItemCollection)))?.Contains(item)?? false)))
+                            {
                                 e.Effect = DragDropEffects.Move;
+                            }
+                            else
+                                e.Effect = DragDropEffects.None;
                         }
                     }
                     else
@@ -1365,7 +1371,7 @@ namespace TSviewACD
                 {
                     Point p = listView1.PointToClient(new Point(e.X, e.Y));
                     ListViewItem item = listView1.GetItemAt(p.X, p.Y);
-                    if (listView1.Items.IndexOf(item) < 0)
+                    if (listView1.Items.IndexOf(item) < 0 || (item.Name != "/" && ((item?.Tag as TreeNode).Tag as FileMetadata_Info).kind != "FOLDER"))
                     {
                         var current = listView1.Items.Find(".", false);
                         if (current.Length > 0) item = current[0];
@@ -1526,31 +1532,55 @@ namespace TSviewACD
             {
                 Point p = treeView1.PointToClient(new Point(e.X, e.Y));
                 TreeNode item = treeView1.GetNodeAt(p.X, p.Y);
-                if(HoldonNode != item)
+                if (HoldonNode != item)
                     timer2.Enabled = false;
                 HoldonNode = item;
                 timer2.Enabled = true;
 
-                item.NextNode?.EnsureVisible();
-                item.PrevNode?.EnsureVisible();
-                item.Parent?.EnsureVisible();
-
-                if (item != null)
+                if (p.Y < treeView1.Height / 2)
                 {
-                    if ((item.Tag as FileMetadata_Info).kind == "FOLDER")
+                    item?.PrevNode?.EnsureVisible();
+                    if (item?.PrevNode == null)
+                        item?.Parent?.EnsureVisible();
+                }
+                else
+                {
+                    item?.NextNode?.EnsureVisible();
+                }
+
+                if (item == null || !string.IsNullOrEmpty((item.Tag as FileMetadata_Info).kind))
+                {
+                    if (e.Data.GetDataPresent(DataFormats.FileDrop))
                     {
-                        if (e.Data.GetDataPresent(DataFormats.FileDrop))
-                        {
-                            e.Effect = DragDropEffects.Copy;
-                        }
-                        else
-                        {
-                            e.Effect = DragDropEffects.Move;
-                        }
+                        e.Effect = DragDropEffects.Copy;
                     }
                     else
-                        e.Effect = DragDropEffects.None;
+                    {
+                        e.Effect = DragDropEffects.Move;
+
+                        if (item != null)
+                        {
+                            while ((item.Tag as FileMetadata_Info).kind != "FOLDER")
+                            {
+                                item = item.Parent;
+                                if (item == null) break;
+                            }
+                        }
+                        var toParent = (item == null) ? root_id : (item.Tag as FileMetadata_Info).id;
+                        foreach (ListViewItem aItem in (ListView.SelectedListViewItemCollection)e.Data.GetData(typeof(ListView.SelectedListViewItemCollection)))
+                        {
+                            var fromParent = ((aItem.Tag as TreeNode).Parent == null) ? root_id : ((aItem.Tag as TreeNode).Parent.Tag as FileMetadata_Info).id;
+                            var childid = ((aItem.Tag as TreeNode).Tag as FileMetadata_Info).id;
+                            if (toParent == fromParent || toParent == childid)
+                            {
+                                e.Effect = DragDropEffects.None;
+                                break;
+                            }
+                        }
+                    }
                 }
+                else
+                    e.Effect = DragDropEffects.None;
             }
         }
 
@@ -1563,9 +1593,17 @@ namespace TSviewACD
                 {
                     Point p = treeView1.PointToClient(new Point(e.X, e.Y));
                     TreeNode item = treeView1.GetNodeAt(p.X, p.Y);
-                    if (item == null) return;
 
-                    string path = item.FullPath;
+                    if (item != null)
+                    {
+                        while ((item.Tag as FileMetadata_Info).kind != "FOLDER")
+                        {
+                            item = item.Parent;
+                            if (item == null) break;
+                        }
+                    }
+
+                    string path = item?.FullPath;
 
                     if (e.Data.GetDataPresent(typeof(ListView.SelectedListViewItemCollection)))
                     {
@@ -1576,7 +1614,7 @@ namespace TSviewACD
                         all_items = null;
                         try
                         {
-                            var toParent = (item.Tag as FileMetadata_Info).id;
+                            var toParent = (item == null)? root_id: (item.Tag as FileMetadata_Info).id;
                             foreach (ListViewItem aItem in (ListView.SelectedListViewItemCollection)e.Data.GetData(typeof(ListView.SelectedListViewItemCollection)))
                             {
                                 var fromParent = ((aItem.Tag as TreeNode).Parent == null) ? root_id : ((aItem.Tag as TreeNode).Parent.Tag as FileMetadata_Info).id;
@@ -2120,7 +2158,7 @@ namespace TSviewACD
                 listView1.BeginUpdate();
                 foreach(ListViewItem item in listView1.Items)
                 {
-                    if(item.Name != "." && item.Name != "..")
+                    if(item.Name != "." && item.Name != ".." && item.Name != "/")
                         item.Selected = true;
                 }
                 listView1.EndUpdate();
@@ -2143,7 +2181,7 @@ namespace TSviewACD
             var Matcher = new FormMatch();
             Matcher.SelectedRemoteFiles = 
                 (listView1.SelectedItems.Count == 0? listView1.Items.OfType<ListViewItem>() : listView1.SelectedItems.OfType<ListViewItem>())
-                .Where(item => (item.Name != "." && item.Name != "..")).ToArray();
+                .Where(item => (item.Name != "." && item.Name != ".." && item.Name != "/")).ToArray();
             Matcher.ShowDialog();
         }
 
@@ -2155,7 +2193,6 @@ namespace TSviewACD
                 button_search.PerformClick();
             }
         }
-
     }
 }
 

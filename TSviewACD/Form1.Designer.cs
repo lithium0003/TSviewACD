@@ -77,6 +77,9 @@
             this.button_stop = new System.Windows.Forms.Button();
             this.button_Play = new System.Windows.Forms.Button();
             this.tabPage5 = new System.Windows.Forms.TabPage();
+            this.label19 = new System.Windows.Forms.Label();
+            this.textBox_SendLongOffset = new System.Windows.Forms.TextBox();
+            this.label20 = new System.Windows.Forms.Label();
             this.textBox_keySendApp = new System.Windows.Forms.TextBox();
             this.label18 = new System.Windows.Forms.Label();
             this.label17 = new System.Windows.Forms.Label();
@@ -133,9 +136,6 @@
             this.timer1 = new System.Windows.Forms.Timer(this.components);
             this.toolTip1 = new System.Windows.Forms.ToolTip(this.components);
             this.timer2 = new System.Windows.Forms.Timer(this.components);
-            this.label19 = new System.Windows.Forms.Label();
-            this.textBox_SendLongOffset = new System.Windows.Forms.TextBox();
-            this.label20 = new System.Windows.Forms.Label();
             ((System.ComponentModel.ISupportInitialize)(this.splitContainer1)).BeginInit();
             this.splitContainer1.Panel1.SuspendLayout();
             this.splitContainer1.Panel2.SuspendLayout();
@@ -744,6 +744,34 @@
             this.tabPage5.Text = "Config";
             this.tabPage5.UseVisualStyleBackColor = true;
             // 
+            // label19
+            // 
+            this.label19.AutoSize = true;
+            this.label19.Location = new System.Drawing.Point(234, 51);
+            this.label19.Name = "label19";
+            this.label19.Size = new System.Drawing.Size(20, 12);
+            this.label19.TabIndex = 19;
+            this.label19.Text = "ms";
+            // 
+            // textBox_SendLongOffset
+            // 
+            this.textBox_SendLongOffset.ImeMode = System.Windows.Forms.ImeMode.Off;
+            this.textBox_SendLongOffset.Location = new System.Drawing.Point(183, 48);
+            this.textBox_SendLongOffset.Name = "textBox_SendLongOffset";
+            this.textBox_SendLongOffset.Size = new System.Drawing.Size(45, 19);
+            this.textBox_SendLongOffset.TabIndex = 18;
+            this.toolTip1.SetToolTip(this.textBox_SendLongOffset, "送信するごとに、余分にウエイトを入れて時間を調整します");
+            this.textBox_SendLongOffset.TextChanged += new System.EventHandler(this.textBox_SendLongOffset_TextChanged);
+            // 
+            // label20
+            // 
+            this.label20.AutoSize = true;
+            this.label20.Location = new System.Drawing.Point(17, 51);
+            this.label20.Name = "label20";
+            this.label20.Size = new System.Drawing.Size(166, 12);
+            this.label20.TabIndex = 17;
+            this.label20.Text = "Long term bitrate control offset";
+            // 
             // textBox_keySendApp
             // 
             this.textBox_keySendApp.Location = new System.Drawing.Point(609, 48);
@@ -1199,34 +1227,6 @@
             // 
             this.timer2.Interval = 1000;
             this.timer2.Tick += new System.EventHandler(this.timer2_Tick);
-            // 
-            // label19
-            // 
-            this.label19.AutoSize = true;
-            this.label19.Location = new System.Drawing.Point(234, 51);
-            this.label19.Name = "label19";
-            this.label19.Size = new System.Drawing.Size(20, 12);
-            this.label19.TabIndex = 19;
-            this.label19.Text = "ms";
-            // 
-            // textBox_SendLongOffset
-            // 
-            this.textBox_SendLongOffset.ImeMode = System.Windows.Forms.ImeMode.Off;
-            this.textBox_SendLongOffset.Location = new System.Drawing.Point(183, 48);
-            this.textBox_SendLongOffset.Name = "textBox_SendLongOffset";
-            this.textBox_SendLongOffset.Size = new System.Drawing.Size(45, 19);
-            this.textBox_SendLongOffset.TabIndex = 18;
-            this.toolTip1.SetToolTip(this.textBox_SendLongOffset, "送信するごとに、余分にウエイトを入れて時間を調整します");
-            this.textBox_SendLongOffset.TextChanged += new System.EventHandler(this.textBox_SendLongOffset_TextChanged);
-            // 
-            // label20
-            // 
-            this.label20.AutoSize = true;
-            this.label20.Location = new System.Drawing.Point(17, 51);
-            this.label20.Name = "label20";
-            this.label20.Size = new System.Drawing.Size(166, 12);
-            this.label20.TabIndex = 17;
-            this.label20.Text = "Long term bitrate control offset";
             // 
             // Form1
             // 
