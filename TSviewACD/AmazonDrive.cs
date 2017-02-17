@@ -103,6 +103,12 @@ namespace TSviewACD
             }
         }
 
+        static T ParseResponse<T>(Stream response)
+        {
+            var serializer = new DataContractJsonSerializer(typeof(T));
+            return (T)serializer.ReadObject(response);
+        }
+
         delegate Task<T> DoConnection<T>();
         private async Task<T> DoWithRetry<T>(DoConnection<T> func, string LogPrefix = "DoWithRetry")
         {
@@ -740,20 +746,26 @@ namespace TSviewACD
                             new StringContent(sr.ReadToEnd(), System.Text.Encoding.UTF8, "application/json"),
                             ct).ConfigureAwait(false);
                         response.EnsureSuccessStatusCode();
-                        string responseBody = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
-                        // Above three lines can be replaced with new helper method in following line
-                        // string body = await client.GetStringAsync(uri);
-                        var res = responseBody.Split(new string[] { "}\n{" }, StringSplitOptions.None);
-                        return res.Select(x =>
+                        using (var responseStream = await response.Content.ReadAsStreamAsync().ConfigureAwait(false))
                         {
-                            string pre = "{";
-                            string post = "}";
-                            if (x.StartsWith("{")) pre = "";
-                            if (x.EndsWith("}")) post = "";
-                            return pre + x + post;
-                        })
-                        .Select(x => ParseResponse<Changes_Info>(x)).ToArray();
-                    }, "changes");
+                            List<Changes_Info> res = new List<Changes_Info>();
+                            while(responseStream.Position < responseStream.Length)
+                            {
+                                using (var mem = new MemoryStream())
+                                {
+                                    byte[] buf = new byte[1] { 0 };
+                                    while (responseStream.Read(buf, 0, 1) == 1)
+                                    {
+                                        if (buf[0] == '\n') break;
+                                        mem.Write(buf, 0, 1);
+                                    }
+                                    mem.Position = 0;
+                                    res.Add(ParseResponse<Changes_Info>(mem));
+                                }
+                            }
+                            return res.ToArray();
+                        }
+                    }, "changes").ConfigureAwait(false);
                 }
             }
         }

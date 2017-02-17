@@ -129,6 +129,18 @@
         }
         "Entry"
         {
+        "MsmKey" = "8:_BDE49949D2368A1FD07754214C697B53"
+        "OwnerKey" = "8:_9DA7F93EA8C34345A3A44DD3870C5623"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
+        "MsmKey" = "8:_BDE49949D2368A1FD07754214C697B53"
+        "OwnerKey" = "8:_89199A3CEBA0446A9CEC8D7CA163FC96"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
         "MsmKey" = "8:_E482C4EEFCBC4DEE875B6EE2725D3410"
         "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
@@ -137,18 +149,6 @@
         {
         "MsmKey" = "8:_EC498653D02D487FA18F897303F0B039"
         "OwnerKey" = "8:_UNDEFINED"
-        "MsmSig" = "8:_UNDEFINED"
-        }
-        "Entry"
-        {
-        "MsmKey" = "8:_EF3A537860E14FD4BFE3C35B8BC99F4A"
-        "OwnerKey" = "8:_9DA7F93EA8C34345A3A44DD3870C5623"
-        "MsmSig" = "8:_UNDEFINED"
-        }
-        "Entry"
-        {
-        "MsmKey" = "8:_EF3A537860E14FD4BFE3C35B8BC99F4A"
-        "OwnerKey" = "8:_89199A3CEBA0446A9CEC8D7CA163FC96"
         "MsmSig" = "8:_UNDEFINED"
         }
         "Entry"
@@ -178,7 +178,7 @@
         "Entry"
         {
         "MsmKey" = "8:_UNDEFINED"
-        "OwnerKey" = "8:_EF3A537860E14FD4BFE3C35B8BC99F4A"
+        "OwnerKey" = "8:_BDE49949D2368A1FD07754214C697B53"
         "MsmSig" = "8:_UNDEFINED"
         }
         "Entry"
@@ -674,34 +674,14 @@
             "IsDependency" = "11:FALSE"
             "IsolateTo" = "8:"
             }
-            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_EC498653D02D487FA18F897303F0B039"
-            {
-            "SourcePath" = "8:..\\external\\bin32\\LICENSE.freetype.txt"
-            "TargetName" = "8:LICENSE.freetype.txt"
-            "Tag" = "8:"
-            "Folder" = "8:_893A6354AC8049EF8592B19CE4F2EA43"
-            "Condition" = "8:"
-            "Transitive" = "11:FALSE"
-            "Vital" = "11:TRUE"
-            "ReadOnly" = "11:FALSE"
-            "Hidden" = "11:FALSE"
-            "System" = "11:FALSE"
-            "Permanent" = "11:FALSE"
-            "SharedLegacy" = "11:FALSE"
-            "PackageAs" = "3:1"
-            "Register" = "3:1"
-            "Exclude" = "11:FALSE"
-            "IsDependency" = "11:FALSE"
-            "IsolateTo" = "8:"
-            }
-            "{9F6F8455-1EF1-4B85-886A-4223BCC8E7F7}:_EF3A537860E14FD4BFE3C35B8BC99F4A"
+            "{9F6F8455-1EF1-4B85-886A-4223BCC8E7F7}:_BDE49949D2368A1FD07754214C697B53"
             {
             "AssemblyRegister" = "3:1"
             "AssemblyIsInGAC" = "11:FALSE"
             "AssemblyAsmDisplayName" = "8:ffmodule_conf, Version=1.0.0.0, Culture=neutral, processorArchitecture=AMD64"
                 "ScatterAssemblies"
                 {
-                    "_EF3A537860E14FD4BFE3C35B8BC99F4A"
+                    "_BDE49949D2368A1FD07754214C697B53"
                     {
                     "Name" = "8:ffmodule_conf.dll"
                     "Attributes" = "3:512"
@@ -723,6 +703,26 @@
             "Register" = "3:1"
             "Exclude" = "11:TRUE"
             "IsDependency" = "11:TRUE"
+            "IsolateTo" = "8:"
+            }
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_EC498653D02D487FA18F897303F0B039"
+            {
+            "SourcePath" = "8:..\\external\\bin32\\LICENSE.freetype.txt"
+            "TargetName" = "8:LICENSE.freetype.txt"
+            "Tag" = "8:"
+            "Folder" = "8:_893A6354AC8049EF8592B19CE4F2EA43"
+            "Condition" = "8:"
+            "Transitive" = "11:FALSE"
+            "Vital" = "11:TRUE"
+            "ReadOnly" = "11:FALSE"
+            "Hidden" = "11:FALSE"
+            "System" = "11:FALSE"
+            "Permanent" = "11:FALSE"
+            "SharedLegacy" = "11:FALSE"
+            "PackageAs" = "3:1"
+            "Register" = "3:1"
+            "Exclude" = "11:FALSE"
+            "IsDependency" = "11:FALSE"
             "IsolateTo" = "8:"
             }
             "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_F534C00D1B264AD0B40F41A959B59E0B"
@@ -812,15 +812,15 @@
         {
         "Name" = "8:Microsoft Visual Studio"
         "ProductName" = "8:TSviewACD"
-        "ProductCode" = "8:{AB6853AB-7C35-47C3-8E82-63E92636B17B}"
-        "PackageCode" = "8:{FAB60324-F4BD-4C59-B9CB-C3DF772C4762}"
+        "ProductCode" = "8:{866C60EA-4920-4FA3-A8A5-5C3539BF6212}"
+        "PackageCode" = "8:{E52AF2EE-56B5-4475-8128-9CA5F019A563}"
         "UpgradeCode" = "8:{2FB4F2BC-56CA-4C1F-88AE-F17A8AF5B9D2}"
         "AspNetVersion" = "8:4.0.30319.0"
         "RestartWWWService" = "11:FALSE"
         "RemovePreviousVersions" = "11:TRUE"
         "DetectNewerInstalledVersion" = "11:TRUE"
         "InstallAllUsers" = "11:FALSE"
-        "ProductVersion" = "8:5.0.1"
+        "ProductVersion" = "8:5.0.2"
         "Manufacturer" = "8:lithium03"
         "ARPHELPTELEPHONE" = "8:"
         "ARPHELPLINK" = "8:"
