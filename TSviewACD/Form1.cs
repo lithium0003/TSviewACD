@@ -1032,7 +1032,7 @@ namespace TSviewACD
                                     synchronizationContext.Post(
                                         (o) =>
                                         {
-                                            if (task.cts.Token.IsCancellationRequested) return;
+                                            if (ct.IsCancellationRequested) return;
                                             var eo = o as PositionChangeEventArgs;
                                             toolStripStatusLabel1.Text = upload_str + eo.Log + " " + short_filename;
                                             toolStripProgressBar1.Style = ProgressBarStyle.Continuous;
@@ -1064,7 +1064,7 @@ namespace TSviewACD
                             try
                             {
                                 Config.Log.LogOut("Upload : wait 10sec for retry..." + checkretry.ToString());
-                                await Task.Delay(TimeSpan.FromSeconds(10), task.cts.Token);
+                                await Task.Delay(TimeSpan.FromSeconds(10), ct);
 
                                 var children = await Drive.ListChildren(parent_id, ct: ct);
                                 if (children.data.Select(x => x.name).Contains(short_filename))
