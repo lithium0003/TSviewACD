@@ -23,23 +23,37 @@ namespace TSviewACD
 
         public async static Task<int> MainFunc(string[] args)
         {
-            //http://www.zghthy.com/1322994/codep1/attachconsole-shows-data-on-pipe-but-the-%3E-operator-doesnt-correctly-redirect-on-file
-            if (IsRedirected(GetStdHandle(StandardHandle.Output)))
+            bool outputRedirected = IsRedirected(GetStdHandle(StandardHandle.Output));
+            Stream initialOut = null;
+            if (outputRedirected)
             {
-                var initialiseOut = Console.Out;
+                initialOut = Console.OpenStandardOutput();
             }
 
             bool errorRedirected = IsRedirected(GetStdHandle(StandardHandle.Error));
+            Stream initialError = null;
             if (errorRedirected)
             {
-                var initialiseError = Console.Error;
+                initialError = Console.OpenStandardOutput();
             }
 
             if (!AttachConsole(-1))
                 AllocConsole();
 
-            if (!errorRedirected)
+            int codepage = GetConsoleOutputCP();
+            if (outputRedirected)
+            {
+                Console.SetOut(new StreamWriter(initialOut, Encoding.GetEncoding(codepage)));
+            }
+
+            if (errorRedirected)
+            {
+                Console.SetError(new StreamWriter(initialError, Encoding.GetEncoding(codepage)));
+            }
+            else
+            {
                 SetStdHandle(StandardHandle.Error, GetStdHandle(StandardHandle.Output));
+            }
 
             Console.Error.WriteLine("");
 
@@ -85,6 +99,8 @@ namespace TSviewACD
                     Console.WriteLine("usage");
                     Console.WriteLine("\thelp                                      : show help");
                     Console.WriteLine("\tlist     (REMOTE_PATH)                    : list item");
+                    Console.WriteLine("\t\t--recursive: recursive mode");
+                    Console.WriteLine("\t\t--md5: show MD5 hash");
                     Console.WriteLine("\tdownload (REMOTE_PATH) (LOCAL_DIR_PATH)   : download item");
                     Console.WriteLine("\t\t--md5 : hash check after download");
                     Console.WriteLine("\t\t--cryptname: crypt name mode");
@@ -152,7 +168,7 @@ namespace TSviewACD
         }
 
 
-        static async Task<FileMetadata_Info[]> FindItems(string[] path_str, FileMetadata_Info root = null, CancellationToken ct = default(CancellationToken))
+        static async Task<FileMetadata_Info[]> FindItems(string[] path_str, bool recursive = false, FileMetadata_Info root = null, CancellationToken ct = default(CancellationToken))
         {
             TaskCanselToken task = null;
             if (ct == default(CancellationToken))
@@ -194,7 +210,7 @@ namespace TSviewACD
                                 && Regex.IsMatch(c.name, Regex.Escape(path_str[0]).Replace("\\*", ".*").Replace("\\?", "."))))
                     {
                         if (c.kind == "FOLDER")
-                            ret.AddRange(await FindItems(path_str.Skip(1).ToArray(), c, ct: ct).ConfigureAwait(false));
+                            ret.AddRange(await FindItems((recursive && path_str[0] == "*")? path_str: path_str.Skip(1).ToArray(), recursive, c, ct: ct).ConfigureAwait(false));
                         else
                         {
                             if (path_str[0] == c.name
@@ -207,8 +223,16 @@ namespace TSviewACD
                         }
                     }
                 }
-                ret.Sort((x, y) => x.name.CompareTo(y.name));
-                return ret.ToArray();
+                if (recursive)
+                {
+                    ret.Sort((x, y) => (DriveData.GetFullPathfromId(x.id)).CompareTo(DriveData.GetFullPathfromId(y.id)));
+                    return ret.ToArray();
+                }
+                else
+                {
+                    ret.Sort((x, y) => x.name.CompareTo(y.name));
+                    return ret.ToArray();
+                }
             }
             finally
             {
@@ -280,6 +304,23 @@ namespace TSviewACD
                     remotepath = remotepath.Replace('\\', '/');
                 }
 
+                bool recursive = false;
+                bool showmd5 = false;
+                foreach (var p in paramArgs)
+                {
+                    switch (p)
+                    {
+                        case "recursive":
+                            Console.Error.WriteLine("(--recursive: recursive mode)");
+                            recursive = true;
+                            break;
+                        case "md5":
+                            Console.Error.WriteLine("(--md5: show MD5 hash)");
+                            showmd5 = true;
+                            break;
+                    }
+                }
+
                 try
                 {
                     await Login().ConfigureAwait(false);
@@ -293,14 +334,20 @@ namespace TSviewACD
                         {
                             Console.Error.WriteLine(str);
                         });
-                    target = await FindItems(remotepath?.Split('/'), ct: task.cts.Token).ConfigureAwait(false);
+                    target = await FindItems(remotepath?.Split('/'), recursive: recursive, ct: task.cts.Token).ConfigureAwait(false);
 
                     if (target.Length < 1) return 2;
 
                     Console.Error.WriteLine("Found : " + target.Length);
                     foreach (var item in target)
                     {
-                        Console.WriteLine(item.name + ((item.kind == "FOLDER") ? "/" : ""));
+                        string detail = "";
+                        if (showmd5) detail = "\t" + item.contentProperties?.md5;
+
+                        if (recursive)
+                            Console.WriteLine(DriveData.GetFullPathfromId(item.id) + detail);
+                        else
+                            Console.WriteLine(item.name + ((item.kind == "FOLDER") ? "/" : "") + detail);
                     }
 
                     return 0;
@@ -317,6 +364,7 @@ namespace TSviewACD
             }
             finally
             {
+                Console.Out.Flush();
                 ConsoleTasks.Remove(task);
             }
         }
@@ -542,6 +590,7 @@ namespace TSviewACD
                                 using (var outfile = File.Open(savefilename, FileMode.Create, FileAccess.Write, FileShare.Read))
                                 {
                                     Console.Error.WriteLine("");
+                                    Console.Error.WriteLine("download {0:#,0} byte", downitem.contentProperties.size);
                                     if (downitem.contentProperties.size > ConfigAPI.FilenameChangeTrickSize)
                                     {
                                         Console.Error.WriteLine("Download : <BIG FILE> temporary filename change");
@@ -629,8 +678,47 @@ namespace TSviewACD
             }
             finally
             {
+                Console.Out.Flush();
                 ConsoleTasks.Remove(task);
             }
+        }
+
+        static async Task<FileMetadata_Info> CreateDirs(string[] path_str, FileMetadata_Info root = null, CancellationToken ct = default(CancellationToken))
+        {
+            ct.ThrowIfCancellationRequested();
+            if (root == null)
+            {
+                root = DriveData.AmazonDriveTree[DriveData.AmazonDriveRootID].info;
+            }
+            if (!(path_str?.Length > 0))
+            {
+                return root;
+            }
+            while (path_str.Length > 0 && string.IsNullOrEmpty(path_str.First()))
+            {
+                path_str = path_str.Skip(1).ToArray();
+            }
+            if (path_str.Length == 0)
+            {
+                return root;
+            }
+
+            var parent = DriveData.AmazonDriveTree[root.id].info;
+            var children = DriveData.AmazonDriveTree[root.id].children.Select(x => x.Value.info);
+            FileMetadata_Info targetchild = null;
+            if(children.Any(x => x.name == path_str[0]))
+            {
+                targetchild = children.Where(x => x.name == path_str[0]).FirstOrDefault();
+            }
+            else
+            {
+                Console.Error.WriteLine("createFolder: " + path_str[0]);
+                var checkpoint = DriveData.ChangeCheckpoint;
+                targetchild = await Drive.createFolder(path_str[0], parent.id, ct).ConfigureAwait(false);
+                await Task.Delay(5000, ct).ConfigureAwait(false);
+                var newitems = (await DriveData.GetChanges(checkpoint, ct).ConfigureAwait(false));
+            }
+            return await CreateDirs(path_str.Skip(1).ToArray(), targetchild, ct).ConfigureAwait(false);
         }
 
         static async Task<int> Upload(string[] targetArgs, string[] paramArgs)
@@ -644,6 +732,7 @@ namespace TSviewACD
                 string localpath = null;
                 string target_id = null;
 
+                bool createdir = false;
                 bool hashflag = false;
                 foreach (var p in paramArgs)
                 {
@@ -652,6 +741,10 @@ namespace TSviewACD
                         case "md5":
                             Console.Error.WriteLine("(--md5: hash check mode)");
                             hashflag = true;
+                            break;
+                        case "createpath":
+                            Console.Error.WriteLine("(--createpath: make upload target folder mode)");
+                            createdir = true;
                             break;
                         case "crypt":
                             Console.Error.WriteLine("(--crypt: crypt upload mode)");
@@ -701,7 +794,25 @@ namespace TSviewACD
                         }).ConfigureAwait(false);
                     target_id = await FindItemsID(remotepath.Split('/'), ct: ct).ConfigureAwait(false);
 
-                    if (string.IsNullOrEmpty(target_id)) return 2;
+                    if (string.IsNullOrEmpty(target_id) && !createdir) return 2;
+                }
+                catch (OperationCanceledException)
+                {
+                    return -1;
+                }
+                catch (Exception ex)
+                {
+                    Console.Error.WriteLine("error: " + ex.ToString());
+                    return 1;
+                }
+
+                try
+                {
+                    if (string.IsNullOrEmpty(target_id) && createdir)
+                    {
+                        Console.Error.WriteLine("create path:" + remotepath);
+                        target_id = (await CreateDirs(remotepath.Split('/'), ct: ct).ConfigureAwait(false)).id;
+                    }
                 }
                 catch (OperationCanceledException)
                 {
@@ -934,10 +1045,13 @@ namespace TSviewACD
             }
             finally
             {
+                Console.Out.Flush();
                 ConsoleTasks.Remove(task);
             }
         }
         ///////////////////////////////////////////////////////////////////////////////////
+        [DllImport("kernel32.dll", SetLastError = true)]
+        private static extern int GetConsoleOutputCP();
         [DllImport("kernel32.dll", SetLastError = true)]
         private static extern bool AllocConsole();
         [DllImport("kernel32.dll", SetLastError = true)]

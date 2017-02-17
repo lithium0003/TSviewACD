@@ -285,6 +285,7 @@ namespace TSviewACD
 
                 // アップロードファイルのパス共通部分を検索
                 var pathbase = FormMatch.GetBasePath(items.Cast<FormMatch.MatchItem>().Select(x => x.local.path));
+                bool createdir = items.Count > 1 && items.Cast<FormMatch.MatchItem>().GroupBy(x => Path.GetFileName(x.local.path)).Any(g => g.Count() > 1);
                 var uploadfiles = items.Cast<FormMatch.MatchItem>().Select(x => x.local.path.Substring(pathbase.Length)).ToArray();
 
                 var task = Program.MainForm.CreateTask("match");
@@ -296,22 +297,26 @@ namespace TSviewACD
                         ct.ThrowIfCancellationRequested();
                         var parentID = targetID;
                         var filename = Path.Combine(pathbase, upfile);
-                        var path = upfile.Split('\\', '/');
-                        // フォルダを確認してなければ作る
-                        foreach (var p in path.Take(path.Length - 1))
+                        if (createdir)
                         {
-                            if (p == "") continue;
-                            if (DriveData.AmazonDriveTree[parentID].children.Values.Select(x => x.info.name).Contains(p))
+                            var path = upfile.Split('\\', '/');
+                            // フォルダを確認してなければ作る
+                            foreach (var p in path.Take(path.Length - 1))
                             {
-                                parentID = DriveData.AmazonDriveTree[parentID].children.Values.Where(x => x.info.name == p).Select(x => x.info.id).FirstOrDefault();
-                            }
-                            else
-                            {
-                                var checkpoint = DriveData.ChangeCheckpoint;
-                                // make subdirectory
-                                var newdir = await DriveData.Drive.createFolder(p, parentID);
-                                await DriveData.GetChanges(checkpoint, ct);
-                                parentID = newdir.id;
+                                if (p == "") continue;
+                                if (DriveData.AmazonDriveTree[parentID].children.Values.Select(x => x.info.name).Contains(p))
+                                {
+                                    parentID = DriveData.AmazonDriveTree[parentID].children.Values.Where(x => x.info.name == p).Select(x => x.info.id).FirstOrDefault();
+                                }
+                                else
+                                {
+                                    var checkpoint = DriveData.ChangeCheckpoint;
+                                    // make subdirectory
+                                    var newdir = await DriveData.Drive.createFolder(p, parentID);
+                                    await Task.Delay(2000, ct);
+                                    await DriveData.GetChanges(checkpoint, ct);
+                                    parentID = newdir.id;
+                                }
                             }
                         }
                         // アップロード

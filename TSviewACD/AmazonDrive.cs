@@ -26,7 +26,7 @@ namespace TSviewACD
         public const string AmazonAPI_token = "https://api.amazon.com/auth/o2/token";
         public const string getEndpoint = "https://drive.amazonaws.com/drive/v1/account/endpoint";
 
-        public const long FilenameChangeTrickSize = 10 * 1000 * 1000 * 1000L;
+        public const long FilenameChangeTrickSize = 9500 * 1000 * 1000L; //9.5GB
         public const string temporaryFilename = "temporary_filename";
 
         public const int CopyBufferSize = 64 * 1024 * 1024;
@@ -61,11 +61,13 @@ namespace TSviewACD
                     Authkey = new FormLogin().Login(ct);
                 }));
                 t.SetApartmentState(System.Threading.ApartmentState.STA);
+                t.IsBackground = true;
                 t.Start();
-                t.Join();
+                while (t.IsAlive) await Task.Delay(1000).ConfigureAwait(false);
                 if (Authkey != null && !string.IsNullOrEmpty(Authkey.access_token))
                 {
                     key_timer = DateTime.Now;
+                    DriveData.RemoveCache();
                     return true;
                 }
                 return false;
@@ -321,6 +323,7 @@ namespace TSviewACD
 
         public async Task<FileMetadata_Info> uploadFile(string filename, string parent_id = null, string uploadname = null, string uploadkey = null, PoschangeEventHandler process = null, CancellationToken ct = default(CancellationToken))
         {
+            const int transbufsize = 64 * 1024 * 1024;
             Config.Log.LogOut("\t[uploadFile] " + filename);
             string error_str;
             using (var client = new HttpClient())
@@ -373,11 +376,11 @@ namespace TSviewACD
                         StreamContent fileContent;
                         if (Config.UseEncryption)
                         {
-                            fileContent = new StreamContent(new AES256CTR_CryptStream(f, Config.DrivePassword, uploadkey));
+                            fileContent = new StreamContent(new AES256CTR_CryptStream(f, Config.DrivePassword, uploadkey), transbufsize);
                         }
                         else
                         {
-                            fileContent = new StreamContent(f);
+                            fileContent = new StreamContent(f, transbufsize);
                         }
                         fileContent.Headers.ContentType = new MediaTypeHeaderValue("application/octet-stream");
                         fileContent.Headers.ContentLength = f.Length;

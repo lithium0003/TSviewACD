@@ -83,7 +83,6 @@
     <LinkIncremental>true</LinkIncremental>
     <IncludePath>$(SolutionDir)external\SDL2\include;$(SolutionDir)external\ffmpeg\include;$(IncludePath)</IncludePath>
     <LibraryPath>$(SolutionDir)external\SDL2\lib;$(SolutionDir)external\ffmpeg\lib;$(LibraryPath)</LibraryPath>
-    <OutDir>$(SolutionDir)$(Configuration)\</OutDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
@@ -94,7 +93,6 @@
     <LinkIncremental>false</LinkIncremental>
     <IncludePath>$(SolutionDir)external\SDL2\include;$(SolutionDir)external\ffmpeg\include;$(IncludePath)</IncludePath>
     <LibraryPath>$(SolutionDir)external\SDL2\lib;$(SolutionDir)external\ffmpeg\lib;$(LibraryPath)</LibraryPath>
-    <OutDir>$(SolutionDir)$(Configuration)\</OutDir>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
