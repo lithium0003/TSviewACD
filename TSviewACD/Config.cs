@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
 using System.Runtime.Serialization;
@@ -24,11 +25,39 @@ namespace TSviewACD
         public static int SendRatebyTOTCount = 1;
         public static System.Windows.Forms.Keys SendVK = default(System.Windows.Forms.Keys);
         public static string SendVK_Application = "";
+        public static double UploadLimit = double.PositiveInfinity;
+        public static double DownloadLimit = double.PositiveInfinity;
         public static string refresh_token = "";
         public static string contentUrl = "";
         public static string metadataUrl = "";
         public static DateTime URL_time;
+        public static FFmoduleKeybindsClass FFmoduleKeybinds = new FFmoduleKeybindsClass() {
+            { ffmodule.FFplayerKeymapFunction.FuncPlayExit,         new FFmoduleKeysClass{System.Windows.Forms.Keys.Escape } },
+            { ffmodule.FFplayerKeymapFunction.FuncSeekPlus10sec,    new FFmoduleKeysClass{System.Windows.Forms.Keys.Right } },
+            { ffmodule.FFplayerKeymapFunction.FuncSeekMinus10sec,   new FFmoduleKeysClass{System.Windows.Forms.Keys.Left } },
+            { ffmodule.FFplayerKeymapFunction.FuncSeekPlus60sec,    new FFmoduleKeysClass{System.Windows.Forms.Keys.Up} },
+            { ffmodule.FFplayerKeymapFunction.FuncSeekMinus60sec,   new FFmoduleKeysClass{System.Windows.Forms.Keys.Down} },
+            { ffmodule.FFplayerKeymapFunction.FuncVolumeUp,         new FFmoduleKeysClass{System.Windows.Forms.Keys.Insert} },
+            { ffmodule.FFplayerKeymapFunction.FuncVolumeDown,       new FFmoduleKeysClass{System.Windows.Forms.Keys.Delete} },
+            { ffmodule.FFplayerKeymapFunction.FuncToggleFullscreen, new FFmoduleKeysClass{System.Windows.Forms.Keys.F} },
+            { ffmodule.FFplayerKeymapFunction.FuncToggleDisplay,    new FFmoduleKeysClass{System.Windows.Forms.Keys.D} },
+            { ffmodule.FFplayerKeymapFunction.FuncToggleMute,       new FFmoduleKeysClass{System.Windows.Forms.Keys.M} },
+            { ffmodule.FFplayerKeymapFunction.FuncCycleChannel,     new FFmoduleKeysClass{System.Windows.Forms.Keys.C} },
+            { ffmodule.FFplayerKeymapFunction.FuncCycleAudio,       new FFmoduleKeysClass{System.Windows.Forms.Keys.A} },
+            { ffmodule.FFplayerKeymapFunction.FuncCycleSubtitle,    new FFmoduleKeysClass{System.Windows.Forms.Keys.T} },
+            { ffmodule.FFplayerKeymapFunction.FuncForwardChapter,   new FFmoduleKeysClass{System.Windows.Forms.Keys.PageUp} },
+            { ffmodule.FFplayerKeymapFunction.FuncRewindChapter,    new FFmoduleKeysClass{System.Windows.Forms.Keys.PageDown} },
+            { ffmodule.FFplayerKeymapFunction.FuncTogglePause,      new FFmoduleKeysClass{System.Windows.Forms.Keys.P} },
+        };
+        public static string FontFilepath = "ipaexg.ttf";
+        public static int FontPtSize = 48;
+        public static double FFmodule_TransferLimit = 512;
         public static bool debug = false;
+        // temporary
+        public static bool FFmodule_fullscreen = false;
+        public static bool FFmodule_display = false;
+        public static double FFmodule_volume = 50;
+        public static bool FFmodule_mute = false;
 
         private static byte[] _salt = Encoding.ASCII.GetBytes("TSviewACD");
         private const string password = ConfigAPI.token_save_password;
@@ -200,6 +229,23 @@ namespace TSviewACD
                         SendVK = data.SendVK;
                     if (!string.IsNullOrWhiteSpace(data.SendVK_Application))
                         SendVK_Application = data.SendVK_Application;
+                    if (data.UploadBandwidthLimit != default(double))
+                        UploadLimit = data.UploadBandwidthLimit;
+                    if (data.DownloadBandwidthLimit != default(double))
+                        DownloadLimit = data.DownloadBandwidthLimit;
+                    if (data.FFmoduleKeybinds != null)
+                    {
+                        if (data.FFmoduleKeybinds.Count() >= FFmoduleKeybinds.Count())
+                            FFmoduleKeybinds = data.FFmoduleKeybinds;
+                        else
+                            data.FFmoduleKeybinds.ToList().ForEach(x => FFmoduleKeybinds[x.Key] = x.Value);
+                    }
+                    if (!string.IsNullOrWhiteSpace(data.FontFilepath))
+                        FontFilepath = data.FontFilepath;
+                    if (data.FontPtSize != default(int))
+                        FontPtSize = data.FontPtSize;
+                    if (data.FFmodule_TransferLimit != default(double))
+                        FFmodule_TransferLimit = data.FFmodule_TransferLimit;
                     contentUrl = data.contentUrl;
                     metadataUrl = data.metadataUrl;
                     if (data.URL_time < DateTime.Now)
@@ -231,9 +277,15 @@ namespace TSviewACD
                     SendRatebyTOTCount = SendRatebyTOTCount,
                     SendVK = SendVK,
                     SendVK_Application = SendVK_Application,
+                    UploadBandwidthLimit = UploadLimit,
+                    DownloadBandwidthLimit = DownloadLimit,
                     contentUrl = contentUrl,
                     metadataUrl = metadataUrl,
                     URL_time = URL_time,
+                    FFmoduleKeybinds = FFmoduleKeybinds,
+                    FontPtSize = FontPtSize,
+                    FontFilepath = FontFilepath,
+                    FFmodule_TransferLimit = FFmodule_TransferLimit,
                 };
                 serializer.WriteObject(xmlw, data);
             }
@@ -268,10 +320,32 @@ namespace TSviewACD
         [DataMember]
         public string SendVK_Application;
         [DataMember]
+        public double UploadBandwidthLimit;
+        [DataMember]
+        public double DownloadBandwidthLimit;
+        [DataMember]
         public string contentUrl;
         [DataMember]
         public string metadataUrl;
         [DataMember]
         public DateTime URL_time;
+        [DataMember]
+        public FFmoduleKeybindsClass FFmoduleKeybinds;
+        [DataMember]
+        public string FontFilepath;
+        [DataMember]
+        public int FontPtSize;
+        [DataMember]
+        public double FFmodule_TransferLimit;
     }
+
+    [CollectionDataContract
+    (Name = "FFmoduleKeyBinds",
+    ItemName = "entry",
+    KeyName = "command",
+    ValueName = "keys")]
+    public class FFmoduleKeybindsClass : Dictionary<ffmodule.FFplayerKeymapFunction, FFmoduleKeysClass> { }
+
+    [CollectionDataContract(Name = "bindkeys")]
+    public class FFmoduleKeysClass : Collection<System.Windows.Forms.Keys>{ }
 }

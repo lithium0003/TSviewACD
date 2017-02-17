@@ -16,6 +16,7 @@ namespace TSviewACD
     class ConsoleFunc
     {
         private static AmazonDrive Drive = null;
+        private static List<TaskCanselToken> ConsoleTasks = new List<TaskCanselToken>();
 
         public async static Task<int> MainFunc(string[] args)
         {
@@ -58,6 +59,9 @@ namespace TSviewACD
                     else targetArgsList.Add(p);
                 }
             }
+            if (targetArgsList.Count == 0)
+                targetArgsList.Add("help");
+
             var paramArgs = paramArgsList.ToArray();
             var targetArgs = targetArgsList.ToArray();
 
@@ -98,555 +102,519 @@ namespace TSviewACD
             return 0;
         }
 
-        protected static void CtrlC_Handler(object sender, ConsoleCancelEventArgs args)
+        async protected static void CtrlC_Handler(object sender, ConsoleCancelEventArgs args)
         {
             Console.Error.WriteLine("");
             Console.Error.WriteLine("Cancel...");
-            Drive?.Cancel();
+            foreach (var task in ConsoleTasks)
+                task.cts.Cancel();
             args.Cancel = true;
+            await Task.Run(() =>
+            {
+                while (ConsoleTasks.Count > 0)
+                    Thread.Sleep(100);
+            }).ConfigureAwait(false);
         }
 
         private static async Task Login()
         {
-            Console.Error.WriteLine("Login Start.");
-            // Login & GetEndpoint
-            if (await Drive.Login().ConfigureAwait(false) &&
-                await Drive.GetEndpoint().ConfigureAwait(false))
+            var task = new TaskCanselToken("Login");
+            ConsoleTasks.Add(task);
+            try
             {
-                Console.Error.WriteLine("Login done.");
+                Console.Error.WriteLine("Login Start.");
+                // Login & GetEndpoint
+                if (await Drive.Login(task.cts.Token).ConfigureAwait(false) &&
+                    await Drive.GetEndpoint(task.cts.Token).ConfigureAwait(false))
+                {
+                    Console.Error.WriteLine("Login done.");
+                }
+                else
+                {
+                    Console.Error.WriteLine("Login failed.");
+                    throw new ApplicationException("Login failed.");
+                }
             }
-            else
+            finally
             {
-                Console.Error.WriteLine("Login failed.");
-                throw new ApplicationException("Login failed.");
+                ConsoleTasks.Remove(task);
             }
         }
 
 
-        static async Task<FileMetadata_Info[]> FindItems(string[] path_str, FileMetadata_Info root = null)
+        static async Task<FileMetadata_Info[]> FindItems(string[] path_str, FileMetadata_Info root = null, CancellationToken ct = default(CancellationToken))
         {
-            List<FileMetadata_Info> ret = new List<FileMetadata_Info>();
-            if (root == null)
+            TaskCanselToken task = null;
+            if (ct == default(CancellationToken))
             {
-                Console.Error.WriteLine("loading Drive tree...");
-                Console.Error.WriteLine("root...");
-                // Load Root
-                root = (await Drive.ListMetadata("isRoot:true").ConfigureAwait(false)).data[0];
+                task = new TaskCanselToken("FindItems");
+                ConsoleTasks.Add(task);
+                ct = task.cts.Token;
             }
-            if (!(path_str?.Length > 0))
+            try
             {
-                ret.Add(root);
-                return ret.ToArray();
-            }
-            while (path_str.Length > 0 && string.IsNullOrEmpty(path_str.First()))
-            {
-                path_str = path_str.Skip(1).ToArray();
-            }
-            if (path_str.Length == 0)
-            {
-                ret.Add(root);
-                return ret.ToArray();
-            }
-
-            Console.Error.WriteLine("loading child of "+root.name);
-            // add tree Root
-            // Load Children
-            var children = (await Drive.ListChildren(root.id).ConfigureAwait(false)).data;
-
-            foreach(var c in children)
-            {
-                if(c.name == path_str[0] 
-                    ||
-                    ((path_str[0].Contains('*') || path_str[0].Contains('?'))
-                            && Regex.IsMatch(c.name, Regex.Escape(path_str[0]).Replace("\\*", ".*").Replace("\\?", "."))))
+                List<FileMetadata_Info> ret = new List<FileMetadata_Info>();
+                if (root == null)
                 {
-                    if (c.kind == "FOLDER")
-                        ret.AddRange(await FindItems(path_str.Skip(1).ToArray(), c).ConfigureAwait(false));
-                    else
+                    Console.Error.WriteLine("loading Drive tree...");
+                    Console.Error.WriteLine("root...");
+                    // Load Root
+                    root = (await Drive.ListMetadata("isRoot:true", ct: ct).ConfigureAwait(false)).data[0];
+                }
+                if (!(path_str?.Length > 0))
+                {
+                    ret.Add(root);
+                    return ret.ToArray();
+                }
+                while (path_str.Length > 0 && string.IsNullOrEmpty(path_str.First()))
+                {
+                    path_str = path_str.Skip(1).ToArray();
+                }
+                if (path_str.Length == 0)
+                {
+                    ret.Add(root);
+                    return ret.ToArray();
+                }
+
+                Console.Error.WriteLine("loading child of " + root.name);
+                // add tree Root
+                // Load Children
+                var children = (await Drive.ListChildren(root.id, ct: ct).ConfigureAwait(false)).data;
+
+                foreach (var c in children)
+                {
+                    if (c.name == path_str[0]
+                        ||
+                        ((path_str[0].Contains('*') || path_str[0].Contains('?'))
+                                && Regex.IsMatch(c.name, Regex.Escape(path_str[0]).Replace("\\*", ".*").Replace("\\?", "."))))
                     {
-                        if (path_str[0] == c.name 
-                            ||
-                            (((path_str[0].Contains('*') || path_str[0].Contains('?'))
-                                && Regex.IsMatch(c.name, Regex.Escape(path_str[0]).Replace("\\*", ".*").Replace("\\?", ".")))))
+                        if (c.kind == "FOLDER")
+                            ret.AddRange(await FindItems(path_str.Skip(1).ToArray(), c, ct: ct).ConfigureAwait(false));
+                        else
                         {
-                            ret.Add(c);
+                            if (path_str[0] == c.name
+                                ||
+                                (((path_str[0].Contains('*') || path_str[0].Contains('?'))
+                                    && Regex.IsMatch(c.name, Regex.Escape(path_str[0]).Replace("\\*", ".*").Replace("\\?", ".")))))
+                            {
+                                ret.Add(c);
+                            }
                         }
                     }
                 }
+                ret.Sort((x, y) => x.name.CompareTo(y.name));
+                return ret.ToArray();
             }
-            ret.Sort((x,y) => x.name.CompareTo(y.name));
-            return ret.ToArray();
+            finally
+            {
+                if(task != null)
+                    ConsoleTasks.Remove(task);
+            }
         }
 
 
-        static async Task<string> FindItemsID(string[] path_str, FileMetadata_Info root = null)
+        static async Task<string> FindItemsID(string[] path_str, FileMetadata_Info root = null, CancellationToken ct = default(CancellationToken))
         {
-            if (path_str.Length == 0) return root?.id;
-            while (path_str.Length > 0 && string.IsNullOrEmpty(path_str.First()))
+            TaskCanselToken task = null;
+            if (ct == default(CancellationToken))
             {
-                path_str = path_str.Skip(1).ToArray();
+                task = new TaskCanselToken("FindItemsID");
+                ConsoleTasks.Add(task);
+                ct = task.cts.Token;
             }
-            if (path_str.Length == 0) return root?.id;
-
-            if (root == null)
+            try
             {
-                Console.Error.WriteLine("loading Drive tree...");
-                Console.Error.WriteLine("root...");
-                // Load Root
-                root = (await Drive.ListMetadata("isRoot:true").ConfigureAwait(false)).data[0];
-            }
-
-            Console.Error.WriteLine("loading child of " + root.name);
-            // add tree Root
-            // Load Children
-            var children = (await Drive.ListChildren(root.id).ConfigureAwait(false)).data;
-
-            foreach (var c in children)
-            {
-                if (c.name == path_str[0])
+                if (path_str.Length == 0) return root?.id;
+                while (path_str.Length > 0 && string.IsNullOrEmpty(path_str.First()))
                 {
-                    if (c.kind == "FOLDER")
-                        return await FindItemsID(path_str.Skip(1).ToArray(), c).ConfigureAwait(false);
-                    else
+                    path_str = path_str.Skip(1).ToArray();
+                }
+                if (path_str.Length == 0) return root?.id;
+
+                if (root == null)
+                {
+                    Console.Error.WriteLine("loading Drive tree...");
+                    Console.Error.WriteLine("root...");
+                    // Load Root
+                    root = (await Drive.ListMetadata("isRoot:true", ct: ct).ConfigureAwait(false)).data[0];
+                }
+
+                Console.Error.WriteLine("loading child of " + root.name);
+                // add tree Root
+                // Load Children
+                var children = (await Drive.ListChildren(root.id, ct: ct).ConfigureAwait(false)).data;
+
+                foreach (var c in children)
+                {
+                    if (c.name == path_str[0])
                     {
-                        return null;
+                        if (c.kind == "FOLDER")
+                            return await FindItemsID(path_str.Skip(1).ToArray(), c).ConfigureAwait(false);
+                        else
+                        {
+                            return null;
+                        }
                     }
                 }
+                return null;
             }
-            return null;
+            finally
+            {
+                if (task != null)
+                    ConsoleTasks.Remove(task);
+            }
         }
 
         static async Task<int> ListItems(string[] targetArgs, string[] paramArgs)
         {
-            string remotepath = null;
-            FileMetadata_Info[] target = null;
-
-            if (targetArgs.Length > 1)
-            {
-                remotepath = targetArgs[1];
-                remotepath = remotepath.Replace('\\', '/');
-            }
-
+            var task = new TaskCanselToken("ListItems");
+            ConsoleTasks.Add(task);
             try
             {
-                Drive = new AmazonDrive();
-                await Login().ConfigureAwait(false);
-                target = await FindItems(remotepath?.Split('/')).ConfigureAwait(false);
+                string remotepath = null;
+                FileMetadata_Info[] target = null;
 
-                if (target.Length < 1) return 2;
-
-                Console.Error.WriteLine("Found : " + target.Length);
-                foreach (var item in target)
+                if (targetArgs.Length > 1)
                 {
-                    Console.WriteLine(item.name + ((item.kind == "FOLDER") ? "/" : ""));
+                    remotepath = targetArgs[1];
+                    remotepath = remotepath.Replace('\\', '/');
                 }
 
-                return 0;
+                try
+                {
+                    Drive = new AmazonDrive();
+                    await Login().ConfigureAwait(false);
+                    target = await FindItems(remotepath?.Split('/'), ct: task.cts.Token).ConfigureAwait(false);
+
+                    if (target.Length < 1) return 2;
+
+                    Console.Error.WriteLine("Found : " + target.Length);
+                    foreach (var item in target)
+                    {
+                        Console.WriteLine(item.name + ((item.kind == "FOLDER") ? "/" : ""));
+                    }
+
+                    return 0;
+                }
+                catch (OperationCanceledException)
+                {
+                    return -1;
+                }
+                catch (Exception ex)
+                {
+                    Console.Error.WriteLine("error: " + ex.ToString());
+                    return 1;
+                }
             }
-            catch (OperationCanceledException)
+            finally
             {
-                return -1;
-            }
-            catch (Exception ex)
-            {
-                Console.Error.WriteLine("error: " + ex.ToString());
-                return 1;
+                ConsoleTasks.Remove(task);
             }
         }
 
         static async Task<int> Download(string[] targetArgs, string[] paramArgs)
         {
-            string remotepath = null;
-            string localpath = null;
-            FileMetadata_Info[] target = null;
-
-            if (targetArgs.Length > 2)
-                localpath = targetArgs[2];
-            if (targetArgs.Length > 1)
-            {
-                remotepath = targetArgs[1];
-                remotepath = remotepath.Replace('\\', '/');
-            }
-
-            if (string.IsNullOrEmpty(remotepath))
-            {
-                return 0;
-            }
-
-            bool hashflag = false;
-            foreach (var p in paramArgs)
-            {
-                switch (p)
-                {
-                    case "md5":
-                        Console.Error.WriteLine("(--md5: hash check mode)");
-                        hashflag = true;
-                        break;
-                }
-            }
-
+            var task = new TaskCanselToken("Download");
+            ConsoleTasks.Add(task);
+            var ct = task.cts.Token;
             try
             {
-                Drive = new AmazonDrive();
-                await Login().ConfigureAwait(false);
-                target = await FindItems(remotepath.Split('/')).ConfigureAwait(false);
+                string remotepath = null;
+                string localpath = null;
+                FileMetadata_Info[] target = null;
 
-                if (target.Length < 1) return 2;
-            }
-            catch (OperationCanceledException)
-            {
-                return -1;
-            }
-            catch (Exception ex)
-            {
-                Console.Error.WriteLine("error: " + ex.ToString());
-                return 1;
-            }
-
-            if (String.IsNullOrEmpty(localpath))
-            {
-                Thread t = new Thread(new ThreadStart(() =>
+                if (targetArgs.Length > 2)
+                    localpath = targetArgs[2];
+                if (targetArgs.Length > 1)
                 {
-                    if (target.Length > 1)
-                    {
-                        using (var save = new FolderBrowserDialog())
-                        {
-                            save.Description = "Select Save Folder for Download Items";
-                            if (save.ShowDialog() != DialogResult.OK) return;
-                            localpath = save.SelectedPath;
-                        }
-
-                    }
-                    else
-                    {
-                        using (var save = new SaveFileDialog())
-                        {
-                            save.FileName = target[0].name;
-                            if (save.ShowDialog() != DialogResult.OK) return;
-                            localpath = save.FileName;
-                        }
-                    }
-                }));
-                t.SetApartmentState(System.Threading.ApartmentState.STA);
-                t.Start();
-                t.Join();
-                if (localpath == null) return 0;
-            }
-
-            try
-            {
-                Console.Error.WriteLine("remote:" + remotepath);
-                Console.Error.WriteLine("local:" + localpath);
-
-                if (target.Length == 1 && Path.GetFileName(localpath) == "")
-                {
-                    localpath = Path.Combine(localpath, target[0].name);
-                }
-                if (target.Length > 1 && Path.GetFileName(localpath) != "")
-                {
-                    localpath += "\\";
+                    remotepath = targetArgs[1];
+                    remotepath = remotepath.Replace('\\', '/');
                 }
 
-                var f_cur = 0;
-                foreach (var downitem in target)
+                if (string.IsNullOrEmpty(remotepath))
                 {
-                    Console.Error.WriteLine("Download : " + downitem.name);
-                    var download_str = (target.Length > 1) ? string.Format("Download({0}/{1})...", ++f_cur, target.Length) : "Download...";
+                    return 0;
+                }
 
-                    var savefilename = (target.Length > 1) ? localpath + downitem.name : localpath;
+                bool hashflag = false;
+                foreach (var p in paramArgs)
+                {
+                    switch (p)
+                    {
+                        case "md5":
+                            Console.Error.WriteLine("(--md5: hash check mode)");
+                            hashflag = true;
+                            break;
+                    }
+                }
 
-                    var retry = 5;
-                    while (--retry > 0)
-                        try
+                try
+                {
+                    Drive = new AmazonDrive();
+                    await Login().ConfigureAwait(false);
+                    target = await FindItems(remotepath.Split('/'), ct: ct).ConfigureAwait(false);
+
+                    if (target.Length < 1) return 2;
+                }
+                catch (OperationCanceledException)
+                {
+                    return -1;
+                }
+                catch (Exception ex)
+                {
+                    Console.Error.WriteLine("error: " + ex.ToString());
+                    return 1;
+                }
+
+                if (String.IsNullOrEmpty(localpath))
+                {
+                    Thread t = new Thread(new ThreadStart(() =>
+                    {
+                        if (target.Length > 1)
                         {
-                            using (var outfile = File.Open(savefilename, FileMode.Create, FileAccess.Write, FileShare.Read))
+                            using (var save = new FolderBrowserDialog())
                             {
-                                Console.Error.WriteLine("");
-                                if (downitem.contentProperties.size > 10 * 1024 * 1024 * 1024L)
+                                save.Description = "Select Save Folder for Download Items";
+                                if (save.ShowDialog() != DialogResult.OK) return;
+                                localpath = save.SelectedPath;
+                            }
+
+                        }
+                        else
+                        {
+                            using (var save = new SaveFileDialog())
+                            {
+                                save.FileName = target[0].name;
+                                if (save.ShowDialog() != DialogResult.OK) return;
+                                localpath = save.FileName;
+                            }
+                        }
+                    }));
+                    t.SetApartmentState(System.Threading.ApartmentState.STA);
+                    t.Start();
+                    t.Join();
+                    if (localpath == null) return 0;
+                }
+
+                try
+                {
+                    Console.Error.WriteLine("remote:" + remotepath);
+                    Console.Error.WriteLine("local:" + localpath);
+
+                    if (target.Length == 1 && Path.GetFileName(localpath) == "")
+                    {
+                        localpath = Path.Combine(localpath, target[0].name);
+                    }
+                    if (target.Length > 1 && Path.GetFileName(localpath) != "")
+                    {
+                        localpath += "\\";
+                    }
+
+                    var f_cur = 0;
+                    foreach (var downitem in target)
+                    {
+                        Console.Error.WriteLine("Download : " + downitem.name);
+                        var download_str = (target.Length > 1) ? string.Format("Download({0}/{1})...", ++f_cur, target.Length) : "Download...";
+
+                        var savefilename = (target.Length > 1) ? localpath + downitem.name : localpath;
+                        var retry = 5;
+                        while (--retry > 0)
+                            try
+                            {
+                                using (var outfile = File.Open(savefilename, FileMode.Create, FileAccess.Write, FileShare.Read))
                                 {
-                                    Console.Error.WriteLine("Download : <BIG FILE> temporary filename change");
-                                    try
+                                    Console.Error.WriteLine("");
+                                    if (downitem.contentProperties.size > 10 * 1024 * 1024 * 1024L)
                                     {
-                                        var tmpfile = await Drive.renameItem(downitem.id, ConfigAPI.temporaryFilename + downitem.id);
-                                        var ret = await Drive.downloadFile(downitem.id);
+                                        Console.Error.WriteLine("Download : <BIG FILE> temporary filename change");
+                                        try
+                                        {
+                                            var tmpfile = await Drive.renameItem(downitem.id, ConfigAPI.temporaryFilename + downitem.id);
+                                            var ret = await Drive.downloadFile(downitem.id, ct: ct);
+                                            var f = new PositionStream(ret, downitem.contentProperties.size.Value);
+                                            f.PosChangeEvent += (src, evnt) =>
+                                            {
+                                                Console.Error.Write("\r{0,-79}", download_str + evnt.Log);
+                                            };
+                                            await f.CopyToAsync(outfile, 16 * 1024 * 1024, ct);
+                                        }
+                                        finally
+                                        {
+                                            await Drive.renameItem(downitem.id, downitem.name);
+                                        }
+                                    }
+                                    else
+                                    {
+                                        var ret = await Drive.downloadFile(downitem.id, ct: ct);
                                         var f = new PositionStream(ret, downitem.contentProperties.size.Value);
                                         f.PosChangeEvent += (src, evnt) =>
                                         {
                                             Console.Error.Write("\r{0,-79}", download_str + evnt.Log);
                                         };
-                                        await f.CopyToAsync(outfile, 16 * 1024 * 1024, Drive.ct);
-                                    }
-                                    finally
-                                    {
-                                        await Drive.renameItem(downitem.id, downitem.name);
+                                        await f.CopyToAsync(outfile, 16 * 1024 * 1024, ct);
                                     }
                                 }
-                                else
-                                {
-                                    var ret = await Drive.downloadFile(downitem.id);
-                                    var f = new PositionStream(ret, downitem.contentProperties.size.Value);
-                                    f.PosChangeEvent += (src, evnt) =>
-                                    {
-                                        Console.Error.Write("\r{0,-79}", download_str + evnt.Log);
-                                    };
-                                    await f.CopyToAsync(outfile, 16 * 1024 * 1024, Drive.ct);
-                                }
-                            }
-                            Console.Error.WriteLine("\r\nDownload : done.");
+                                Console.Error.WriteLine("\r\nDownload : done.");
 
-                            if (hashflag && downitem.contentProperties?.md5 != null)
+                                if (hashflag && downitem.contentProperties?.md5 != null)
+                                {
+                                    using (var md5calc = new System.Security.Cryptography.MD5CryptoServiceProvider())
+                                    using (var hfile = File.Open(savefilename, FileMode.Open, FileAccess.Read, FileShare.Read))
+                                    {
+                                        byte[] md5 = null;
+                                        Console.Error.WriteLine("Hash check start...");
+                                        await Task.Run(() => { md5 = md5calc.ComputeHash(hfile); }, ct);
+                                        Console.Error.WriteLine("Hash done.");
+                                        var md5string = BitConverter.ToString(md5).ToLower().Replace("-", "");
+                                        if (md5string == downitem.contentProperties.md5)
+                                        {
+                                            Console.Error.WriteLine("Hash check is OK.");
+                                        }
+                                        else
+                                        {
+                                            Console.Error.WriteLine("Hash check failed. retry..." + retry.ToString());
+                                            continue;
+                                        }
+                                    }
+                                }
+                                break;
+                            }
+                            catch (OperationCanceledException)
                             {
-                                using (var md5calc = new System.Security.Cryptography.MD5CryptoServiceProvider())
-                                using (var hfile = File.Open(savefilename, FileMode.Open, FileAccess.Read, FileShare.Read))
-                                {
-                                    byte[] md5 = null;
-                                    Console.Error.WriteLine("Hash check start...");
-                                    await Task.Run(() => { md5 = md5calc.ComputeHash(hfile); }, Drive.ct);
-                                    Console.Error.WriteLine("Hash done.");
-                                    var md5string = BitConverter.ToString(md5).ToLower().Replace("-", "");
-                                    if (md5string == downitem.contentProperties.md5)
-                                    {
-                                        Console.Error.WriteLine("Hash check is OK.");
-                                    }
-                                    else
-                                    {
-                                        Console.Error.WriteLine("Hash check failed. retry..." + retry.ToString());
-                                        continue;
-                                    }
-                                }
+                                throw;
                             }
-                            break;
-                        }
-                        catch (OperationCanceledException)
-                        {
-                            throw;
-                        }
-                        catch (Exception ex)
-                        {
-                            Console.Error.WriteLine("Download : Error");
-                            Console.Error.WriteLine(ex.Message);
-                            continue;
-                        }
+                            catch (Exception ex)
+                            {
+                                Console.Error.WriteLine("Download : Error");
+                                Console.Error.WriteLine(ex.Message);
+                                continue;
+                            }
 
-                    if (retry == 0)
-                    {
-                        Console.Error.WriteLine("Download : Failed.");
-                        return 1;
+                        if (retry == 0)
+                        {
+                            Console.Error.WriteLine("Download : Failed.");
+                            return 1;
+                        }
+                        Console.Error.WriteLine("Download : Done.");
                     }
-                    Console.Error.WriteLine("Download : Done.");
+                    return 0;
                 }
-                return 0;
+                catch (OperationCanceledException)
+                {
+                    return -1;
+                }
+                catch (Exception ex)
+                {
+                    Console.Error.WriteLine("error: " + ex.ToString());
+                    return 1;
+                }
             }
-            catch (OperationCanceledException)
+            finally
             {
-                return -1;
-            }
-            catch (Exception ex)
-            {
-                Console.Error.WriteLine("error: "+ex.ToString());
-                return 1;
+                ConsoleTasks.Remove(task);
             }
         }
 
         static async Task<int> Upload(string[] targetArgs, string[] paramArgs)
         {
-            string remotepath = null;
-            string localpath = null;
-            string target_id = null;
-
-            bool hashflag = false;
-            foreach (var p in paramArgs)
-            {
-                switch (p)
-                {
-                    case "md5":
-                        Console.Error.WriteLine("(--md5: hash check mode)");
-                        hashflag = true;
-                        break;
-                }
-            }
-
-            if (targetArgs.Length > 2)
-            {
-                remotepath = targetArgs[2];
-                remotepath = remotepath.Replace('\\', '/');
-
-            }
-            if (targetArgs.Length > 1)
-                localpath = targetArgs[1];
-
-            if (string.IsNullOrEmpty(remotepath) || string.IsNullOrEmpty(localpath))
-            {
-                return 0;
-            }
+            var task = new TaskCanselToken("Download");
+            ConsoleTasks.Add(task);
+            var ct = task.cts.Token;
             try
             {
-                Drive = new AmazonDrive();
-                await Login().ConfigureAwait(false);
-                target_id = await FindItemsID(remotepath.Split('/'));
+                string remotepath = null;
+                string localpath = null;
+                string target_id = null;
 
-                if (string.IsNullOrEmpty(target_id)) return 2;
-            }
-            catch (OperationCanceledException)
-            {
-                return -1;
-            }
-            catch (Exception ex)
-            {
-                Console.Error.WriteLine("error: " + ex.ToString());
-                return 1;
-            }
-
-            try
-            {
-                Console.Error.WriteLine("remote:" + remotepath);
-                Console.Error.WriteLine("local:" + localpath);
-
-                Console.Error.WriteLine("Upload File: " + localpath);
-                Console.Error.WriteLine("Confrict check");
-
-                FileMetadata_Info[] done_files = (await Drive.ListChildren(target_id).ConfigureAwait(false)).data;
-
-                var upload_str = "Upload...";
-                var short_filename = Path.GetFileName(localpath);
-                string md5string = null;
-
-                if (done_files?.Select(x => x.name).Contains(short_filename) ?? false)
+                bool hashflag = false;
+                foreach (var p in paramArgs)
                 {
-                    var target = done_files.First(x => x.name == short_filename);
-                    if (new FileInfo(localpath).Length == target.contentProperties?.size)
+                    switch (p)
                     {
-                        if (!hashflag)
+                        case "md5":
+                            Console.Error.WriteLine("(--md5: hash check mode)");
+                            hashflag = true;
+                            break;
+                    }
+                }
+
+                if (targetArgs.Length > 2)
+                {
+                    remotepath = targetArgs[2];
+                    remotepath = remotepath.Replace('\\', '/');
+
+                }
+                if (targetArgs.Length > 1)
+                    localpath = targetArgs[1];
+
+                if (string.IsNullOrEmpty(remotepath) || string.IsNullOrEmpty(localpath))
+                {
+                    return 0;
+                }
+                try
+                {
+                    Drive = new AmazonDrive();
+                    await Login().ConfigureAwait(false);
+                    target_id = await FindItemsID(remotepath.Split('/'), ct: ct);
+
+                    if (string.IsNullOrEmpty(target_id)) return 2;
+                }
+                catch (OperationCanceledException)
+                {
+                    return -1;
+                }
+                catch (Exception ex)
+                {
+                    Console.Error.WriteLine("error: " + ex.ToString());
+                    return 1;
+                }
+
+                try
+                {
+                    Console.Error.WriteLine("remote:" + remotepath);
+                    Console.Error.WriteLine("local:" + localpath);
+
+                    Console.Error.WriteLine("Upload File: " + localpath);
+                    Console.Error.WriteLine("Confrict check");
+
+                    FileMetadata_Info[] done_files = (await Drive.ListChildren(target_id, ct: ct).ConfigureAwait(false)).data;
+
+                    var upload_str = "Upload...";
+                    var short_filename = Path.GetFileName(localpath);
+                    string md5string = null;
+
+
+                    if (done_files?.Select(x => x.name).Contains(short_filename) ?? false)
+                    {
+                        var target = done_files.First(x => x.name == short_filename);
+                        if (new FileInfo(localpath).Length == target.contentProperties?.size)
                         {
-                            Console.Error.WriteLine("Item is already uploaded.");
-                            return 99;
-                        }
-                        using (var md5calc = new System.Security.Cryptography.MD5CryptoServiceProvider())
-                        using (var hfile = File.Open(localpath, FileMode.Open, FileAccess.Read, FileShare.Read))
-                        {
-                            byte[] md5 = null;
-                            Console.Error.WriteLine("Hash check start...");
-                            await Task.Run(() => { md5 = md5calc.ComputeHash(hfile); }, Drive.ct);
-                            Console.Error.WriteLine("Hash done.");
-                            md5string = BitConverter.ToString(md5).ToLower().Replace("-", "");
-                            if (md5string == target.contentProperties?.md5)
+                            if (!hashflag)
                             {
-                                Console.Error.WriteLine("Item is already uploaded and same Hash.");
-                                return 999;
+                                Console.Error.WriteLine("Item is already uploaded.");
+                                return 99;
+                            }
+                            using (var md5calc = new System.Security.Cryptography.MD5CryptoServiceProvider())
+                            using (var hfile = File.Open(localpath, FileMode.Open, FileAccess.Read, FileShare.Read))
+                            {
+                                byte[] md5 = null;
+                                Console.Error.WriteLine("Hash check start...");
+                                await Task.Run(() => { md5 = md5calc.ComputeHash(hfile); }, ct);
+                                Console.Error.WriteLine("Hash done.");
+                                md5string = BitConverter.ToString(md5).ToLower().Replace("-", "");
+                                if (md5string == target.contentProperties?.md5)
+                                {
+                                    Console.Error.WriteLine("Item is already uploaded and same Hash.");
+                                    return 999;
+                                }
                             }
                         }
-                    }
-                    Console.Error.WriteLine("conflict.");
-                    Console.Error.WriteLine("remove item...");
-                    try
-                    {
-                        await Drive.TrashItem(target.id);
-                        await Task.Delay(TimeSpan.FromSeconds(5), Drive.ct);
-                    }
-                    catch (OperationCanceledException)
-                    {
-                        throw;
-                    }
-                    catch (Exception)
-                    {
-                    }
-                }
-                if (hashflag && md5string == null)
-                {
-                    using (var md5calc = new System.Security.Cryptography.MD5CryptoServiceProvider())
-                    using (var hfile = File.Open(localpath, FileMode.Open, FileAccess.Read, FileShare.Read))
-                    {
-                        byte[] md5 = null;
-                        Console.Error.WriteLine("Hash check start...");
-                        await Task.Run(() => { md5 = md5calc.ComputeHash(hfile); }, Drive.ct);
-                        Console.Error.WriteLine("Hash done.");
-                        md5string = BitConverter.ToString(md5).ToLower().Replace("-", "");
-                    }
-                }
-                Console.Error.WriteLine("ok. Upload...");
-                Console.Error.WriteLine("");
-
-                int retry = 6;
-                while (--retry > 0)
-                {
-                    int checkretry = 4;
-                    try
-                    {
-                        var ret = await Drive.uploadFile(
-                            localpath,
-                            target_id,
-                            (src, evnt) =>
-                            {
-                                Console.Error.Write("\r{0,-79}", upload_str + evnt.Log);
-                            });
-                        if(!hashflag)
-                            break;
-                        if(ret.contentProperties.md5 == md5string)
-                        {
-                            Console.Error.WriteLine("");
-                            Console.Error.WriteLine("hash check OK.");
-                            break;
-                        }
-
-                        Console.Error.WriteLine("");
-                        Console.Error.WriteLine("MD5 hash not match. retry...");
-
+                        Console.Error.WriteLine("conflict.");
                         Console.Error.WriteLine("remove item...");
-                        await Drive.TrashItem(ret.id);
-                        await Task.Delay(TimeSpan.FromSeconds(5), Drive.ct);
-                        Console.Error.WriteLine("retry to upload..." + retry.ToString());
-                        continue;
-                    }
-                    catch (HttpRequestException ex)
-                    {
-                        Console.Error.WriteLine("");
-                        if (ex.Message.Contains("408 (REQUEST_TIMEOUT)")) checkretry = 6 * 5 + 1;
-                        if (ex.Message.Contains("409 (Conflict)")) checkretry = 6 * 5 + 1;
-                        if (ex.Message.Contains("504 (GATEWAY_TIMEOUT)")) checkretry = 6 * 5 + 1;
-                        Console.Error.WriteLine("Error: " + ex.Message);
-                    }
-                    catch (OperationCanceledException)
-                    {
-                        throw;
-                    }
-                    catch (Exception ex)
-                    {
-                        Console.Error.WriteLine("");
-                        checkretry = 3 + 1;
-                        Console.Error.WriteLine("Error: " + ex.Message);
-                    }
-
-                    Console.Error.WriteLine("Upload faild." + retry.ToString());
-                    // wait for retry
-                    while (--checkretry > 0)
-                    {
                         try
                         {
-                            Console.Error.WriteLine("Upload : wait 10sec for retry..." + checkretry.ToString());
-                            await Task.Delay(TimeSpan.FromSeconds(10), Drive.ct);
-
-                            var children = await Drive.ListChildren(target_id);
-                            if (children.data.Select(x => x.name).Contains(short_filename))
-                            {
-                                Console.Error.WriteLine("Upload : child found.");
-                                if (!hashflag)
-                                    break;
-                                var uploadeditem = children.data.Where(x => x.name == short_filename).First();
-                                if (uploadeditem.contentProperties.md5 != md5string)
-                                {
-                                    Console.Error.WriteLine("Upload : but hash is not match. retry..."+retry.ToString());
-                                    checkretry = 0;
-                                    Console.Error.WriteLine("conflict.");
-                                    Console.Error.WriteLine("remove item...");
-                                    await Drive.TrashItem(uploadeditem.id);
-                                    await Task.Delay(TimeSpan.FromSeconds(5), Drive.ct);
-                                }
-                                else
-                                {
-                                    Console.Error.WriteLine("Upload : hash check OK.");
-                                }
-                                break;
-                            }
+                            await Drive.TrashItem(target.id, ct);
+                            await Task.Delay(TimeSpan.FromSeconds(5), ct);
                         }
                         catch (OperationCanceledException)
                         {
@@ -656,31 +624,141 @@ namespace TSviewACD
                         {
                         }
                     }
-                    if (checkretry > 0)
-                        break;
+                    if (hashflag && md5string == null)
+                    {
+                        using (var md5calc = new System.Security.Cryptography.MD5CryptoServiceProvider())
+                        using (var hfile = File.Open(localpath, FileMode.Open, FileAccess.Read, FileShare.Read))
+                        {
+                            byte[] md5 = null;
+                            Console.Error.WriteLine("Hash check start...");
+                            await Task.Run(() => { md5 = md5calc.ComputeHash(hfile); }, ct);
+                            Console.Error.WriteLine("Hash done.");
+                            md5string = BitConverter.ToString(md5).ToLower().Replace("-", "");
+                        }
+                    }
+                    Console.Error.WriteLine("ok. Upload...");
+                    Console.Error.WriteLine("");
+
+                    int retry = 6;
+                    while (--retry > 0)
+                    {
+                        int checkretry = 4;
+                        try
+                        {
+                            var ret = await Drive.uploadFile(
+                                localpath,
+                                target_id,
+                                (src, evnt) =>
+                                {
+                                    Console.Error.Write("\r{0,-79}", upload_str + evnt.Log);
+                                },
+                                ct);
+                            if (!hashflag)
+                                break;
+                            if (ret.contentProperties.md5 == md5string)
+                            {
+                                Console.Error.WriteLine("");
+                                Console.Error.WriteLine("hash check OK.");
+                                break;
+                            }
+
+                            Console.Error.WriteLine("");
+                            Console.Error.WriteLine("MD5 hash not match. retry...");
+
+                            Console.Error.WriteLine("remove item...");
+                            await Drive.TrashItem(ret.id, ct);
+                            await Task.Delay(TimeSpan.FromSeconds(5), ct);
+                            Console.Error.WriteLine("retry to upload..." + retry.ToString());
+                            continue;
+                        }
+                        catch (HttpRequestException ex)
+                        {
+                            Console.Error.WriteLine("");
+                            if (ex.Message.Contains("408 (REQUEST_TIMEOUT)")) checkretry = 6 * 5 + 1;
+                            if (ex.Message.Contains("409 (Conflict)")) checkretry = 6 * 5 + 1;
+                            if (ex.Message.Contains("504 (GATEWAY_TIMEOUT)")) checkretry = 6 * 5 + 1;
+                            Console.Error.WriteLine("Error: " + ex.Message);
+                        }
+                        catch (OperationCanceledException)
+                        {
+                            throw;
+                        }
+                        catch (Exception ex)
+                        {
+                            Console.Error.WriteLine("");
+                            checkretry = 3 + 1;
+                            Console.Error.WriteLine("Error: " + ex.Message);
+                        }
+
+                        Console.Error.WriteLine("Upload faild." + retry.ToString());
+                        // wait for retry
+                        while (--checkretry > 0)
+                        {
+                            try
+                            {
+                                Console.Error.WriteLine("Upload : wait 10sec for retry..." + checkretry.ToString());
+                                await Task.Delay(TimeSpan.FromSeconds(10), ct);
+
+                                var children = await Drive.ListChildren(target_id, ct: ct);
+                                if (children.data.Select(x => x.name).Contains(short_filename))
+                                {
+                                    Console.Error.WriteLine("Upload : child found.");
+                                    if (!hashflag)
+                                        break;
+                                    var uploadeditem = children.data.Where(x => x.name == short_filename).First();
+                                    if (uploadeditem.contentProperties.md5 != md5string)
+                                    {
+                                        Console.Error.WriteLine("Upload : but hash is not match. retry..." + retry.ToString());
+                                        checkretry = 0;
+                                        Console.Error.WriteLine("conflict.");
+                                        Console.Error.WriteLine("remove item...");
+                                        await Drive.TrashItem(uploadeditem.id, ct);
+                                        await Task.Delay(TimeSpan.FromSeconds(5), ct);
+                                    }
+                                    else
+                                    {
+                                        Console.Error.WriteLine("Upload : hash check OK.");
+                                    }
+                                    break;
+                                }
+                            }
+                            catch (OperationCanceledException)
+                            {
+                                throw;
+                            }
+                            catch (Exception)
+                            {
+                            }
+                        }
+                        if (checkretry > 0)
+                            break;
+                    }
+                    if (retry == 0)
+                    {
+                        Console.Error.WriteLine("Upload : failed.");
+                        return -1;
+                    }
+
+                    Console.Error.WriteLine("");
+                    Console.Error.WriteLine("Upload : done.");
+
+                    return 0;
                 }
-                if (retry == 0)
+                catch (OperationCanceledException)
                 {
-                    Console.Error.WriteLine("Upload : failed.");
                     return -1;
                 }
-
-                Console.Error.WriteLine("");
-                Console.Error.WriteLine("Upload : done.");
-
-                return 0;
+                catch (Exception ex)
+                {
+                    Console.Error.WriteLine("error: " + ex.ToString());
+                    return 1;
+                }
             }
-            catch (OperationCanceledException)
+            finally
             {
-                return -1;
-            }
-            catch (Exception ex)
-            {
-                Console.Error.WriteLine("error: " + ex.ToString());
-                return 1;
+                ConsoleTasks.Remove(task);
             }
         }
-
         ///////////////////////////////////////////////////////////////////////////////////
         [DllImport("kernel32.dll", SetLastError = true)]
         private static extern bool AllocConsole();

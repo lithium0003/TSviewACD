@@ -26,16 +26,15 @@ namespace TSviewACD
         CancellationTokenSource ct_soruce;
         string error_str;
 
-        public AuthKeys Login()
+        public AuthKeys Login(CancellationToken ct = default(CancellationToken))
         {
-            webBrowser1.Navigate(
-                ConfigAPI.AmazonAPI_login + "?" +
+            string url = ConfigAPI.AmazonAPI_login + "?" +
                 "client_id=" + ConfigAPI.client_id + "&" +
                 "scope=" + "clouddrive%3Aread_all+clouddrive%3Awrite" + "&" +
                 "response_type=" + "code" + "&" +
-                "redirect_uri=" + ConfigAPI.App_redirect
-                );
-            ct_soruce = new CancellationTokenSource();
+                "redirect_uri=" + ConfigAPI.App_redirect;
+            webBrowser1.Navigate(url);
+            ct_soruce = CancellationTokenSource.CreateLinkedTokenSource(ct);
             ShowDialog();
             return key;
         }
@@ -58,7 +57,7 @@ namespace TSviewACD
                 if (i < 0) return;
 
                 string code = path.Substring(i + code_str.Length, path.IndexOf('&', i) - i - code_str.Length);
-                await GetAuthorizationCode(code);
+                await GetAuthorizationCode(code, ct_soruce.Token);
 
                 if(key != null && key.access_token != "")
                 {
@@ -68,7 +67,7 @@ namespace TSviewACD
             }
         }
 
-        private async Task GetAuthorizationCode(string access_code)
+        private async Task GetAuthorizationCode(string access_code, CancellationToken ct = default(CancellationToken))
         {
             using (var client = new HttpClient())
             {
@@ -83,7 +82,7 @@ namespace TSviewACD
                             {"client_secret",ConfigAPI.client_secret},
                             {"redirect_uri",Uri.EscapeUriString(ConfigAPI.App_redirect)},
                         }),
-                        ct_soruce.Token
+                        ct
                     );
                     response.EnsureSuccessStatusCode();
                     string responseBody = await response.Content.ReadAsStringAsync();

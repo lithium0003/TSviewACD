@@ -27,7 +27,7 @@ namespace TSviewACD
 
         private readonly SynchronizationContext synchronizationContext;
 
-        private StreamWriter LogStream;
+        private TextWriter LogStream;
         public bool LogToFile
         {
             get { return LogStream != null; }
@@ -39,7 +39,7 @@ namespace TSviewACD
                     {
                         try
                         {
-                            LogStream = new StreamWriter(new FileStream(Path.ChangeExtension(Application.ExecutablePath, "log"), FileMode.Append, FileAccess.Write, FileShare.Read));
+                            LogStream = TextWriter.Synchronized(new StreamWriter(Stream.Synchronized(new FileStream(Path.ChangeExtension(Application.ExecutablePath, "log"), FileMode.Append, FileAccess.Write, FileShare.Read))));
                         }
                         catch { }
                     }
@@ -63,17 +63,21 @@ namespace TSviewACD
 
         public void LogOut(string str)
         {
-            if(Config.debug)
-                Console.Error.WriteLine(str);
-            str = string.Format("[{0}] {1}\r\n", DateTime.Now.ToString(), str);
-            LogStream?.Write(str);
-            LogStream?.Flush();
-            synchronizationContext.Post(
-                (o) =>
-                {
-                    if (Config.IsClosing) return;
-                    SendMessage(textBox1.Handle, EM_REPLACESEL, 1, o as string);
-                }, str);
+            lock (this)
+            {
+                if (Config.debug)
+                    Console.Error.WriteLine(str);
+                str = string.Format("[{0}] {1}\r\n", DateTime.Now.ToString(), str);
+                LogStream?.Write(str);
+                LogStream?.Flush();
+                if (Config.IsClosing) return;
+                synchronizationContext.Post(
+                    (o) =>
+                    {
+                        if (Config.IsClosing) return;
+                        SendMessage(textBox1.Handle, EM_REPLACESEL, 1, o as string);
+                    }, str);
+            }
         }
 
         private void clearToolStripMenuItem_Click(object sender, EventArgs e)
@@ -102,6 +106,68 @@ namespace TSviewACD
         private void textBox1_MouseDown(object sender, MouseEventArgs e)
         {
             textBox1.Select(textBox1.Text.Length, 0);
+        }
+    }
+
+    class LogWindowStream : Stream
+    {
+        FormLogWindow log;
+        string strbuf = "";
+
+        public LogWindowStream(FormLogWindow window)
+        {
+            log = window;
+        }
+        public override long Length { get { return -1; } }
+        public override bool CanRead { get { return false; } }
+        public override bool CanWrite { get { return true; } }
+        public override bool CanSeek { get { return false; } }
+        public override long Position {
+            get { return -1; }
+            set { }
+        }
+        public override void SetLength(long value) { }
+
+        public override int Read(byte[] buffer, int offset, int count)
+        {
+            return -1;
+        }
+
+        public override long Seek(long offset, SeekOrigin origin)
+        {
+            return -1;
+        }
+
+        public override void Write(byte[] buffer, int offset, int count)
+        {
+            string buf1 = Encoding.UTF8.GetString(buffer, offset, count);
+            if (buf1.Contains("\r\n"))
+            {
+                foreach(var line in buf1.Split(new char[] { '\r', '\n' }))
+                {
+                    if (line == "")
+                    {
+                        LogOutput();
+                    }
+                    else
+                    {
+                        strbuf += line;
+                    }
+                }
+            }
+            else
+            {
+                strbuf += buf1;
+            }
+        }
+
+        public override void Flush() { LogOutput(); }
+
+        private void LogOutput()
+        {
+            if (strbuf == "") return;
+            log.LogOut("[FFmpeg]"+strbuf);
+            strbuf = "";
         }
     }
 }

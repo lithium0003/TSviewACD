@@ -80,6 +80,7 @@
       <DependentUpon>AboutBox1.cs</DependentUpon>
     </Compile>
     <Compile Include="AmazonDrive.cs" />
+    <Compile Include="AmazonDriveStream.cs" />
     <Compile Include="Config.cs" />
     <Compile Include="Console.cs" />
     <Compile Include="FFplay.cs" />
@@ -88,6 +89,12 @@
     </Compile>
     <Compile Include="Form1.Designer.cs">
       <DependentUpon>Form1.cs</DependentUpon>
+    </Compile>
+    <Compile Include="FormFFmoduleConfig.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="FormFFmoduleConfig.Designer.cs">
+      <DependentUpon>FormFFmoduleConfig.cs</DependentUpon>
     </Compile>
     <Compile Include="FormInputName.cs">
       <SubType>Form</SubType>
@@ -119,6 +126,8 @@
     </Compile>
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="TaskCanceler.cs" />
+    <Compile Include="ThrottleStream.cs" />
     <Compile Include="TS_packet.cs" />
     <Compile Include="UDPsend.cs" />
     <EmbeddedResource Include="AboutBox1.resx">
@@ -126,6 +135,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="Form1.resx">
       <DependentUpon>Form1.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="FormFFmoduleConfig.resx">
+      <DependentUpon>FormFFmoduleConfig.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="FormInputName.resx">
       <DependentUpon>FormInputName.cs</DependentUpon>
@@ -174,7 +186,17 @@
   <ItemGroup>
     <Content Include="logo.ico" />
   </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\ffmodule\ffmodule.vcxproj">
+      <Project>{9affb411-07d7-4e7c-8b6e-60bae66dc530}</Project>
+      <Name>ffmodule</Name>
+    </ProjectReference>
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <PropertyGroup>
+    <PostBuildEvent>mkdir $(SolutionDir)bin
+copy $(TargetPath) $(SolutionDir)bin</PostBuildEvent>
+  </PropertyGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
   <Target Name="BeforeBuild">

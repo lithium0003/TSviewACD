@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
 using System.Drawing;
+using System.Drawing.Imaging;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
@@ -25,10 +26,53 @@ namespace TSviewACD
         public Form1()
         {
             InitializeComponent();
+            toolStripMenuItem_Logout.Enabled = false;
             synchronizationContext = SynchronizationContext.Current;
             treeView1.Sorted = true;
             InitializeListView();
             Config.Log.LogOut("Application Start.");
+        }
+
+        private TaskCanselToken CreateTask(string taskname)
+        {
+            var item = new ListViewItem(taskname);
+            var task = new TaskCanselToken(taskname);
+            item.Tag = task;
+            listView_TaskList.Items.Add(item);
+            return task;
+        }
+
+        private void FinishTask(TaskCanselToken task)
+        {
+            var removes = listView_TaskList.Items.OfType<ListViewItem>().Where(x => x.Tag == task);
+            if (removes.Count() > 0)
+            {
+                foreach (var item in removes)
+                    listView_TaskList.Items.Remove(item);
+            }
+        }
+
+        private async Task CancelTask(string taskname)
+        {
+            foreach (var item in listView_TaskList.Items.OfType<ListViewItem>().Where(x => (x.Tag as TaskCanselToken).taskname == taskname).ToArray())
+            {
+                (item.Tag as TaskCanselToken).cts.Cancel();
+            }
+            while (listView_TaskList.Items.OfType<ListViewItem>().Where(x => (x.Tag as TaskCanselToken).taskname == taskname).Count() > 0)
+            {
+                await Task.Delay(100);
+            }
+        }
+
+        private bool CancelTaskAll()
+        {
+            var removes = listView_TaskList.Items;
+            if (removes.Count > 0)
+            {
+                foreach (ListViewItem item in removes)
+                    (item.Tag as TaskCanselToken).cts.Cancel();
+            }
+            return (listView_TaskList.Items.Count > 0);
         }
 
         private void listView1_ColumnClick(object sender, ColumnClickEventArgs e)
@@ -126,16 +170,19 @@ namespace TSviewACD
         private async Task Login()
         {
             Config.Log.LogOut("Login Start.");
+            var task = CreateTask("login");
+            var ct = task.cts.Token;
             try
             {
                 // Login & GetEndpoint
                 toolStripProgressBar1.Style = ProgressBarStyle.Marquee;
                 toolStripStatusLabel1.Text = "Login ...";
-                if (await Drive.Login() &&
-                    await Drive.GetEndpoint())
+                if (await Drive.Login(ct) &&
+                    await Drive.GetEndpoint(ct))
                 {
                     initialized = true;
                     loginToolStripMenuItem.Enabled = false;
+                    toolStripMenuItem_Logout.Enabled = true;
                     toolStripProgressBar1.Style = ProgressBarStyle.Continuous;
                     toolStripProgressBar1.Value = toolStripProgressBar1.Minimum;
                     toolStripStatusLabel1.Text = "Login done.";
@@ -158,18 +205,47 @@ namespace TSviewACD
                     toolStripStatusLabel1.Text = "Operation Aborted.";
                 }
             }
+            finally
+            {
+                FinishTask(task);
+            }
         }
 
-        public static void SaveToBinaryFile(object obj, string path)
+        private async Task Logout()
         {
-            using (var fs = new FileStream(path,
-                FileMode.Create,
-                FileAccess.Write))
-            using (var ds = new GZipStream(fs, CompressionLevel.Optimal))
+            Config.Log.LogOut("Logout Start.");
+            if (CancelTaskAll())
             {
-                var bf = new BinaryFormatter();
-                //シリアル化して書き込む
-                bf.Serialize(ds, obj);
+                while (listView_TaskList.Items.Count > 0)
+                    await Task.Delay(100);
+            }
+            initialized = false;
+            Drive = new AmazonDrive();
+            Config.refresh_token = "";
+            Config.Save();
+            loginToolStripMenuItem.Enabled = true;
+            toolStripMenuItem_Logout.Enabled = false;
+        }
+
+        public static bool SaveToBinaryFile(object obj, string path)
+        {
+            try
+            {
+                using (var fs = new FileStream(path,
+                    FileMode.Create,
+                    FileAccess.Write,
+                    FileShare.None))
+                using (var ds = new GZipStream(fs, CompressionLevel.Optimal))
+                {
+                    var bf = new BinaryFormatter();
+                    //シリアル化して書き込む
+                    bf.Serialize(ds, obj);
+                }
+                return true;
+            }
+            catch
+            {
+                return false;
             }
         }
 
@@ -178,7 +254,7 @@ namespace TSviewACD
             using (var fs = new FileStream(path,
                 FileMode.Open,
                 FileAccess.Read))
-            using (var ds = new GZipStream(fs , CompressionMode.Decompress))
+            using (var ds = new GZipStream(fs, CompressionMode.Decompress))
             {
                 BinaryFormatter f = new BinaryFormatter();
                 //読み込んで逆シリアル化する
@@ -190,25 +266,32 @@ namespace TSviewACD
 
         private async Task InitAlltree()
         {
+            var task = CreateTask("Init drive tree data");
+            var ct = task.cts.Token;
             try
             {
                 toolStripProgressBar1.Style = ProgressBarStyle.Marquee;
                 toolStripStatusLabel1.Text = "Loading treedata...";
-                try
+                while (true)
                 {
-                    await Task.Run(() =>
+                    try
                     {
-                        treedata = (FileMetadata_Info[])LoadFromBinaryFile(cachefile);
-                    }, Drive.ct);
-                }
-                catch
-                {
-                    // Load Root
-                    toolStripStatusLabel1.Text = "Loading Root...";
-                    var rootdata = await Drive.ListMetadata("");
-                    toolStripStatusLabel1.Text = "RootNode Loaded.";
-                    treedata = rootdata.data;
-                    SaveToBinaryFile(treedata, cachefile);
+                        await Task.Run(() =>
+                        {
+                            treedata = (FileMetadata_Info[])LoadFromBinaryFile(cachefile);
+                        }, ct);
+                        break;
+                    }
+                    catch
+                    {
+                        // Load Root
+                        toolStripStatusLabel1.Text = "Loading Root...";
+                        var rootdata = await Drive.ListMetadata("", ct: ct);
+                        toolStripStatusLabel1.Text = "RootNode Loaded.";
+                        treedata = rootdata.data;
+                        if (SaveToBinaryFile(treedata, cachefile))
+                            break;
+                    }
                 }
                 toolStripStatusLabel1.Text = "Create tree...";
                 ConstructDriveTree(treedata);
@@ -224,6 +307,10 @@ namespace TSviewACD
                     toolStripProgressBar1.Value = toolStripProgressBar1.Minimum;
                     toolStripStatusLabel1.Text = "Operation Aborted.";
                 }
+            }
+            finally
+            {
+                FinishTask(task);
             }
         }
 
@@ -311,7 +398,8 @@ namespace TSviewACD
         private string GetFullPathfromItem(ItemInfo info)
         {
             if (info.info.id == root_id) return "/";
-            else {
+            else
+            {
                 var parents = GetFullPathfromItem(DriveTree[info.info.parents[0]]);
                 return parents + ((parents != "/") ? "/" : "") + info.info.name;
             }
@@ -350,7 +438,7 @@ namespace TSviewACD
                             "",
                 }, 0);
             upitem.Tag = up;
-            upitem.Name = (up.info.id == root_id)? "/": "..";
+            upitem.Name = (up.info.id == root_id) ? "/" : "..";
             upitem.ToolTipText = "ひとつ上のフォルダ";
             ret.Add(upitem);
 
@@ -421,11 +509,11 @@ namespace TSviewACD
             listView1.Sorting = SortOrder.Ascending;
 
             // 列（コラム）ヘッダの作成
-            listView1.Columns.Add("Name",200);
-            listView1.Columns.Add("Size",90);
-            listView1.Columns.Add("modifiedDate",120);
-            listView1.Columns.Add("createdDate",120);
-            listView1.Columns.Add("path",100);
+            listView1.Columns.Add("Name", 200);
+            listView1.Columns.Add("Size", 90);
+            listView1.Columns.Add("modifiedDate", 120);
+            listView1.Columns.Add("createdDate", 120);
+            listView1.Columns.Add("path", 100);
             listView1.Columns.Add("id");
             listView1.Columns.Add("MD5");
 
@@ -452,7 +540,7 @@ namespace TSviewACD
             var nodedata = node.Tag as ItemInfo;
             if (nodedata.info.kind != "FOLDER") return;
 
-            foreach(TreeNode child in node.Nodes)
+            foreach (TreeNode child in node.Nodes)
             {
                 child.Nodes.Clear();
                 child.Nodes.AddRange(GenerateTreeNode((child.Tag as ItemInfo).children.Values));
@@ -464,7 +552,7 @@ namespace TSviewACD
             string id = root_id;
             if (string.IsNullOrEmpty(path_str)) return id;
             var path = path_str.Split('/', '\\');
-            foreach(var p in path)
+            foreach (var p in path)
             {
                 if (string.IsNullOrEmpty(p)) continue;
                 var find_result = DriveTree[id].children.Where(x => x.Value.info.name == p);
@@ -486,14 +574,14 @@ namespace TSviewACD
                     List<string> tree_ids = new List<string>();
                     tree_ids.Add(target_id);
                     var p = DriveTree[target_id].info.parents[0];
-                    while(DriveTree[p].tree == null)
+                    while (DriveTree[p].tree == null)
                     {
                         tree_ids.Add(p);
                         p = DriveTree[p].info.parents[0];
                     }
                     tree_ids.Reverse();
                     DriveTree[p].tree.Nodes.AddRange(GenerateTreeNode(DriveTree[p].children.Values));
-                    foreach(var t in tree_ids)
+                    foreach (var t in tree_ids)
                     {
                         DriveTree[t].tree.Nodes.AddRange(GenerateTreeNode(DriveTree[t].children.Values));
                     }
@@ -511,6 +599,8 @@ namespace TSviewACD
         private async void Form1_Load(object sender, EventArgs e)
         {
             LoadImage();
+            listView_TaskList.Columns[0].Width = listView_TaskList.Width - 25;
+            logToFileToolStripMenuItem.Checked = Config.LogToFile;
             textBox_HostName.Text = Config.SendToHost;
             textBox_Port.Text = Config.SendToPort.ToString();
             textBox_SendPacketNum.Text = Config.SendPacketNum.ToString();
@@ -520,16 +610,177 @@ namespace TSviewACD
             textBox_SendRatebyTOTCount.Text = Config.SendRatebyTOTCount.ToString();
             textBox_VK.Text = Config.SendVK.ToString();
             textBox_keySendApp.Text = Config.SendVK_Application;
+            SetBandwidthInfo();
             await Login();
         }
 
+        private int SelectBase(double value)
+        {
+            double value10 = value / 1000;
+            double value2 = value / 1024;
+            if (value10 < 1000 || value2 < 1024)
+            {
+                // 小数点以下がない方の基数を選択する
+                if (value10 % 1.0 == 0)
+                {
+                    return 10;
+                }
+                if (value2 % 1.0 == 0)
+                {
+                    return 2;
+                }
+
+                // 小数点1位以下がない方の基数を選択する
+                if (value10 % 0.1 == 0)
+                {
+                    return 10;
+                }
+                if (value2 % 0.1 == 0)
+                {
+                    return 2;
+                }
+
+                // 小数点2位以下がない方の基数を選択する
+                if (value10 % 0.01 == 0)
+                {
+                    return 10;
+                }
+                if (value2 % 0.01 == 0)
+                {
+                    return 2;
+                }
+
+                // デフォルトの基数は2
+                return 2;
+            }
+            else
+            {
+                if (SelectBase(value10) == 10) return 10;
+                else return 2;
+            }
+        }
+
+        private void SetBandwidthInfo()
+        {
+            if (double.IsPositiveInfinity(Config.UploadLimit) || Config.UploadLimit <= 0)
+            {
+                Config.UploadLimit = double.PositiveInfinity;
+                textBox_UploadBandwidthLimit.Text = "";
+                comboBox_UploadLimitUnit.SelectedIndex = comboBox_UploadLimitUnit.Items.IndexOf("Infinity");
+            }
+            else
+            {
+                double value = Config.UploadLimit;
+                if (value < 1000)
+                {
+                    textBox_UploadBandwidthLimit.Text = value.ToString();
+                    comboBox_UploadLimitUnit.SelectedIndex = comboBox_UploadLimitUnit.Items.IndexOf("Byte/s");
+                }
+                else
+                {
+                    if (SelectBase(value) == 10)
+                    {
+                        if (value > 1000 * 1000 * 1000)
+                        {
+                            textBox_UploadBandwidthLimit.Text = (value / (1000 * 1000 * 1000)).ToString();
+                            comboBox_UploadLimitUnit.SelectedIndex = comboBox_UploadLimitUnit.Items.IndexOf("GB/s");
+                        }
+                        else if (value > 1000 * 1000)
+                        {
+                            textBox_UploadBandwidthLimit.Text = (value / (1000 * 1000)).ToString();
+                            comboBox_UploadLimitUnit.SelectedIndex = comboBox_UploadLimitUnit.Items.IndexOf("MB/s");
+                        }
+                        else
+                        {
+                            textBox_UploadBandwidthLimit.Text = (value / 1000).ToString();
+                            comboBox_UploadLimitUnit.SelectedIndex = comboBox_UploadLimitUnit.Items.IndexOf("KB/s");
+                        }
+                    }
+                    else
+                    {
+                        if (value > 1024 * 1024 * 1024)
+                        {
+                            textBox_UploadBandwidthLimit.Text = (value / (1024 * 1024 * 1024)).ToString();
+                            comboBox_UploadLimitUnit.SelectedIndex = comboBox_UploadLimitUnit.Items.IndexOf("GiB/s");
+                        }
+                        else if (value > 1024 * 1024)
+                        {
+                            textBox_UploadBandwidthLimit.Text = (value / (1024 * 1024)).ToString();
+                            comboBox_UploadLimitUnit.SelectedIndex = comboBox_UploadLimitUnit.Items.IndexOf("MiB/s");
+                        }
+                        else
+                        {
+                            textBox_UploadBandwidthLimit.Text = (value / 1024).ToString();
+                            comboBox_UploadLimitUnit.SelectedIndex = comboBox_UploadLimitUnit.Items.IndexOf("KiB/s");
+                        }
+                    }
+                }
+            }
+
+            if (double.IsPositiveInfinity(Config.DownloadLimit) || Config.DownloadLimit <= 0)
+            {
+                Config.DownloadLimit = double.PositiveInfinity;
+                textBox_DownloadBandwidthLimit.Text = "";
+                comboBox_DownloadLimitUnit.SelectedIndex = comboBox_DownloadLimitUnit.Items.IndexOf("Infinity");
+            }
+            else
+            {
+                double value = Config.DownloadLimit;
+                if (value < 1000)
+                {
+                    textBox_DownloadBandwidthLimit.Text = value.ToString();
+                    comboBox_DownloadLimitUnit.SelectedIndex = comboBox_DownloadLimitUnit.Items.IndexOf("Byte/s");
+                }
+                else
+                {
+                    if (SelectBase(value) == 10)
+                    {
+                        if (value > 1000 * 1000 * 1000)
+                        {
+                            textBox_DownloadBandwidthLimit.Text = (value / (1000 * 1000 * 1000)).ToString();
+                            comboBox_DownloadLimitUnit.SelectedIndex = comboBox_DownloadLimitUnit.Items.IndexOf("GB/s");
+                        }
+                        else if (value > 1000 * 1000)
+                        {
+                            textBox_DownloadBandwidthLimit.Text = (value / (1000 * 1000)).ToString();
+                            comboBox_DownloadLimitUnit.SelectedIndex = comboBox_DownloadLimitUnit.Items.IndexOf("MB/s");
+                        }
+                        else
+                        {
+                            textBox_DownloadBandwidthLimit.Text = (value / 1000).ToString();
+                            comboBox_DownloadLimitUnit.SelectedIndex = comboBox_DownloadLimitUnit.Items.IndexOf("KB/s");
+                        }
+                    }
+                    else
+                    {
+                        if (value > 1024 * 1024 * 1024)
+                        {
+                            textBox_DownloadBandwidthLimit.Text = (value / (1024 * 1024 * 1024)).ToString();
+                            comboBox_DownloadLimitUnit.SelectedIndex = comboBox_DownloadLimitUnit.Items.IndexOf("GiB/s");
+                        }
+                        else if (value > 1024 * 1024)
+                        {
+                            textBox_DownloadBandwidthLimit.Text = (value / (1024 * 1024)).ToString();
+                            comboBox_DownloadLimitUnit.SelectedIndex = comboBox_DownloadLimitUnit.Items.IndexOf("MiB/s");
+                        }
+                        else
+                        {
+                            textBox_DownloadBandwidthLimit.Text = (value / 1024).ToString();
+                            comboBox_DownloadLimitUnit.SelectedIndex = comboBox_DownloadLimitUnit.Items.IndexOf("KiB/s");
+                        }
+                    }
+                }
+            }
+        }
+
+        static int WM_CLOSE = 0x10;
+
         private void Form1_FormClosing(object sender, FormClosingEventArgs e)
         {
-            Drive.Cancel();
-            if (CriticalCount > 0)
+            if (CancelTaskAll() || CriticalCount > 0)
             {
-                toolStripStatusLabel1.Text = "Critical operation is progress. Please retry.";
                 e.Cancel = true;
+                PostMessage(Handle, WM_CLOSE, 0, 0);
             }
             else
             {
@@ -546,6 +797,12 @@ namespace TSviewACD
         {
             await Login();
         }
+
+        private async void toolStripMenuItem_Logout_Click(object sender, EventArgs e)
+        {
+            await Logout();
+        }
+
 
         private void textBox_HostName_TextChanged(object sender, EventArgs e)
         {
@@ -667,14 +924,13 @@ namespace TSviewACD
             else if (tabControl1.SelectedTab.Name == "tabPage_SendUDP")
             {
                 selectitem.Selected = true;
-                Drive.Cancel();
+                await CancelTask("play");
                 await PlayFiles(PlayOneTSFile, "Send UDP");
             }
-            else if (tabControl1.SelectedTab.Name == "tabPage_FFplay")
+            else if (tabControl1.SelectedTab.Name == "tabPage_FFmpeg")
             {
                 selectitem.Selected = true;
-                Drive.Cancel();
-                await PlayFiles(PlayOneFFplay, "FFplay");
+                await PlayWithFFmpeg();
             }
         }
 
@@ -704,110 +960,93 @@ namespace TSviewACD
             FollowPath(textBox_path.Text);
         }
 
-        private async Task<int> DoFileUpload(IEnumerable<string> Filenames, string parent_id, int f_all, int f_cur)
+        private async Task<int> DoFileUpload(IEnumerable<string> Filenames, string parent_id, int f_all, int f_cur, CancellationToken ct = default(CancellationToken))
         {
-            var ct = Drive.ct;
             FileMetadata_Info[] done_files = null;
-
-            if (checkBox_upSkip.Checked)
+            TaskCanselToken task = null;
+            if (ct == default(CancellationToken))
             {
-                toolStripProgressBar1.Style = ProgressBarStyle.Marquee;
-                toolStripStatusLabel1.Text = "Check Drive files...";
-                var ret = await Drive.ListChildren(parent_id);
-                done_files = ret.data;
-
-                toolStripProgressBar1.Style = ProgressBarStyle.Continuous;
-                toolStripStatusLabel1.Text = "Check done.";
-                toolStripProgressBar1.Value = toolStripProgressBar1.Minimum;
-                toolStripProgressBar1.Maximum = 100;
+                task = CreateTask("FileUpload");
+                ct = task.cts.Token;
             }
-
-            foreach (var filename in Filenames)
+            try
             {
-                ct.ThrowIfCancellationRequested();
-                Config.Log.LogOut("Upload File: "+filename);
-                var upload_str = (f_all > 1) ? string.Format("Upload({0}/{1})...", ++f_cur, f_all) : "Upload...";
-                var short_filename = System.IO.Path.GetFileName(filename);
-
-                if(done_files?.Select(x => x.name).Contains(short_filename)??false)
+                if (checkBox_upSkip.Checked)
                 {
-                    var target = done_files.First(x => x.name == short_filename);
-                    if (new System.IO.FileInfo(filename).Length == target.contentProperties?.size)
-                    {
-                        if (!checkBox_MD5.Checked)
-                            continue;
-                        using (var md5calc = new System.Security.Cryptography.MD5CryptoServiceProvider())
-                        using (var hfile = File.Open(filename, FileMode.Open, FileAccess.Read, FileShare.Read))
-                        {
-                            byte[] md5 = null;
-                            toolStripProgressBar1.Style = ProgressBarStyle.Marquee;
-                            toolStripStatusLabel1.Text = "Check file MD5...";
-                            await Task.Run(() => { md5 = md5calc.ComputeHash(hfile); }, Drive.ct);
-                            toolStripProgressBar1.Style = ProgressBarStyle.Continuous;
-                            toolStripStatusLabel1.Text = "Check done.";
-                            if (BitConverter.ToString(md5).ToLower().Replace("-", "") == target.contentProperties?.md5)
-                                continue;
-                        }
-                    }
+                    toolStripProgressBar1.Style = ProgressBarStyle.Marquee;
+                    toolStripStatusLabel1.Text = "Check Drive files...";
+                    var ret = await Drive.ListChildren(parent_id, ct: ct);
+                    done_files = ret.data;
+
+                    toolStripProgressBar1.Style = ProgressBarStyle.Continuous;
+                    toolStripStatusLabel1.Text = "Check done.";
+                    toolStripProgressBar1.Value = toolStripProgressBar1.Minimum;
+                    toolStripProgressBar1.Maximum = 100;
                 }
 
-                toolStripProgressBar1.Style = ProgressBarStyle.Continuous;
-                toolStripProgressBar1.Value = toolStripProgressBar1.Minimum;
-                toolStripStatusLabel1.Text = upload_str + " " + short_filename;
-                toolStripProgressBar1.Maximum = 10000;
-
-                int retry = 6;
-                while (--retry > 0)
+                foreach (var filename in Filenames)
                 {
-                    int checkretry = 4;
-                    try
+                    ct.ThrowIfCancellationRequested();
+                    Config.Log.LogOut("Upload File: " + filename);
+                    var upload_str = (f_all > 1) ? string.Format("Upload({0}/{1})...", ++f_cur, f_all) : "Upload...";
+                    var short_filename = System.IO.Path.GetFileName(filename);
+
+                    if (done_files?.Select(x => x.name).Contains(short_filename) ?? false)
                     {
-                        var ret = await Drive.uploadFile(
-                            filename,
-                            parent_id,
-                            (src, evnt) =>
+                        var target = done_files.First(x => x.name == short_filename);
+                        if (new System.IO.FileInfo(filename).Length == target.contentProperties?.size)
+                        {
+                            if (!checkBox_MD5.Checked)
+                                continue;
+                            using (var md5calc = new System.Security.Cryptography.MD5CryptoServiceProvider())
+                            using (var hfile = File.Open(filename, FileMode.Open, FileAccess.Read, FileShare.Read))
                             {
-                                synchronizationContext.Post(
-                                    (o) =>
-                                    {
-                                        if (ct.IsCancellationRequested) return;
-                                        var eo = o as PositionChangeEventArgs;
-                                        toolStripStatusLabel1.Text = upload_str + eo.Log + " " + short_filename;
-                                        toolStripProgressBar1.Value = (int)((double)eo.Position / eo.Length * 10000);
-                                    }, evnt);
-                            });
-                        break;
-                    }
-                    catch (HttpRequestException ex)
-                    {
-                        if (ex.Message.Contains("408 (REQUEST_TIMEOUT)")) checkretry = 6 * 5 + 1;
-                        if (ex.Message.Contains("409 (Conflict)")) checkretry = 6 * 5 + 1;
-                        if (ex.Message.Contains("504 (GATEWAY_TIMEOUT)")) checkretry = 6 * 5 + 1;
-                    }
-                    catch (OperationCanceledException)
-                    {
-                        throw;
-                    }
-                    catch (Exception)
-                    {
-                        checkretry = 3 + 1;
+                                byte[] md5 = null;
+                                toolStripProgressBar1.Style = ProgressBarStyle.Marquee;
+                                toolStripStatusLabel1.Text = "Check file MD5...";
+                                await Task.Run(() => { md5 = md5calc.ComputeHash(hfile); }, ct);
+                                toolStripProgressBar1.Style = ProgressBarStyle.Continuous;
+                                toolStripStatusLabel1.Text = "Check done.";
+                                if (BitConverter.ToString(md5).ToLower().Replace("-", "") == target.contentProperties?.md5)
+                                    continue;
+                            }
+                        }
                     }
 
-                    Config.Log.LogOut("Upload faild."+retry.ToString());
-                    // wait for retry
-                    while (--checkretry > 0)
+                    toolStripProgressBar1.Style = ProgressBarStyle.Continuous;
+                    toolStripProgressBar1.Value = toolStripProgressBar1.Minimum;
+                    toolStripProgressBar1.Maximum = 10000;
+                    toolStripStatusLabel1.Text = upload_str + " " + short_filename;
+
+                    int retry = 6;
+                    while (--retry > 0)
                     {
+                        int checkretry = 4;
                         try
                         {
-                            Config.Log.LogOut("Upload : wait 10sec for retry..." + checkretry.ToString());
-                            await Task.Delay(TimeSpan.FromSeconds(10), ct);
-
-                            var children = await Drive.ListChildren(parent_id);
-                            if (children.data.Select(x => x.name).Contains(short_filename))
-                            {
-                                Config.Log.LogOut("Upload : child found.");
-                                break;
-                            }
+                            var ret = await Drive.uploadFile(
+                                filename,
+                                parent_id,
+                                (src, evnt) =>
+                                {
+                                    synchronizationContext.Post(
+                                        (o) =>
+                                        {
+                                            if (task.cts.Token.IsCancellationRequested) return;
+                                            var eo = o as PositionChangeEventArgs;
+                                            toolStripStatusLabel1.Text = upload_str + eo.Log + " " + short_filename;
+                                            toolStripProgressBar1.Style = ProgressBarStyle.Continuous;
+                                            toolStripProgressBar1.Maximum = 10000;
+                                            toolStripProgressBar1.Value = (int)((double)eo.Position / eo.Length * 10000);
+                                        }, evnt);
+                                }, ct: ct);
+                            break;
+                        }
+                        catch (HttpRequestException ex)
+                        {
+                            if (ex.Message.Contains("408 (REQUEST_TIMEOUT)")) checkretry = 6 * 5 + 1;
+                            if (ex.Message.Contains("409 (Conflict)")) checkretry = 6 * 5 + 1;
+                            if (ex.Message.Contains("504 (GATEWAY_TIMEOUT)")) checkretry = 6 * 5 + 1;
                         }
                         catch (OperationCanceledException)
                         {
@@ -815,48 +1054,90 @@ namespace TSviewACD
                         }
                         catch (Exception)
                         {
+                            checkretry = 3 + 1;
                         }
+
+                        Config.Log.LogOut("Upload faild." + retry.ToString());
+                        // wait for retry
+                        while (--checkretry > 0)
+                        {
+                            try
+                            {
+                                Config.Log.LogOut("Upload : wait 10sec for retry..." + checkretry.ToString());
+                                await Task.Delay(TimeSpan.FromSeconds(10), task.cts.Token);
+
+                                var children = await Drive.ListChildren(parent_id, ct: ct);
+                                if (children.data.Select(x => x.name).Contains(short_filename))
+                                {
+                                    Config.Log.LogOut("Upload : child found.");
+                                    break;
+                                }
+                            }
+                            catch (OperationCanceledException)
+                            {
+                                throw;
+                            }
+                            catch (Exception)
+                            {
+                            }
+                        }
+                        if (checkretry > 0)
+                            break;
                     }
-                    if (checkretry > 0)
-                        break;
-                }
-                if (retry == 0)
-                {
-                    Config.Log.LogOut("Upload : failed.");
+                    if (retry == 0)
+                    {
+                        Config.Log.LogOut("Upload : failed.");
+                        toolStripProgressBar1.Style = ProgressBarStyle.Continuous;
+                        toolStripProgressBar1.Value = toolStripProgressBar1.Minimum;
+                        toolStripProgressBar1.Maximum = 100;
+                        toolStripStatusLabel1.Text = "Upload Failed.";
+                        return -1;
+                    }
+
+                    Config.Log.LogOut("Upload : done.");
                     toolStripProgressBar1.Style = ProgressBarStyle.Continuous;
+                    toolStripStatusLabel1.Text = "Upload done.";
                     toolStripProgressBar1.Value = toolStripProgressBar1.Minimum;
                     toolStripProgressBar1.Maximum = 100;
-                    toolStripStatusLabel1.Text = "Upload Failed.";
-                    return -1;
                 }
-
-                Config.Log.LogOut("Upload : done.");
-                toolStripProgressBar1.Style = ProgressBarStyle.Continuous;
-                toolStripStatusLabel1.Text = "Upload done.";
-                toolStripProgressBar1.Value = toolStripProgressBar1.Minimum;
-                toolStripProgressBar1.Maximum = 100;
+                return f_cur;
             }
-            return f_cur;
+            finally
+            {
+                FinishTask(task);
+            }
         }
 
-        private async Task<int> DoDirectoryUpload(IEnumerable<string> Filenames, string parent_id, int f_all, int f_cur)
+        private async Task<int> DoDirectoryUpload(IEnumerable<string> Filenames, string parent_id, int f_all, int f_cur, CancellationToken ct = default(CancellationToken))
         {
-            var ct = Drive.ct;
-            foreach (var filename in Filenames)
+            TaskCanselToken task = null;
+            if (ct == default(CancellationToken))
             {
-                ct.ThrowIfCancellationRequested();
-                var short_name = Path.GetFullPath(filename).Split(new char[]{ '\\','/' }).Last();
-
-                // make subdirectory
-                var newdir = await Drive.createFolder(short_name, parent_id);
-
-                f_cur = await DoFileUpload(Directory.EnumerateFiles(filename), newdir.id, f_all, f_cur);
-                if (f_cur < 0) return -1;
-
-                f_cur = await DoDirectoryUpload(Directory.EnumerateDirectories(filename), newdir.id, f_all, f_cur);
-                if (f_cur < 0) return -1;
+                task = CreateTask("DirectoryUpload");
+                ct = task.cts.Token;
             }
-            return f_cur;
+            try
+            {
+                foreach (var filename in Filenames)
+                {
+                    ct.ThrowIfCancellationRequested();
+                    var short_name = Path.GetFullPath(filename).Split(new char[] { '\\', '/' }).Last();
+
+                    // make subdirectory
+                    var newdir = await Drive.createFolder(short_name, parent_id);
+
+                    f_cur = await DoFileUpload(Directory.EnumerateFiles(filename), newdir.id, f_all, f_cur, ct);
+                    if (f_cur < 0) return -1;
+
+                    f_cur = await DoDirectoryUpload(Directory.EnumerateDirectories(filename), newdir.id, f_all, f_cur, ct);
+                    if (f_cur < 0) return -1;
+                }
+                return f_cur;
+            }
+            finally
+            {
+                FinishTask(task);
+            }
         }
 
         private async void button_upload_Click(object sender, EventArgs e)
@@ -915,6 +1196,8 @@ namespace TSviewACD
 
             if (MessageBox.Show("Do you want to trash items?", "Trash Items", MessageBoxButtons.OKCancel) != DialogResult.OK) return;
 
+            var task = CreateTask("TrashItem");
+            var ct = task.cts.Token;
             try
             {
                 toolStripProgressBar1.Style = ProgressBarStyle.Continuous;
@@ -933,7 +1216,7 @@ namespace TSviewACD
 
                 foreach (ListViewItem item in select)
                 {
-                    var ret = await Drive.TrashItem((item.Tag as ItemInfo).info.id);
+                    var ret = await Drive.TrashItem((item.Tag as ItemInfo).info.id, ct: ct);
                     toolStripProgressBar1.PerformStep();
                 }
 
@@ -965,13 +1248,17 @@ namespace TSviewACD
                 toolStripStatusLabel1.Text = "Error detected.";
                 MessageBox.Show("Rename : ERROR\r\n" + ex.Message);
             }
+            finally
+            {
+                FinishTask(task);
+            }
         }
 
         private void RemoveDriveTreeChild(string id)
         {
             var item = DriveTree[id];
             DriveTree.Remove(id);
-            foreach(var child in item.children.Values)
+            foreach (var child in item.children.Values)
             {
                 RemoveDriveTreeChild(child.info.id);
             }
@@ -981,6 +1268,10 @@ namespace TSviewACD
         {
             if (string.IsNullOrEmpty(display_id))
                 display_id = root_id;
+            await CancelTask("ReloadItems");
+            await CancelTask("ForceReloadItems");
+            var task = CreateTask("ForceReloadItems");
+            var ct = task.cts.Token;
             try
             {
                 toolStripProgressBar1.Style = ProgressBarStyle.Marquee;
@@ -988,11 +1279,15 @@ namespace TSviewACD
 
                 // Load Root
                 toolStripStatusLabel1.Text = "Loading Root...";
-                var rootdata = await Drive.ListMetadata("");
-                toolStripStatusLabel1.Text = "RootNode Loaded.";
-                treedata = rootdata.data;
-                SaveToBinaryFile(treedata, cachefile);
-
+                FileListdata_Info rootdata;
+                while (true)
+                {
+                    rootdata = await Drive.ListMetadata("", ct: ct);
+                    toolStripStatusLabel1.Text = "RootNode Loaded.";
+                    treedata = rootdata.data;
+                    if (SaveToBinaryFile(treedata, cachefile))
+                        break;
+                }
                 // load tree
                 var items = GenerateTreeNode(DriveTree[root_id].children.Values, 1);
                 treeView1.Nodes.Clear();
@@ -1040,12 +1335,21 @@ namespace TSviewACD
                     toolStripStatusLabel1.Text = "Operation Aborted.";
                 }
             }
+            finally
+            {
+                FinishTask(task);
+            }
         }
 
         private async Task ReloadItems(string display_id)
         {
             if (string.IsNullOrEmpty(display_id))
                 display_id = root_id;
+
+            await CancelTask("ReloadItems");
+            await CancelTask("ForceReloadItems");
+            var task = CreateTask("ReloadItems");
+            var ct = task.cts.Token;
             try
             {
                 toolStripProgressBar1.Style = ProgressBarStyle.Marquee;
@@ -1060,7 +1364,7 @@ namespace TSviewACD
 
                 // Load Changed items
                 var datestr = lastload.ToUniversalTime().ToString("yyyy-MM-dd'T'HH:mm:ss.fff'Z'");
-                var rootdata = await Drive.ListMetadata("modifiedDate:[" + datestr + " TO *}");
+                var rootdata = await Drive.ListMetadata("modifiedDate:[" + datestr + " TO *}", ct: ct);
                 ConstructDriveTree(rootdata.data);
                 foreach (var folder in rootdata.data?.Where(x => x.kind == "FOLDER"))
                 {
@@ -1069,7 +1373,7 @@ namespace TSviewACD
                     {
                         if (children.data.Where(x => x.id == oldChild.Value.info.id).Count() == 0)
                         {
-                            if(oldChild.Value.info.parents.Count() == 1 &&
+                            if (oldChild.Value.info.parents.Count() == 1 &&
                                 oldChild.Value.info.parents[0] == folder.id)
                             {
                                 DriveTree.Remove(oldChild.Value.info.id);
@@ -1097,7 +1401,11 @@ namespace TSviewACD
                     RemoveDriveTreeChild(key.Key);
                 }
                 treedata = DriveTree.Values.Select(x => x.info).Where(x => x != null).ToArray();
-                SaveToBinaryFile(treedata, cachefile);
+                if (!SaveToBinaryFile(treedata, cachefile))
+                {
+                    await ForceReloadItems(display_id);
+                    return;
+                }
 
                 // load tree
                 var items = GenerateTreeNode(DriveTree[root_id].children.Values, 1);
@@ -1146,6 +1454,10 @@ namespace TSviewACD
                     toolStripStatusLabel1.Text = "Operation Aborted.";
                 }
             }
+            finally
+            {
+                FinishTask(task);
+            }
         }
 
         private async void button_reload_Click(object sender, EventArgs e)
@@ -1165,11 +1477,6 @@ namespace TSviewACD
             }
         }
 
-        private void button_break_Click(object sender, EventArgs e)
-        {
-            Drive.Cancel();
-        }
-
         private async void downloadItemToolStripMenuItem_Click(object sender, EventArgs e)
         {
             Config.Log.LogOut("Download Start.");
@@ -1178,7 +1485,7 @@ namespace TSviewACD
             var select = listView1.SelectedItems;
             if (select.Count == 0) return;
 
-            var selectItem = select.OfType<ListViewItem>().Select(x => (x.Tag as ItemInfo).info).Where(x => x.kind != "FOLDER");
+            var selectItem = select.OfType<ListViewItem>().Select(x => (x.Tag as ItemInfo).info).Where(x => x.kind != "FOLDER").ToArray();
 
             int f_all = selectItem.Count();
             if (f_all == 0) return;
@@ -1187,9 +1494,10 @@ namespace TSviewACD
             string savefilename = null;
             string savefilepath = null;
             string error_log = "";
+            var task = CreateTask("downloads");
+            var ct = task.cts.Token;
             try
             {
-                var ct = Drive.ct;
                 toolStripStatusLabel1.Text = "place to download selection.";
                 if (f_all > 1)
                 {
@@ -1207,6 +1515,7 @@ namespace TSviewACD
 
                 foreach (var downitem in selectItem)
                 {
+                    ct.ThrowIfCancellationRequested();
                     Config.Log.LogOut("Download : " + downitem.name);
                     var download_str = (f_all > 1) ? string.Format("Download({0}/{1})...", ++f_cur, f_all) : "Download...";
 
@@ -1233,7 +1542,7 @@ namespace TSviewACD
                                         try
                                         {
                                             var tmpfile = await Drive.renameItem(downitem.id, ConfigAPI.temporaryFilename + downitem.id);
-                                            var ret = await Drive.downloadFile(downitem.id);
+                                            var ret = await Drive.downloadFile(downitem.id, ct: ct);
                                             var f = new PositionStream(ret, downitem.contentProperties.size.Value);
                                             f.PosChangeEvent += (src, evnt) =>
                                             {
@@ -1243,10 +1552,12 @@ namespace TSviewACD
                                                         if (ct.IsCancellationRequested) return;
                                                         var eo = o as PositionChangeEventArgs;
                                                         toolStripStatusLabel1.Text = download_str + eo.Log + " " + downitem.name;
+                                                        toolStripProgressBar1.Style = ProgressBarStyle.Continuous;
+                                                        toolStripProgressBar1.Maximum = 10000;
                                                         toolStripProgressBar1.Value = (int)((double)eo.Position / eo.Length * 10000);
                                                     }, evnt);
                                             };
-                                            await f.CopyToAsync(outfile, 16 * 1024 * 1024, Drive.ct);
+                                            await f.CopyToAsync(outfile, 16 * 1024 * 1024, ct);
                                         }
                                         finally
                                         {
@@ -1260,20 +1571,24 @@ namespace TSviewACD
                                 }
                                 else
                                 {
-                                    var ret = await Drive.downloadFile(downitem.id);
-                                    var f = new PositionStream(ret, downitem.contentProperties.size.Value);
-                                    f.PosChangeEvent += (src, evnt) =>
+                                    using (var ret = await Drive.downloadFile(downitem.id, ct: ct))
+                                    using (var f = new PositionStream(ret, downitem.contentProperties.size.Value))
                                     {
-                                        synchronizationContext.Post(
-                                            (o) =>
-                                            {
-                                                if (ct.IsCancellationRequested) return;
-                                                var eo = o as PositionChangeEventArgs;
-                                                toolStripStatusLabel1.Text = download_str + eo.Log + " " + downitem.name;
-                                                toolStripProgressBar1.Value = (int)((double)eo.Position / eo.Length * 10000);
-                                            }, evnt);
-                                    };
-                                    await f.CopyToAsync(outfile, 16 * 1024 * 1024, Drive.ct);
+                                        f.PosChangeEvent += (src, evnt) =>
+                                        {
+                                            synchronizationContext.Post(
+                                                (o) =>
+                                                {
+                                                    if (ct.IsCancellationRequested) return;
+                                                    var eo = o as PositionChangeEventArgs;
+                                                    toolStripStatusLabel1.Text = download_str + eo.Log + " " + downitem.name;
+                                                    toolStripProgressBar1.Style = ProgressBarStyle.Continuous;
+                                                    toolStripProgressBar1.Maximum = 10000;
+                                                    toolStripProgressBar1.Value = (int)((double)eo.Position / eo.Length * 10000);
+                                                }, evnt);
+                                        };
+                                        await f.CopyToAsync(outfile, 16 * 1024 * 1024, ct);
+                                    }
                                 }
                             }
                             Config.Log.LogOut("Download : done.");
@@ -1323,6 +1638,10 @@ namespace TSviewACD
                     toolStripStatusLabel1.Text = "Operation Aborted.";
                 }
             }
+            finally
+            {
+                FinishTask(task);
+            }
             if (error_log != "")
             {
                 MessageBox.Show("Download : WARNING\r\n" + error_log);
@@ -1331,7 +1650,7 @@ namespace TSviewACD
 
         private async void sendUDPToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            Drive.Cancel();
+            await CancelTask("play");
             await PlayFiles(PlayOneTSFile, "Send UDP");
         }
 
@@ -1432,7 +1751,7 @@ namespace TSviewACD
             var select = listView1.SelectedItems;
             if (select.Count == 0) return;
 
-            var selectItem = select.OfType<ListViewItem>().Select(x => (x.Tag as ItemInfo).info);
+            var selectItem = select.OfType<ListViewItem>().Select(x => (x.Tag as ItemInfo).info).ToArray();
 
             int f_all = selectItem.Count();
             if (f_all == 0) return;
@@ -1442,7 +1761,8 @@ namespace TSviewACD
 
             toolStripStatusLabel1.Text = "Rename...";
             toolStripProgressBar1.Style = ProgressBarStyle.Marquee;
-
+            var task = CreateTask("Rename");
+            var ct = task.cts.Token;
             try
             {
                 string parent_id = null;
@@ -1460,7 +1780,8 @@ namespace TSviewACD
                         NewName.NewItemName = downitem.name;
                         if (NewName.ShowDialog() != DialogResult.OK) break;
 
-                        var tmpfile = await Drive.renameItem(downitem.id, NewName.NewItemName);
+                        ct.ThrowIfCancellationRequested();
+                        var tmpfile = await Drive.renameItem(downitem.id, NewName.NewItemName, ct: ct);
                     }
                 }
 
@@ -1489,6 +1810,10 @@ namespace TSviewACD
                 toolStripProgressBar1.Value = toolStripProgressBar1.Minimum;
                 toolStripStatusLabel1.Text = "Error detected.";
                 MessageBox.Show("Rename : ERROR\r\n" + ex.Message);
+            }
+            finally
+            {
+                FinishTask(task);
             }
         }
 
@@ -1521,9 +1846,9 @@ namespace TSviewACD
                             e.Effect = DragDropEffects.Copy;
                         else
                         {
-                            if(item != ((current.Length > 0)? current[0]: null) &&
+                            if (item != ((current.Length > 0) ? current[0] : null) &&
                                 ((item.Name == "/" && ((current.Length > 0) ? current[0] : null).Name != "/") ||
-                                !(((ListView.SelectedListViewItemCollection)e.Data.GetData(typeof(ListView.SelectedListViewItemCollection)))?.Contains(item)?? false)))
+                                !(((ListView.SelectedListViewItemCollection)e.Data.GetData(typeof(ListView.SelectedListViewItemCollection)))?.Contains(item) ?? false)))
                             {
                                 e.Effect = DragDropEffects.Move;
                             }
@@ -1582,7 +1907,7 @@ namespace TSviewACD
                             {
                                 var fromParent = (aItem.Tag as ItemInfo).info.parents[0];
                                 var childid = (aItem.Tag as ItemInfo).info.id;
-                                toolStripStatusLabel1.Text = string.Format("Move Item... {0}/{1} {2}",++count, selects.Count, (aItem.Tag as ItemInfo).info.name);
+                                toolStripStatusLabel1.Text = string.Format("Move Item... {0}/{1} {2}", ++count, selects.Count, (aItem.Tag as ItemInfo).info.name);
 
                                 await Drive.moveChild(childid, fromParent, toParent);
                                 toolStripProgressBar1.PerformStep();
@@ -1623,38 +1948,45 @@ namespace TSviewACD
                         string[] dir_drags = drags.Where(x => Directory.Exists(x)).ToArray();
                         drags = drags.Where(x => File.Exists(x)).ToArray();
 
-                        var ct = Drive.ct;
-                        int f_all = drags.Length + dir_drags.Select(x => Directory.EnumerateFiles(x, "*", SearchOption.AllDirectories)).SelectMany(i => i).Distinct().Count();
-                        int f_cur = 0;
-                        string parent_id = null;
+                        var task = CreateTask("upload(listview)");
                         try
                         {
-                            parent_id = (item.Tag as ItemInfo).info.id;
-                        }
-                        catch { }
+                            int f_all = drags.Length + dir_drags.Select(x => Directory.EnumerateFiles(x, "*", SearchOption.AllDirectories)).SelectMany(i => i).Distinct().Count();
+                            int f_cur = 0;
+                            string parent_id = null;
+                            try
+                            {
+                                parent_id = (item.Tag as ItemInfo).info.id;
+                            }
+                            catch { }
 
-                        try
-                        {
-                            f_cur = await DoFileUpload(drags, parent_id, f_all, f_cur);
-                            if (f_cur >= 0)
-                                f_cur = await DoDirectoryUpload(dir_drags, parent_id, f_all, f_cur);
+                            try
+                            {
+                                f_cur = await DoFileUpload(drags, parent_id, f_all, f_cur);
+                                if (f_cur >= 0)
+                                    f_cur = await DoDirectoryUpload(dir_drags, parent_id, f_all, f_cur, task.cts.Token);
 
-                            toolStripProgressBar1.Style = ProgressBarStyle.Marquee;
-                            await Task.Delay(TimeSpan.FromSeconds(5));
-                            await ReloadItems(parent_id);
-                            Config.Log.LogOut("upload(listview) : done.");
+                                toolStripProgressBar1.Style = ProgressBarStyle.Marquee;
+                                await Task.Delay(TimeSpan.FromSeconds(5));
+                                await ReloadItems(parent_id);
+                                Config.Log.LogOut("upload(listview) : done.");
+                            }
+                            catch (OperationCanceledException)
+                            {
+                                throw;
+                            }
+                            catch (Exception ex)
+                            {
+                                Config.Log.LogOut("upload(listview) : Error");
+                                toolStripProgressBar1.Style = ProgressBarStyle.Continuous;
+                                toolStripProgressBar1.Value = toolStripProgressBar1.Minimum;
+                                toolStripStatusLabel1.Text = "Error detected.";
+                                MessageBox.Show("Upload Items : ERROR\r\n" + ex.Message);
+                            }
                         }
-                        catch (OperationCanceledException)
+                        finally
                         {
-                            throw;
-                        }
-                        catch (Exception ex)
-                        {
-                            Config.Log.LogOut("upload(listview) : Error");
-                            toolStripProgressBar1.Style = ProgressBarStyle.Continuous;
-                            toolStripProgressBar1.Value = toolStripProgressBar1.Minimum;
-                            toolStripStatusLabel1.Text = "Error detected.";
-                            MessageBox.Show("Upload Items : ERROR\r\n" + ex.Message);
+                            FinishTask(task);
                         }
                     }
                 }
@@ -1681,7 +2013,7 @@ namespace TSviewACD
 
             if (item == null) return;
 
-            if(HoldonNode != item)
+            if (HoldonNode != item)
             {
                 HoldonNode = null;
                 return;
@@ -1855,9 +2187,17 @@ namespace TSviewACD
                         int f_cur = 0;
                         var parent_id = (item.Tag as ItemInfo).info.id;
 
-                        f_cur = await DoFileUpload(drags, parent_id, f_all, f_cur);
-                        if (f_cur >= 0)
-                            f_cur = await DoDirectoryUpload(dir_drags, parent_id, f_all, f_cur);
+                        var task = CreateTask("upload(treeview)");
+                        try
+                        {
+                            f_cur = await DoFileUpload(drags, parent_id, f_all, f_cur);
+                            if (f_cur >= 0)
+                                f_cur = await DoDirectoryUpload(dir_drags, parent_id, f_all, f_cur, task.cts.Token);
+                        }
+                        finally
+                        {
+                            FinishTask(task);
+                        }
 
                         toolStripProgressBar1.Style = ProgressBarStyle.Marquee;
                         await Task.Delay(TimeSpan.FromSeconds(5));
@@ -1898,7 +2238,8 @@ namespace TSviewACD
             {
                 Config.SendPacketNum = int.Parse(textBox_SendPacketNum.Text);
             }
-            catch {
+            catch
+            {
                 textBox_SendPacketNum.Text = Config.SendPacketNum.ToString();
             }
         }
@@ -1966,12 +2307,12 @@ namespace TSviewACD
 
         private void listView1_KeyDown(object sender, KeyEventArgs e)
         {
-            if(e.KeyData == (Keys.A | Keys.Control))
+            if (e.KeyData == (Keys.A | Keys.Control))
             {
                 listView1.BeginUpdate();
-                foreach(ListViewItem item in listView1.Items)
+                foreach (ListViewItem item in listView1.Items)
                 {
-                    if(item.Name != "." && item.Name != ".." && item.Name != "/")
+                    if (item.Name != "." && item.Name != ".." && item.Name != "/")
                         item.Selected = true;
                 }
                 listView1.EndUpdate();
@@ -1992,8 +2333,8 @@ namespace TSviewACD
         private void button_LocalRemoteMatch_Click(object sender, EventArgs e)
         {
             var Matcher = new FormMatch();
-            Matcher.SelectedRemoteFiles = 
-                (listView1.SelectedItems.Count == 0? listView1.Items.OfType<ListViewItem>() : listView1.SelectedItems.OfType<ListViewItem>())
+            Matcher.SelectedRemoteFiles =
+                (listView1.SelectedItems.Count == 0 ? listView1.Items.OfType<ListViewItem>() : listView1.SelectedItems.OfType<ListViewItem>())
                 .Where(item => (item.Name != "." && item.Name != ".." && item.Name != "/")).ToArray();
             Matcher.ShowDialog();
         }
@@ -2007,213 +2348,6 @@ namespace TSviewACD
             }
         }
 
-        ///////////////////////////////////////////////////////////////////////////////////////////////////////
-        ///
-        /// play a file with FFplay via pipe
-        ///
-        ///////////////////////////////////////////////////////////////////////////////////////////////////////
-
-        private double SeekFFplaytoPos = double.NaN;
-        CancellationTokenSource seekFFplay_ct_source = new CancellationTokenSource();
-
-        private int nextFFplaycount = 0;
-
-        private void CancelForSeekFFplay()
-        {
-            var t = seekFFplay_ct_source;
-            seekFFplay_ct_source = new CancellationTokenSource();
-            t.Cancel();
-        }
-
-        private async Task PlayOneFFplay(FileMetadata_Info downitem, string download_str)
-        {
-            long? SkipByte = null;
-
-            trackBar_FFplay_pos.Tag = 1;
-            trackBar_FFplay_pos.Minimum = 0;
-            trackBar_FFplay_pos.Maximum = 10000; //100.00 %
-            trackBar_FFplay_pos.Value = 0;
-            trackBar_FFplay_pos.Tag = 0;
-
-            while (true)
-            {
-                toolStripProgressBar1.Style = ProgressBarStyle.Continuous;
-                toolStripProgressBar1.Value = toolStripProgressBar1.Minimum;
-                toolStripStatusLabel1.Text = download_str + " " + downitem.name;
-                toolStripProgressBar1.Maximum = 10000;
-
-                var FFplayProcess = new FFplay_process(textBox_FFplay_command.Text);
-                try
-                {
-                    FFplayProcess.AddExitFunction(
-                        (src, evnt) =>
-                        {
-                            Drive.Cancel();
-                        });
-
-                    var internalToken = seekFFplay_ct_source.Token;
-                    var externalToken = Drive.ct;
-                    try
-                    {
-                        while (true)
-                        {
-                            using (CancellationTokenSource linkedCts =
-                                   CancellationTokenSource.CreateLinkedTokenSource(internalToken, externalToken))
-                            using (var ret = await Drive.downloadFile(downitem.id, SkipByte))
-                            using (var bufst = new BufferedStream(ret, ConfigAPI.CopyBufferSize))
-                            using (var f = new PositionStream(bufst, downitem.contentProperties.size.Value, SkipByte))
-                            {
-                                f.PosChangeEvent += (src, evnt) =>
-                                {
-                                    synchronizationContext.Post(
-                                        (o) =>
-                                        {
-                                            if (linkedCts.Token.IsCancellationRequested) return;
-                                            var eo = o as PositionChangeEventArgs;
-                                            toolStripStatusLabel1.Text = download_str + eo.Log + " " + downitem.name;
-                                            toolStripProgressBar1.Value = (int)((double)eo.Position / eo.Length * 10000);
-                                        }, evnt);
-                                };
-                                using (var FFplay = new FFplay_Stream(FFplayProcess))
-                                {
-                                    long WritePos = 0;
-                                    FFplay.WriteToFFplayEvent += (src, evnt) =>
-                                    {
-                                        WritePos = evnt.Position;
-                                        synchronizationContext.Post(
-                                            (o) =>
-                                            {
-                                                if (linkedCts.Token.IsCancellationRequested) return;
-                                                var eo = o as WriteToFFplayEventArgs;
-                                                trackBar_FFplay_pos.Tag = 1;
-                                                trackBar_FFplay_pos.Maximum = 10000;
-                                                trackBar_FFplay_pos.Value = (int)((double)(eo.Position + (SkipByte??0)) / downitem.contentProperties.size.Value * 10000);
-                                                trackBar_FFplay_pos.Tag = 0;
-                                                label_FFplay_stream.Text = string.Format(
-                                                    "pos {0} % ({1} / {2})",
-                                                    ((double)(eo.Position + (SkipByte ?? 0)) / downitem.contentProperties.size.Value * 100).ToString("##0.00"),
-                                                    (eo.Position + (SkipByte ?? 0)).ToString("#,0"),
-                                                    downitem.contentProperties.size.Value.ToString("#,0"));
-                                            }, evnt);
-                                    };
-                                    label_FFplay_sendname.Text = downitem.name;
-                                    try
-                                    {
-                                        await f.CopyToAsync(FFplay, ConfigAPI.CopyBufferSize, linkedCts.Token);
-                                    }
-                                    catch (IOException)
-                                    {
-                                        SkipByte = WritePos + (SkipByte??0);
-                                        continue;
-                                    }
-                                    await FFplayProcess.Finish(linkedCts.Token);
-                                }
-                            }
-                            break;
-                        }
-                        break;
-                    }
-                    catch (IOException)
-                    {
-                        break;
-                    }
-                    catch (ffplayEOF_CanceledException)
-                    {
-                        break;
-                    }
-                    catch (OperationCanceledException)
-                    {
-                        if (internalToken.IsCancellationRequested)
-                        {
-                            if (!double.IsNaN(SeekFFplaytoPos))
-                            {
-                                SeekFFplaytoPos = (SeekFFplaytoPos > 100) ? 100 : SeekFFplaytoPos;
-                                SeekFFplaytoPos = (SeekFFplaytoPos < 0) ? 0 : SeekFFplaytoPos;
-                                SkipByte = (long)(downitem.contentProperties.size * SeekFFplaytoPos / 100);
-                                continue;
-                            }
-                            SeekFFplaytoPos = double.NaN;
-                            nextFFplaycount--;
-                            break;
-                        }
-                        else if (externalToken.IsCancellationRequested)
-                        {
-                            throw;
-                        }
-                        break;
-                    }
-                    catch (Exception)
-                    {
-                        throw;
-                    }
-                }
-                finally
-                {
-                    FFplayProcess.Kill();
-                }
-            }
-        }
-
-        private async void button_FFplay_Click(object sender, EventArgs e)
-        {
-            Drive.Cancel();
-            await PlayFiles(PlayOneFFplay, "FFplay");
-        }
-
-        private async void playWithFFplayToolStripMenuItem_Click(object sender, EventArgs e)
-        {
-            Drive.Cancel();
-            await PlayFiles(PlayOneFFplay, "FFplay");
-        }
-
-        private void button_FFplay_stop_Click(object sender, EventArgs e)
-        {
-            Drive.Cancel();
-        }
-
-        private void trackBar_FFplay_pos_ValueChanged(object sender, EventArgs e)
-        {
-            if (trackBar_FFplay_pos.Tag as int? == 1)
-            {
-                if (!double.IsNaN(SeekFFplaytoPos))
-                {
-                    trackBar_FFplay_pos.Tag = 1;
-                    trackBar_FFplay_pos.Value = (int)(SeekFFplaytoPos * 100);
-                    trackBar_FFplay_pos.Tag = 0;
-                }
-            }
-            else
-            {
-                timer3.Enabled = false;
-                SeekFFplaytoPos = trackBar_FFplay_pos.Value / 100.0;
-                label_stream.Text = string.Format(
-                    "seeking to {0} %",
-                    SeekFFplaytoPos.ToString("##0.00"));
-                timer3.Enabled = true;
-            }
-        }
-
-        private void trackBar_FFplay_pos_MouseCaptureChanged(object sender, EventArgs e)
-        {
-            SeekFFplaytoPos = trackBar_FFplay_pos.Value / 100.0;
-            timer3.Enabled = false;
-            timer3.Enabled = true;
-        }
-
-        private void timer3_Tick(object sender, EventArgs e)
-        {
-            SeekFFplaytoPos = trackBar_FFplay_pos.Value / 100.0;
-            timer3.Enabled = false;
-            CancelForSeekFFplay();
-        }
-
-        private void button_FFplay_next_Click(object sender, EventArgs e)
-        {
-            SeekFFplaytoPos = double.NaN;
-            nextFFplaycount++;
-            CancelForSeekFFplay();
-        }
-
         ////////////////////////////////////////////////////////////////////////
         /// 
         /// send a file with UDP
@@ -2222,7 +2356,7 @@ namespace TSviewACD
 
         private async void button_Play_Click(object sender, EventArgs e)
         {
-            Drive.Cancel();
+            await CancelTask("play");
             await PlayFiles(PlayOneTSFile, "Send UDP");
         }
 
@@ -2242,7 +2376,7 @@ namespace TSviewACD
             t.Cancel();
         }
 
-        private async Task PlayOneTSFile(FileMetadata_Info downitem, string download_str)
+        private async Task PlayOneTSFile(FileMetadata_Info downitem, string download_str, CancellationToken ct, object data)
         {
             long bytePerSec = 0;
             long? SkipByte = null;
@@ -2260,16 +2394,16 @@ namespace TSviewACD
 
                 toolStripProgressBar1.Style = ProgressBarStyle.Continuous;
                 toolStripProgressBar1.Value = toolStripProgressBar1.Minimum;
-                toolStripStatusLabel1.Text = download_str + " " + downitem.name;
                 toolStripProgressBar1.Maximum = 10000;
+                toolStripStatusLabel1.Text = download_str + " " + downitem.name;
 
                 var internalToken = seekUDP_ct_source.Token;
-                var externalToken = Drive.ct;
+                var externalToken = ct;
                 try
                 {
                     using (CancellationTokenSource linkedCts =
                            CancellationTokenSource.CreateLinkedTokenSource(internalToken, externalToken))
-                    using (var ret = await Drive.downloadFile(downitem.id, SkipByte))
+                    using (var ret = await Drive.downloadFile(downitem.id, SkipByte, ct: linkedCts.Token))
                     using (var bufst = new BufferedStream(ret, ConfigAPI.CopyBufferSize))
                     using (var f = new PositionStream(bufst, downitem.contentProperties.size.Value, SkipByte))
                     {
@@ -2281,6 +2415,8 @@ namespace TSviewACD
                                     if (linkedCts.Token.IsCancellationRequested) return;
                                     var eo = o as PositionChangeEventArgs;
                                     toolStripStatusLabel1.Text = download_str + eo.Log + " " + downitem.name;
+                                    toolStripProgressBar1.Style = ProgressBarStyle.Continuous;
+                                    toolStripProgressBar1.Maximum = 10000;
                                     toolStripProgressBar1.Value = (int)((double)eo.Position / eo.Length * 10000);
                                 }, evnt);
                         };
@@ -2318,7 +2454,7 @@ namespace TSviewACD
                                 synchronizationContext.Post(
                                     (o) =>
                                     {
-                                        //if (linkedCts.Token.IsCancellationRequested) return;
+                                        if (linkedCts.Token.IsCancellationRequested) return;
                                         var eo = o as TOTChangeEventArgs;
                                         if (InitialTOT == default(DateTime))
                                         {
@@ -2527,6 +2663,229 @@ namespace TSviewACD
             CancelForSeekUDP();
         }
 
+        ////////////////////////////////////////////////////////////////////////////////////////////////
+        /// 
+        /// play files with ffmodule(FFmpeg)
+        /// 
+        ////////////////////////////////////////////////////////////////////////////////////////////////
+
+        ffmodule.FFplayer ffplayer = null;
+
+        private async Task PlayWithFFmpeg()
+        {
+            await CancelTask("play");
+            using (var Player = new ffmodule.FFplayer())
+            using (var logger = Stream.Synchronized(new LogWindowStream(Config.Log)))
+            using (var logwriter = TextWriter.Synchronized(new StreamWriter(logger)))
+            {
+                ffplayer = Player;
+                try
+                {
+                    Player.GetImageFunc = new ffmodule.GetImageDelegate(GetImage);
+                    Player.Fullscreen = Config.FFmodule_fullscreen;
+                    Player.Display = Config.FFmodule_display;
+                    Player.FontPath = Config.FontFilepath;
+                    Player.FontSize = Config.FontPtSize;
+                    Player.Volume = Config.FFmodule_volume;
+                    Player.Mute = Config.FFmodule_mute;
+                    Player.SetKeyFunctions(Config.FFmoduleKeybinds.Cast<dynamic>().ToDictionary(entry => (ffmodule.FFplayerKeymapFunction)entry.Key, entry => ((FFmoduleKeysClass)entry.Value).Cast<Keys>().ToArray()));
+                    ffmodule.FFplayer.SetLogger(logwriter);
+                    await PlayFiles(PlayOneFFmpegPlayer, "FFmpeg", data: Player);
+                    ffmodule.FFplayer.SetLogger(null);
+                }
+                finally
+                {
+                    Config.FFmodule_fullscreen = Player.Fullscreen;
+                    Config.FFmodule_display = Player.Display;
+                    Config.FFmodule_mute = Player.Mute;
+                    Config.FFmodule_volume = Player.Volume;
+                    ffplayer = null;
+                }
+            }
+        }
+
+        private async void button_FFplay_Click(object sender, EventArgs e)
+        {
+            await PlayWithFFmpeg();
+        }
+
+        private async void playWithFFplayToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            await PlayWithFFmpeg();
+        }
+
+        private Bitmap GetImage(ffmodule.FFplayer player)
+        {
+            try
+            {
+                Bitmap ret = null;
+                FileMetadata_Info downitem = player.Tag as FileMetadata_Info;
+                ImageCodecInfo[] decoders = ImageCodecInfo.GetImageDecoders();
+                string filename = downitem.name;
+                var target = DriveTree[downitem.parents[0]].children.Where(x => x.Value.info.name.StartsWith(Path.GetFileNameWithoutExtension(filename)));
+                foreach (var t in target)
+                {
+                    var ext = Path.GetExtension(t.Value.info.name).ToLower();
+                    foreach (var ici in decoders)
+                    {
+                        bool found = false;
+                        var decext = ici.FilenameExtension.Split(';').Select(x => Path.GetExtension(x).ToLower()).ToArray();
+                        if (decext.Contains(ext))
+                        {
+                            Drive.downloadFile(t.Value.info.id, ct: player.ct).ContinueWith(task =>
+                            {
+                                var img = Image.FromStream(task.Result);
+                                ret = new Bitmap(img);
+                                found = true;
+                            }).Wait();
+                            if (found) return ret;
+                        }
+                    }
+                }
+            }
+            catch { }
+            return null;
+        }
+
+        double FFplayStartDelay = double.NaN;
+        double FFplayDuration = double.NaN;
+
+        private async Task PlayOneFFmpegPlayer(FileMetadata_Info downitem, string download_str, CancellationToken ct, object data)
+        {
+            toolStripProgressBar1.Style = ProgressBarStyle.Continuous;
+            toolStripProgressBar1.Maximum = 10000;
+            toolStripProgressBar1.Value = toolStripProgressBar1.Minimum;
+            toolStripStatusLabel1.Text = download_str + " " + downitem.name;
+            label_FFplay_sendname.Text = downitem.name;
+            var Player = data as ffmodule.FFplayer;
+            timer3.Enabled = true;
+            Player.StartSkip = FFplayStartDelay;
+            Player.StopDuration = FFplayDuration;
+            await Task.Run(() =>
+            {
+                using (var driveStream = new AmazonDriveStream(Drive, downitem))
+                using (var PosStream = new PositionStream(driveStream))
+                {
+                    PosStream.PosChangeEvent += (src, evnt) =>
+                    {
+                        synchronizationContext.Post(
+                            (o) =>
+                            {
+                                if (ct.IsCancellationRequested) return;
+                                var eo = o as PositionChangeEventArgs;
+                                toolStripStatusLabel1.Text = download_str + eo.Log + " " + downitem.name;
+                                toolStripProgressBar1.Style = ProgressBarStyle.Continuous;
+                                toolStripProgressBar1.Maximum = 10000;
+                                toolStripProgressBar1.Value = (int)((double)eo.Position / eo.Length * 10000);
+                            }, evnt);
+                    };
+                    Player.Tag = downitem;
+                    if (Player.Play(PosStream, downitem.name, ct) != 0)
+                        throw new OperationCanceledException("player cancel");
+                }
+            }, ct);
+            timer3.Enabled = false;
+            label_FFplay_sendname.Text = "Play Filename";
+        }
+
+        private void button_FFplay_next_Click(object sender, EventArgs e)
+        {
+            ffplayer?.Stop();
+        }
+
+        private void timer3_Tick(object sender, EventArgs e)
+        {
+            try
+            {
+                trackBar_FFplay_pos.Maximum = 10000;
+                var value = (int)((ffplayer?.PlayTime ?? 0) / (ffplayer?.Duration ?? 1) * trackBar_FFplay_pos.Maximum);
+                trackBar_FFplay_pos.Tag = 1;
+                trackBar_FFplay_pos.Value = (value < trackBar_FFplay_pos.Minimum) ? 0 : (value > trackBar_FFplay_pos.Maximum) ? trackBar_FFplay_pos.Maximum : value;
+                trackBar_FFplay_pos.Tag = 0;
+                label_FFplay_stream.Text = string.Format("{0} / {1}",
+                    TimeSpan.FromSeconds(ffplayer?.PlayTime ?? 0).ToString(@"hh\:mm\:ss\.fff"),
+                    TimeSpan.FromSeconds(ffplayer?.Duration ?? 0).ToString(@"hh\:mm\:ss"));
+            }
+            catch { }
+        }
+
+        private void trackBar_FFplay_pos_MouseCaptureChanged(object sender, EventArgs e)
+        {
+            timer3.Enabled = false;
+            timer4.Enabled = true;
+        }
+
+        private void trackBar_FFplay_pos_ValueChanged(object sender, EventArgs e)
+        {
+            if (trackBar_FFplay_pos.Tag as int? == 1) return;
+            timer4.Enabled = false;
+            timer3.Enabled = false;
+            label_FFplay_stream.Text = string.Format("seek to {0} / {1}",
+                TimeSpan.FromSeconds((double)trackBar_FFplay_pos.Value / trackBar_FFplay_pos.Maximum * (ffplayer?.Duration ?? 1)).ToString(@"hh\:mm\:ss\.fff"),
+                TimeSpan.FromSeconds(ffplayer?.Duration ?? 0).ToString(@"hh\:mm\:ss"));
+            timer4.Enabled = true;
+        }
+
+        private void timer4_Tick(object sender, EventArgs e)
+        {
+            timer4.Enabled = false;
+            if (ffplayer != null)
+            {
+                var val = (double)trackBar_FFplay_pos.Value / trackBar_FFplay_pos.Maximum * (ffplayer?.Duration ?? 1);
+                ffplayer.PlayTime = val;
+                timer3.Enabled = true;
+            }
+        }
+
+        private void textBox_FFplayStart_Leave(object sender, EventArgs e)
+        {
+            if (textBox_FFplayStart.Text == "")
+                FFplayStartDelay = double.NaN;
+            else
+            {
+                try
+                {
+                    FFplayStartDelay = double.Parse(textBox_FFplayStart.Text);
+                }
+                catch
+                {
+                    try
+                    {
+                        FFplayStartDelay = TimeSpan.Parse(textBox_FFplayStart.Text).TotalSeconds;
+                    }
+                    catch
+                    {
+                        FFplayStartDelay = double.NaN;
+                    }
+                }
+            }
+            textBox_FFplayStart.Text = (double.IsNaN(FFplayStartDelay)) ? "" : TimeSpan.FromSeconds(FFplayStartDelay).ToString();
+        }
+
+        private void textBox_FFplayDuration_Leave(object sender, EventArgs e)
+        {
+            if (textBox_FFplayDuration.Text == "")
+                FFplayDuration = double.NaN;
+            else
+            {
+                try
+                {
+                    FFplayDuration = double.Parse(textBox_FFplayDuration.Text);
+                }
+                catch
+                {
+                    try
+                    {
+                        FFplayDuration = TimeSpan.Parse(textBox_FFplayDuration.Text).TotalSeconds;
+                    }
+                    catch
+                    {
+                        FFplayDuration = double.NaN;
+                    }
+                }
+            }
+            textBox_FFplayDuration.Text = (double.IsNaN(FFplayDuration)) ? "" : TimeSpan.FromSeconds(FFplayDuration).ToString();
+        }
 
         ////////////////////////////////////////////////////////////////////////////////////////////////
         /// 
@@ -2534,9 +2893,9 @@ namespace TSviewACD
         /// 
         ////////////////////////////////////////////////////////////////////////////////////////////////
 
-        private delegate Task PlayOneFileDelegate(FileMetadata_Info downitem, string download_str);
+        private delegate Task PlayOneFileDelegate(FileMetadata_Info downitem, string download_str, CancellationToken ct, object data);
 
-        private async Task PlayFiles(PlayOneFileDelegate func, string LogPrefix)
+        private async Task PlayFiles(PlayOneFileDelegate func, string LogPrefix, CancellationToken ct = default(CancellationToken), object data = null)
         {
             Config.Log.LogOut(LogPrefix + " media files Start.");
             toolStripStatusLabel1.Text = "unable to download.";
@@ -2544,17 +2903,24 @@ namespace TSviewACD
             var select = listView1.SelectedItems;
             if (select.Count == 0) return;
 
-            var selectItem = select.OfType<ListViewItem>().Select(x => (x.Tag as ItemInfo).info).Where(x => x.kind != "FOLDER");
+            var selectItem = select.OfType<ListViewItem>().Select(x => (x.Tag as ItemInfo).info).Where(x => x.kind != "FOLDER").ToArray();
 
             int f_all = selectItem.Count();
             if (f_all == 0) return;
 
             int f_cur = 0;
+            TaskCanselToken task = null;
+            if (ct == default(CancellationToken))
+            {
+                task = CreateTask("play");
+                ct = task.cts.Token;
+            }
             try
             {
                 nextUDPcount = 0;
                 foreach (var downitem in selectItem)
                 {
+                    ct.ThrowIfCancellationRequested();
                     Config.Log.LogOut(LogPrefix + " download : " + downitem.name);
                     var download_str = (f_all > 1) ? string.Format("Download({0}/{1})...", ++f_cur, f_all) : "Download...";
 
@@ -2568,7 +2934,7 @@ namespace TSviewACD
                             var tmpfile = await Drive.renameItem(downitem.id, ConfigAPI.temporaryFilename + downitem.id);
                             try
                             {
-                                await func(downitem, download_str);
+                                await func(downitem, download_str, ct, data);
                             }
                             finally
                             {
@@ -2582,7 +2948,7 @@ namespace TSviewACD
                     }
                     else
                     {
-                        await func(downitem, download_str);
+                        await func(downitem, download_str, ct, data);
                     }
 
                     Config.Log.LogOut(LogPrefix + " download : done.");
@@ -2613,13 +2979,118 @@ namespace TSviewACD
                 toolStripStatusLabel1.Text = "Error detected.";
                 MessageBox.Show(LogPrefix + " : ERROR\r\n" + ex.Message);
             }
+            finally
+            {
+                FinishTask(task);
+            }
             label_sendname.Text = "Send Filename";
             label_FFplay_sendname.Text = "Play Filename";
         }
 
         /////////////////////////////////////////////////////////////////////////////////////////////////
 
+        private double ConvertUnit(double value, string Unit)
+        {
+            switch (Unit)
+            {
+                case "GiB/s":
+                    return value * 1024 * 1024 * 1024;
+                case "MiB/s":
+                    return value * 1024 * 1024;
+                case "KiB/s":
+                    return value * 1024;
+                case "GB/s":
+                    return value * 1000 * 1000 * 1000;
+                case "MB/s":
+                    return value * 1000 * 1000;
+                case "KB/s":
+                    return value * 1000;
+            }
+            return value;
+        }
+
+        private void textBox_UploadBandwidhtLimit_TextChanged(object sender, EventArgs e)
+        {
+            if (comboBox_UploadLimitUnit.SelectedIndex == comboBox_UploadLimitUnit.Items.IndexOf("Infinity"))
+            {
+                Config.UploadLimit = double.PositiveInfinity;
+                textBox_UploadBandwidthLimit.Text = "";
+            }
+            try
+            {
+                double value = double.Parse(textBox_UploadBandwidthLimit.Text);
+                Config.UploadLimit = ConvertUnit(value, (string)comboBox_UploadLimitUnit.SelectedItem);
+            }
+            catch { }
+        }
+
+        private void textBox_DownloadBandwidthLimit_TextChanged(object sender, EventArgs e)
+        {
+            if (comboBox_DownloadLimitUnit.SelectedIndex == comboBox_DownloadLimitUnit.Items.IndexOf("Infinity"))
+            {
+                Config.DownloadLimit = double.PositiveInfinity;
+                textBox_DownloadBandwidthLimit.Text = "";
+            }
+            try
+            {
+                double value = double.Parse(textBox_DownloadBandwidthLimit.Text);
+                Config.DownloadLimit = ConvertUnit(value, (string)comboBox_DownloadLimitUnit.SelectedItem);
+            }
+            catch { }
+        }
+
+        private void comboBox_UploadLimitUnit_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            if (comboBox_UploadLimitUnit.SelectedIndex == comboBox_UploadLimitUnit.Items.IndexOf("Infinity"))
+            {
+                Config.UploadLimit = double.PositiveInfinity;
+                textBox_UploadBandwidthLimit.Text = "";
+            }
+            try
+            {
+                double value = double.Parse(textBox_UploadBandwidthLimit.Text);
+                Config.UploadLimit = ConvertUnit(value, (string)comboBox_UploadLimitUnit.SelectedItem);
+            }
+            catch { }
+        }
+
+        private void comboBox_DownloadLimitUnit_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            if (comboBox_DownloadLimitUnit.SelectedIndex == comboBox_DownloadLimitUnit.Items.IndexOf("Infinity"))
+            {
+                Config.DownloadLimit = double.PositiveInfinity;
+                textBox_DownloadBandwidthLimit.Text = "";
+            }
+            try
+            {
+                double value = double.Parse(textBox_DownloadBandwidthLimit.Text);
+                Config.DownloadLimit = ConvertUnit(value, (string)comboBox_DownloadLimitUnit.SelectedItem);
+            }
+            catch { }
+        }
+
+        ///////////////////////////////////////////////////////////////////////////////////////////////////////
+
+        private void button_breakone_Click(object sender, EventArgs e)
+        {
+            foreach (ListViewItem item in listView_TaskList.SelectedItems)
+                (item.Tag as TaskCanselToken).cts.Cancel();
+        }
+
+        private void button_break_Click(object sender, EventArgs e)
+        {
+            foreach (ListViewItem item in listView_TaskList.Items)
+                (item.Tag as TaskCanselToken).cts.Cancel();
+        }
+
+        private void buttonFFmpegmoduleConfig_Click(object sender, EventArgs e)
+        {
+            var form = new FormFFmoduleConfig();
+            form.ShowDialog();
+        }
+
     }
+
 
     public class ItemInfo
     {

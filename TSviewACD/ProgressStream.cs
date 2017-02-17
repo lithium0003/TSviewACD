@@ -83,7 +83,11 @@ namespace TSviewACD
                             + string.Format("({0:0.00%}) ", (double)data.Position / data.Length)
                             + ConvertUnit(Rate_mean)
                             + " [to go " + TimeSpan.FromSeconds(Math.Round((data.Length - data.Position) / Rate_mean)).ToString() + " ] ";
-                PosChangeEvent?.Invoke(this, data);
+                try
+                {
+                    PosChangeEvent?.Invoke(this, data);
+                }
+                catch { }
             }
         }
 
@@ -92,6 +96,18 @@ namespace TSviewACD
         public override bool CanWrite { get { return innerStream.CanWrite; } }
         public override bool CanSeek { get { return innerStream.CanSeek; } }
         public override void Flush() { innerStream.Flush(); }
+        public override int ReadTimeout
+        {
+            get
+            {
+                return innerStream.ReadTimeout;
+            }
+
+            set
+            {
+                innerStream.ReadTimeout = value;
+            }
+        }
 
         public override long Position
         {

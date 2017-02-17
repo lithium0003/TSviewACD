@@ -26,7 +26,7 @@ namespace TSviewACD
         public const string AmazonAPI_token = "https://api.amazon.com/auth/o2/token";
         public const string getEndpoint = "https://drive.amazonaws.com/drive/v1/account/endpoint";
 
-        public const long FilenameChangeTrickSize = 10 * 1024 * 1024 * 1024L;
+        public const long FilenameChangeTrickSize = 10 * 1000 * 1000 * 1000L;
         public const string temporaryFilename = "temporary_filename";
 
         public const int CopyBufferSize = 64 * 1024 * 1024;
@@ -36,8 +36,6 @@ namespace TSviewACD
     {
         AuthKeys key;
         DateTime key_timer;
-        CancellationTokenSource ct_source = new CancellationTokenSource();
-        public CancellationToken ct { get { return ct_source.Token; } }
         string contentUrl;
         string metadataUrl;
 
@@ -53,14 +51,14 @@ namespace TSviewACD
             set { key = value; }
         }
 
-        public async Task<bool> Login()
+        public async Task<bool> Login(CancellationToken ct = default(CancellationToken))
         {
             Config.Log.LogOut("\t[Login]");
             if (string.IsNullOrEmpty(Config.refresh_token))
             {
                 Thread t = new Thread(new ThreadStart(() =>
                 {
-                    Authkey = new FormLogin().Login();
+                    Authkey = new FormLogin().Login(ct);
                 }));
                 t.SetApartmentState(System.Threading.ApartmentState.STA);
                 t.Start();
@@ -74,16 +72,16 @@ namespace TSviewACD
             }
             else
             {
-                return await Refresh().ConfigureAwait(false);
+                return await Refresh(ct).ConfigureAwait(false);
             }
         }
 
-        public async Task<bool> Refresh()
+        public async Task<bool> Refresh(CancellationToken ct = default(CancellationToken))
         {
             Config.Log.LogOut("\t[Refresh]");
             var newkey = new AuthKeys();
             newkey.refresh_token = Config.refresh_token;
-            newkey = await FormLogin.RefreshAuthorizationCode(newkey, ct_source.Token).ConfigureAwait(false);
+            newkey = await FormLogin.RefreshAuthorizationCode(newkey, ct).ConfigureAwait(false);
             if (newkey != null && !string.IsNullOrEmpty(newkey.access_token))
             {
                 Authkey = newkey;
@@ -91,14 +89,7 @@ namespace TSviewACD
                 return true;
             }
             Config.refresh_token = "";
-            return await Login().ConfigureAwait(false);
-        }
-
-        public void Cancel()
-        {
-            Config.Log.LogOut("\t[Cancel]");
-            ct_source.Cancel();
-            ct_source = new CancellationTokenSource();
+            return await Login(ct).ConfigureAwait(false);
         }
 
         static T ParseResponse<T>(string response)
@@ -110,13 +101,13 @@ namespace TSviewACD
             }
         }
 
-        public async Task EnsureToken()
+        public async Task EnsureToken(CancellationToken ct = default(CancellationToken))
         {
-            if (DateTime.Now - key_timer < TimeSpan.FromMinutes(50) && await GetAccountInfo().ConfigureAwait(false)) return;
-            await Refresh().ConfigureAwait(false);
+            if (DateTime.Now - key_timer < TimeSpan.FromMinutes(50) && await GetAccountInfo(ct).ConfigureAwait(false)) return;
+            await Refresh(ct).ConfigureAwait(false);
         }
 
-        public async Task<bool> GetEndpoint()
+        public async Task<bool> GetEndpoint(CancellationToken ct = default(CancellationToken))
         {
             Config.Log.LogOut("\t[GetEndpoint]");
             string error_str;
@@ -124,7 +115,7 @@ namespace TSviewACD
             {
                 metadataUrl = Config.metadataUrl;
                 contentUrl = Config.contentUrl;
-                if (await GetAccountInfo().ConfigureAwait(false)) return true;
+                if (await GetAccountInfo(ct).ConfigureAwait(false)) return true;
             }
 
             using (var client = new HttpClient())
@@ -169,7 +160,7 @@ namespace TSviewACD
             return false;
         }
 
-        public async Task<bool> GetAccountInfo()
+        public async Task<bool> GetAccountInfo(CancellationToken ct = default(CancellationToken))
         {
             Config.Log.LogOut("\t[GetAccountInfo]");
             string error_str;
@@ -209,7 +200,7 @@ namespace TSviewACD
             return false;
         }
 
-        public async Task<FileMetadata_Info> GetFileMetadata(string id, bool templink = false)
+        public async Task<FileMetadata_Info> GetFileMetadata(string id, CancellationToken ct = default(CancellationToken), bool templink = false)
         {
             Config.Log.LogOut("\t[GetFileMetadata] " + id);
             string error_str;
@@ -248,7 +239,7 @@ namespace TSviewACD
             throw new SystemException("GetFileMetadata Failed. " + error_str);
         }
 
-        public async Task<FileListdata_Info> ListMetadata(string filters = null, string startToken = null)
+        public async Task<FileListdata_Info> ListMetadata(string filters = null, string startToken = null, CancellationToken ct = default(CancellationToken))
         {
             Config.Log.LogOut("\t[ListMetadata]");
             string error_str = "";
@@ -276,7 +267,7 @@ namespace TSviewACD
                         var info = ParseResponse<FileListdata_Info>(responseBody);
                         if (!string.IsNullOrEmpty(info.nextToken))
                         {
-                            var next_info = await ListMetadata(filters, info.nextToken).ConfigureAwait(false);
+                            var next_info = await ListMetadata(filters, info.nextToken, ct: ct).ConfigureAwait(false);
                             info.data = info.data.Concat(next_info.data).ToArray();
                         }
                         return info;
@@ -314,7 +305,7 @@ namespace TSviewACD
             throw new SystemException("ListMetadata Failed. " + error_str);
         }
 
-        public async Task<FileListdata_Info> ListChildren(string id, string startToken = null)
+        public async Task<FileListdata_Info> ListChildren(string id, string startToken = null, CancellationToken ct = default(CancellationToken))
         {
             Config.Log.LogOut("\t[ListChildren] " + id);
             string error_str = "";
@@ -324,6 +315,7 @@ namespace TSviewACD
                 var retry = 0;
                 while (++retry < 30)
                 {
+                    ct.ThrowIfCancellationRequested();
                     try
                     {
                         client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", Authkey.access_token);
@@ -338,7 +330,7 @@ namespace TSviewACD
                         var info = ParseResponse<FileListdata_Info>(responseBody);
                         if (!string.IsNullOrEmpty(info.nextToken))
                         {
-                            var next_info = await ListChildren(id, info.nextToken).ConfigureAwait(false);
+                            var next_info = await ListChildren(id, info.nextToken, ct: ct).ConfigureAwait(false);
                             info.data = info.data.Concat(next_info.data).ToArray();
                         }
                         return info;
@@ -389,7 +381,7 @@ namespace TSviewACD
             public string[] parents;
         }
 
-        public async Task<FileMetadata_Info> uploadFile(string filename, string parent_id = null, PoschangeEventHandler process = null)
+        public async Task<FileMetadata_Info> uploadFile(string filename, string parent_id = null, PoschangeEventHandler process = null, CancellationToken ct = default(CancellationToken))
         {
             Config.Log.LogOut("\t[uploadFile] " + filename);
             string error_str;
@@ -418,27 +410,30 @@ namespace TSviewACD
                     StreamReader sr = new StreamReader(ms);
                     content.Add(new StringContent(sr.ReadToEnd(), System.Text.Encoding.UTF8, "application/json"), "metadata");
 
-                    var f = new PositionStream(File.OpenRead(filename));
-                    if (process != null)
-                        f.PosChangeEvent += process;
-                    //f.PosChangeEvent += (src, e) =>
-                    //{
-                    //    System.Diagnostics.Debug.WriteLine("HTTP pos :" + e.Log);
-                    //};
-                    var fileContent = new StreamContent(f);
-                    fileContent.Headers.ContentType = new MediaTypeHeaderValue("application/octet-stream");
-                    fileContent.Headers.ContentLength = f.Length;
-                    content.Add(fileContent, "content", Path.GetFileName(filename));
+                    using (var thstream = new ThrottleUploadStream(File.OpenRead(filename)))
+                    using (var f = new PositionStream(thstream))
+                    {
+                        if (process != null)
+                            f.PosChangeEvent += process;
+                        //f.PosChangeEvent += (src, e) =>
+                        //{
+                        //    System.Diagnostics.Debug.WriteLine("HTTP pos :" + e.Log);
+                        //};
+                        var fileContent = new StreamContent(f);
+                        fileContent.Headers.ContentType = new MediaTypeHeaderValue("application/octet-stream");
+                        fileContent.Headers.ContentLength = f.Length;
+                        content.Add(fileContent, "content", Path.GetFileName(filename));
 
-                    var response = await client.PostAsync(
-                        Config.contentUrl + "nodes?suppress=deduplication",
-                        content,
-                        ct).ConfigureAwait(false);
-                    response.EnsureSuccessStatusCode();
-                    string responseBody = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
-                    // Above three lines can be replaced with new helper method in following line
-                    // string body = await client.GetStringAsync(uri);
-                    return ParseResponse<FileMetadata_Info>(responseBody);
+                        var response = await client.PostAsync(
+                            Config.contentUrl + "nodes?suppress=deduplication",
+                            content,
+                            ct).ConfigureAwait(false);
+                        response.EnsureSuccessStatusCode();
+                        string responseBody = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
+                        // Above three lines can be replaced with new helper method in following line
+                        // string body = await client.GetStringAsync(uri);
+                        return ParseResponse<FileMetadata_Info>(responseBody);
+                    }
                 }
                 catch (HttpRequestException ex)
                 {
@@ -461,7 +456,7 @@ namespace TSviewACD
             }
         }
 
-        public async Task<bool> TrashItem(string id)
+        public async Task<bool> TrashItem(string id, CancellationToken ct = default(CancellationToken))
         {
             Config.Log.LogOut("\t[Trash] " + id);
             string error_str;
@@ -517,7 +512,7 @@ namespace TSviewACD
             return false;
         }
 
-        public async Task<Stream> downloadFile(string id, long? from = null, long? to = null)
+        public async Task<Stream> downloadFile(string id, long? from = null, long? to = null, CancellationToken ct = default(CancellationToken))
         {
             Config.Log.LogOut("\t[downloadFile] " + id);
             string error_str;
@@ -534,7 +529,7 @@ namespace TSviewACD
                     HttpCompletionOption.ResponseHeadersRead,
                     ct);
                 response.EnsureSuccessStatusCode();
-                return await response.Content.ReadAsStreamAsync();
+                return new ThrottleDownloadStream(await response.Content.ReadAsStreamAsync());
             }
             catch (HttpRequestException ex)
             {
@@ -557,7 +552,7 @@ namespace TSviewACD
             throw new SystemException("fileDownload failed. " + error_str);
         }
 
-        public async Task<FileMetadata_Info> renameItem(string id, string newname)
+        public async Task<FileMetadata_Info> renameItem(string id, string newname, CancellationToken ct = default(CancellationToken))
         {
             Config.Log.LogOut("\t[rename] " + id + ' ' + newname);
             string error_str;
@@ -600,7 +595,7 @@ namespace TSviewACD
         }
 
 
-        public async Task<FileMetadata_Info> createFolder(string foldername, string parent_id = null)
+        public async Task<FileMetadata_Info> createFolder(string foldername, string parent_id = null, CancellationToken ct = default(CancellationToken))
         {
             Config.Log.LogOut("\t[createFolder] " + foldername);
             string error_str;
@@ -666,7 +661,7 @@ namespace TSviewACD
             public string childId;
         }
 
-        public async Task<bool> moveChild(string childid, string fromParentId, string toParentId)
+        public async Task<bool> moveChild(string childid, string fromParentId, string toParentId, CancellationToken ct = default(CancellationToken))
         {
             Config.Log.LogOut("\t[move]");
             string error_str;
