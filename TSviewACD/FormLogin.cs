@@ -52,6 +52,9 @@ namespace TSviewACD
             var path = e.Url.AbsoluteUri;
             if (path.StartsWith(ConfigAPI.App_redirect))
             {
+                if (string.IsNullOrEmpty(ConfigAPI.client_secret))
+                    return;
+
                 const string code_str = "?code=";
                 var i = path.IndexOf(code_str);
                 if (i < 0) return;
@@ -59,7 +62,32 @@ namespace TSviewACD
                 string code = path.Substring(i + code_str.Length, path.IndexOf('&', i) - i - code_str.Length);
                 await GetAuthorizationCode(code, ct_soruce.Token);
 
-                if(key != null && key.access_token != "")
+                if (key != null && key.access_token != "")
+                {
+                    webBrowser1.Navigate(ConfigAPI.LoginSuccess);
+                    timer1.Enabled = true;
+                }
+            }
+            if (path.StartsWith(ConfigAPI.App_GetToken))
+            {
+                try
+                {
+                    var body = webBrowser1.DocumentText;
+                    var i = body.IndexOf('{');
+                    var j = body.IndexOf('}');
+                    if (i < 0 || j < 0) return;
+
+                    key = ParseResponse(body.Substring(i, j - i + 1));
+                    // Save refresh_token
+                    Config.refresh_token = key.refresh_token;
+                    Config.Save();
+                }
+                catch (Exception ex)
+                {
+                    error_str = ex.ToString();
+                    System.Diagnostics.Debug.WriteLine(error_str);
+                }
+                if (key != null && key.access_token != "")
                 {
                     webBrowser1.Navigate(ConfigAPI.LoginSuccess);
                     timer1.Enabled = true;
@@ -128,7 +156,7 @@ namespace TSviewACD
                 try
                 {
                     var response = await client.PostAsync(
-                        ConfigAPI.AmazonAPI_token,
+                        (string.IsNullOrEmpty(ConfigAPI.client_secret))? ConfigAPI.App_RefreshToken: ConfigAPI.AmazonAPI_token,
                         new FormUrlEncodedContent(new Dictionary<string, string>{
                             {"grant_type","refresh_token"},
                             {"refresh_token",key.refresh_token},

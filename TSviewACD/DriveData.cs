@@ -232,23 +232,17 @@ namespace TSviewACD
                     }
                 }
                 done?.Invoke("Changes Loaded.");
-                if (updated)
-                {
-                    while (!ct.IsCancellationRequested)
-                    {
-                        if (await Task.Run(() =>
-                        {
-                            if (SaveToBinaryFile(new RecordData(), cachefile))
-                                return true;
-                            else
-                                return false;
-                        }, ct))
-                        {
-                            break;
-                        }
-                    }
-                }
                 return ret.ToArray();
+            }
+        }
+
+        static public void Save()
+        {
+            int retry = 30;
+            while (--retry > 0)
+            {
+                if (SaveToBinaryFile(new RecordData(), cachefile))
+                    return;
             }
         }
 

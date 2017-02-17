@@ -209,6 +209,7 @@ namespace TSviewACD
                 if (IsClosing)
                 {
                     Save();
+                    DriveData.Save();
                 }
             }
         }
