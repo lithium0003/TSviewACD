@@ -868,7 +868,7 @@ namespace ffmodule {
 
 	int _FFplayer::audio_decode_frame(uint8_t *audio_buf, int buf_size, double *pts_ptr)
 	{
-		int buf_limit = buf_size / 10;
+		int buf_limit = buf_size * 3 / 4;
 		AVCodecContext *aCodecCtx = audio_ctx.get();
 		SwrContext *a_convert_ctx = swr_ctx.get();
 		AVPacket pkt = { 0 }, *inpkt = &pkt;
@@ -912,7 +912,7 @@ namespace ffmodule {
 			// send packet to codec context
 			ret = avcodec_send_packet(aCodecCtx, inpkt);
 			if (ret >= 0 || (audio_eof == audio_eof_enum::input_eof && ret == AVERROR_EOF)) {
-				if(inpkt) av_packet_unref(inpkt);
+				if (inpkt) av_packet_unref(inpkt);
 				int data_size = 0;
 
 				// Decode audio frame
@@ -922,6 +922,8 @@ namespace ffmodule {
 
 					if (inframe) {
 						auto dec_channel_layout = get_valid_channel_layout(inframe->channel_layout, av_frame_get_channels(inframe));
+						if (!dec_channel_layout)
+							dec_channel_layout = av_get_default_channel_layout(inframe->channels);
 						bool reconfigure =
 							cmp_audio_fmts(audio_filter_src.fmt, audio_filter_src.channels,
 							(enum AVSampleFormat)inframe->format, av_frame_get_channels(inframe)) ||
@@ -953,10 +955,13 @@ namespace ffmodule {
 						}
 					}
 
+					if (!afilt_in || !afilt_out)
+						goto quit_audio;
+
 					if (av_buffersrc_add_frame(afilt_in, inframe) < 0)
 						goto quit_audio;
 
-					if(inframe) av_frame_unref(inframe);
+					if (inframe) av_frame_unref(inframe);
 					while (buf_size > buf_limit && (ret = av_buffersink_get_frame(afilt_out, &audio_frame_out)) >= 0) {
 
 						if (av_frame_get_best_effort_timestamp(&audio_frame_out) != AV_NOPTS_VALUE) {
@@ -992,11 +997,13 @@ namespace ffmodule {
 
 					if (!inframe) break;
 				}//while(avcodec_receive_frame)
-
-				double pts = audio_clock;
-				*pts_ptr = pts;
-				/* We have data, return it and come back for more later */
-				return data_size;
+				
+				if (data_size > 0) {
+					double pts = audio_clock;
+					*pts_ptr = pts;
+					/* We have data, return it and come back for more later */
+					return data_size;
+				}
 			} //if (avcodec_send_packet)
 			if(inpkt) av_packet_unref(inpkt);
 

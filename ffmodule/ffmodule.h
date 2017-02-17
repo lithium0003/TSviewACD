@@ -53,7 +53,7 @@ extern "C" {
 
 #define VIDEO_PICTURE_QUEUE_SIZE 60*20
 
-#define MAX_AUDIOQ_SIZE (1 * 32 * 1024)
+#define MAX_AUDIOQ_SIZE (32 * 32 * 1024)
 #define MAX_VIDEOQ_SIZE (64 * 32 * 1024)
 
 #define AV_SYNC_THRESHOLD 0.01
@@ -264,7 +264,7 @@ namespace ffmodule {
 		AVStream        *audio_st;
 		std::shared_ptr<AVCodecContext> audio_ctx;
 		PacketQueue     audioq;
-		uint8_t         audio_buf[MAX_AUDIO_FRAME_SIZE * 2];
+		uint8_t         audio_buf[MAX_AUDIO_FRAME_SIZE * 5];
 		unsigned int    audio_buf_size;
 		unsigned int    audio_buf_index;
 		double          audio_diff_cum; /* used for AV difference average computation */
