@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -438,22 +439,46 @@ namespace TSviewACD
 
         private Dictionary<string, FileMetadata_Info> ExpandPath(string basepath, ItemInfo items)
         {
-            Dictionary<string, FileMetadata_Info> ret = new Dictionary<string, FileMetadata_Info>();
+            var total = new ConcurrentBag<KeyValuePair<string, FileMetadata_Info>>();
             string filename = items.DisplayName;
-            ret[basepath + filename] = items.info;
+            total.Add(new KeyValuePair<string, FileMetadata_Info>(basepath + filename, items.info));
             if (items.info.kind == "FOLDER")
             {
                 if(items.children.Count() > 0)
-                    ret = items.children.Values.Select(x => ExpandPath(basepath + filename + "\\", x)).Aggregate((i, j) => i.Concat(j).ToDictionary(y => y.Key, y => y.Value));
+                {
+                    Parallel.ForEach(items.children.Values, () => new Dictionary<string, FileMetadata_Info>(), (x, state, local) =>
+                    {
+                        return local.Concat(ExpandPath(basepath + filename + "\\", x)).ToDictionary(y => y.Key, y => y.Value);
+                    },
+                    (subtotal) => 
+                    {
+                        foreach (var i in subtotal)
+                            total.Add(i);
+                    });
+
+                }
             }
-            return ret;
+            return total.ToDictionary(y => y.Key, y=> y.Value);
         }
 
         public ClipboardAmazonDrive(IEnumerable<ItemInfo> items)
         {
             if ((items?.Count() ?? 0) == 0) throw new ArgumentException("no item selected");
 
-            var exItems = items.Select(x => ExpandPath("", x)).Aggregate((i, j) => i.Concat(j).ToDictionary(y => y.Key, y => y.Value));
+            var total = new ConcurrentBag<KeyValuePair<string, FileMetadata_Info>>();
+            Parallel.ForEach(
+                items, 
+                () => new Dictionary<string, FileMetadata_Info>(), 
+                (x, state, local) =>
+                {
+                    return local.Concat(ExpandPath("", x)).ToDictionary(y => y.Key, y => y.Value);
+                },
+                (subtotal) =>
+                {
+                    foreach (var i in subtotal)
+                        total.Add(i);
+                });
+            var exItems = total.ToDictionary(y => y.Key, y => y.Value);
             selectedItems = exItems.Values.ToArray();
             baseItems = items.Select(x => x.info).ToArray();
 

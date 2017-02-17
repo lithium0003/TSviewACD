@@ -448,6 +448,15 @@ namespace TSviewACD {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Select Upload Folder.
+        /// </summary>
+        internal static string SelectUploadFolder_str {
+            get {
+                return ResourceManager.GetString("SelectUploadFolder_str", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Do you want to trash items?.
         /// </summary>
         internal static string TrashItems_str {

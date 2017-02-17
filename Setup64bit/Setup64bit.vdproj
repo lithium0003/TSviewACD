@@ -39,6 +39,18 @@
         }
         "Entry"
         {
+        "MsmKey" = "8:_58560E9F72EAF703CF4A8CC843A15B18"
+        "OwnerKey" = "8:_9EF8E958004C4CB4B65E85A6A271BB16"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
+        "MsmKey" = "8:_58560E9F72EAF703CF4A8CC843A15B18"
+        "OwnerKey" = "8:_F2CC19CFEBF44648AEA35821DE165D77"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
         "MsmKey" = "8:_65432A5FB20D4ED09FC6B8F3F9F8FD2D"
         "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
@@ -47,18 +59,6 @@
         {
         "MsmKey" = "8:_6776D1F3EADF42B1BC2E4D913350BC5A"
         "OwnerKey" = "8:_UNDEFINED"
-        "MsmSig" = "8:_UNDEFINED"
-        }
-        "Entry"
-        {
-        "MsmKey" = "8:_81A9D0128E1A5163C562043C4B894E9E"
-        "OwnerKey" = "8:_9EF8E958004C4CB4B65E85A6A271BB16"
-        "MsmSig" = "8:_UNDEFINED"
-        }
-        "Entry"
-        {
-        "MsmKey" = "8:_81A9D0128E1A5163C562043C4B894E9E"
-        "OwnerKey" = "8:_F2CC19CFEBF44648AEA35821DE165D77"
         "MsmSig" = "8:_UNDEFINED"
         }
         "Entry"
@@ -166,7 +166,7 @@
         "Entry"
         {
         "MsmKey" = "8:_UNDEFINED"
-        "OwnerKey" = "8:_EE87D4693607DA830341F2EE0B71A64E"
+        "OwnerKey" = "8:_F2CC19CFEBF44648AEA35821DE165D77"
         "MsmSig" = "8:_UNDEFINED"
         }
         "Entry"
@@ -178,13 +178,13 @@
         "Entry"
         {
         "MsmKey" = "8:_UNDEFINED"
-        "OwnerKey" = "8:_F2CC19CFEBF44648AEA35821DE165D77"
+        "OwnerKey" = "8:_58560E9F72EAF703CF4A8CC843A15B18"
         "MsmSig" = "8:_UNDEFINED"
         }
         "Entry"
         {
         "MsmKey" = "8:_UNDEFINED"
-        "OwnerKey" = "8:_81A9D0128E1A5163C562043C4B894E9E"
+        "OwnerKey" = "8:_EE87D4693607DA830341F2EE0B71A64E"
         "MsmSig" = "8:_UNDEFINED"
         }
     }
@@ -372,6 +372,37 @@
             "IsDependency" = "11:FALSE"
             "IsolateTo" = "8:"
             }
+            "{9F6F8455-1EF1-4B85-886A-4223BCC8E7F7}:_58560E9F72EAF703CF4A8CC843A15B18"
+            {
+            "AssemblyRegister" = "3:1"
+            "AssemblyIsInGAC" = "11:FALSE"
+            "AssemblyAsmDisplayName" = "8:ffmodule_conf, Version=1.0.0.0, Culture=neutral, processorArchitecture=AMD64"
+                "ScatterAssemblies"
+                {
+                    "_58560E9F72EAF703CF4A8CC843A15B18"
+                    {
+                    "Name" = "8:ffmodule_conf.dll"
+                    "Attributes" = "3:512"
+                    }
+                }
+            "SourcePath" = "8:ffmodule_conf.dll"
+            "TargetName" = "8:"
+            "Tag" = "8:"
+            "Folder" = "8:_8D9756B685E142D791ACF2E5FDFC53C4"
+            "Condition" = "8:"
+            "Transitive" = "11:FALSE"
+            "Vital" = "11:TRUE"
+            "ReadOnly" = "11:FALSE"
+            "Hidden" = "11:FALSE"
+            "System" = "11:FALSE"
+            "Permanent" = "11:FALSE"
+            "SharedLegacy" = "11:FALSE"
+            "PackageAs" = "3:1"
+            "Register" = "3:1"
+            "Exclude" = "11:TRUE"
+            "IsDependency" = "11:TRUE"
+            "IsolateTo" = "8:"
+            }
             "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_65432A5FB20D4ED09FC6B8F3F9F8FD2D"
             {
             "SourcePath" = "8:..\\external\\bin\\LICENSE.FFmpeg.LGPLv2.1"
@@ -410,32 +441,6 @@
             "Register" = "3:1"
             "Exclude" = "11:FALSE"
             "IsDependency" = "11:FALSE"
-            "IsolateTo" = "8:"
-            }
-            "{9F6F8455-1EF1-4B85-886A-4223BCC8E7F7}:_81A9D0128E1A5163C562043C4B894E9E"
-            {
-            "AssemblyRegister" = "3:1"
-            "AssemblyIsInGAC" = "11:FALSE"
-            "AssemblyAsmDisplayName" = "8:ffmodule_conf, Version=1.0.0.0, Culture=neutral, processorArchitecture=AMD64"
-                "ScatterAssemblies"
-                {
-                }
-            "SourcePath" = "8:ffmodule_conf.dll"
-            "TargetName" = "8:"
-            "Tag" = "8:"
-            "Folder" = "8:_8D9756B685E142D791ACF2E5FDFC53C4"
-            "Condition" = "8:"
-            "Transitive" = "11:FALSE"
-            "Vital" = "11:TRUE"
-            "ReadOnly" = "11:FALSE"
-            "Hidden" = "11:FALSE"
-            "System" = "11:FALSE"
-            "Permanent" = "11:FALSE"
-            "SharedLegacy" = "11:FALSE"
-            "PackageAs" = "3:1"
-            "Register" = "3:1"
-            "Exclude" = "11:TRUE"
-            "IsDependency" = "11:TRUE"
             "IsolateTo" = "8:"
             }
             "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_95E573CB1AB5405DA1B473878CBD4C68"
@@ -665,6 +670,11 @@
             "AssemblyAsmDisplayName" = "8:System.Net.Http, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a"
                 "ScatterAssemblies"
                 {
+                    "_EE87D4693607DA830341F2EE0B71A64E"
+                    {
+                    "Name" = "8:System.Net.Http.dll"
+                    "Attributes" = "3:512"
+                    }
                 }
             "SourcePath" = "8:System.Net.Http.dll"
             "TargetName" = "8:"
@@ -680,7 +690,7 @@
             "SharedLegacy" = "11:FALSE"
             "PackageAs" = "3:1"
             "Register" = "3:1"
-            "Exclude" = "11:TRUE"
+            "Exclude" = "11:FALSE"
             "IsDependency" = "11:TRUE"
             "IsolateTo" = "8:"
             }
@@ -802,15 +812,15 @@
         {
         "Name" = "8:Microsoft Visual Studio"
         "ProductName" = "8:TSviewACD"
-        "ProductCode" = "8:{0FB580FB-6F2B-4D6D-8FB9-813C40769FFB}"
-        "PackageCode" = "8:{31136DD5-DD05-4EC6-9E7E-6094DFF21261}"
+        "ProductCode" = "8:{6BCF5BD2-6773-46CA-8798-06E4D351F15E}"
+        "PackageCode" = "8:{5449384B-EC63-439B-855C-541FD0B26634}"
         "UpgradeCode" = "8:{35BB5569-D1AC-4F9A-861C-2B676D50BCC7}"
         "AspNetVersion" = "8:4.0.30319.0"
         "RestartWWWService" = "11:FALSE"
         "RemovePreviousVersions" = "11:TRUE"
         "DetectNewerInstalledVersion" = "11:TRUE"
         "InstallAllUsers" = "11:FALSE"
-        "ProductVersion" = "8:5.1.1"
+        "ProductVersion" = "8:5.1.4"
         "Manufacturer" = "8:lithium03"
         "ARPHELPTELEPHONE" = "8:"
         "ARPHELPLINK" = "8:"

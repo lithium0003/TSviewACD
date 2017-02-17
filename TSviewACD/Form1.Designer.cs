@@ -33,7 +33,6 @@
             this.splitContainer1 = new System.Windows.Forms.SplitContainer();
             this.tabControl1 = new System.Windows.Forms.TabControl();
             this.tabPage_Navigation = new System.Windows.Forms.TabPage();
-            this.button1 = new System.Windows.Forms.Button();
             this.checkBox_overrideUpload = new System.Windows.Forms.CheckBox();
             this.button_breakone = new System.Windows.Forms.Button();
             this.label23 = new System.Windows.Forms.Label();
@@ -174,6 +173,9 @@
             this.makeTemporaryLinkToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.sendUDPToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.playWithFFplayToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.toolStripMenuItem7 = new System.Windows.Forms.ToolStripSeparator();
+            this.cutToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.pasteToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.toolStripMenuItem3 = new System.Windows.Forms.ToolStripSeparator();
             this.renameToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.toolStripMenuItem2 = new System.Windows.Forms.ToolStripSeparator();
@@ -192,9 +194,6 @@
             this.timer2 = new System.Windows.Forms.Timer(this.components);
             this.timer3 = new System.Windows.Forms.Timer(this.components);
             this.timer4 = new System.Windows.Forms.Timer(this.components);
-            this.toolStripMenuItem7 = new System.Windows.Forms.ToolStripSeparator();
-            this.cutToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.pasteToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             ((System.ComponentModel.ISupportInitialize)(this.splitContainer1)).BeginInit();
             this.splitContainer1.Panel1.SuspendLayout();
             this.splitContainer1.Panel2.SuspendLayout();
@@ -254,7 +253,6 @@
             // 
             // tabPage_Navigation
             // 
-            this.tabPage_Navigation.Controls.Add(this.button1);
             this.tabPage_Navigation.Controls.Add(this.checkBox_overrideUpload);
             this.tabPage_Navigation.Controls.Add(this.button_breakone);
             this.tabPage_Navigation.Controls.Add(this.label23);
@@ -269,12 +267,6 @@
             resources.ApplyResources(this.tabPage_Navigation, "tabPage_Navigation");
             this.tabPage_Navigation.Name = "tabPage_Navigation";
             this.tabPage_Navigation.UseVisualStyleBackColor = true;
-            // 
-            // button1
-            // 
-            resources.ApplyResources(this.button1, "button1");
-            this.button1.Name = "button1";
-            this.button1.UseVisualStyleBackColor = true;
             // 
             // checkBox_overrideUpload
             // 
@@ -1368,6 +1360,23 @@
             resources.ApplyResources(this.playWithFFplayToolStripMenuItem, "playWithFFplayToolStripMenuItem");
             this.playWithFFplayToolStripMenuItem.Click += new System.EventHandler(this.playWithFFplayToolStripMenuItem_Click);
             // 
+            // toolStripMenuItem7
+            // 
+            this.toolStripMenuItem7.Name = "toolStripMenuItem7";
+            resources.ApplyResources(this.toolStripMenuItem7, "toolStripMenuItem7");
+            // 
+            // cutToolStripMenuItem
+            // 
+            this.cutToolStripMenuItem.Name = "cutToolStripMenuItem";
+            resources.ApplyResources(this.cutToolStripMenuItem, "cutToolStripMenuItem");
+            this.cutToolStripMenuItem.Click += new System.EventHandler(this.cutToolStripMenuItem_Click);
+            // 
+            // pasteToolStripMenuItem
+            // 
+            this.pasteToolStripMenuItem.Name = "pasteToolStripMenuItem";
+            resources.ApplyResources(this.pasteToolStripMenuItem, "pasteToolStripMenuItem");
+            this.pasteToolStripMenuItem.Click += new System.EventHandler(this.pasteToolStripMenuItem_Click);
+            // 
             // toolStripMenuItem3
             // 
             this.toolStripMenuItem3.Name = "toolStripMenuItem3";
@@ -1452,23 +1461,6 @@
             // 
             this.timer4.Interval = 1500;
             this.timer4.Tick += new System.EventHandler(this.timer4_Tick);
-            // 
-            // toolStripMenuItem7
-            // 
-            this.toolStripMenuItem7.Name = "toolStripMenuItem7";
-            resources.ApplyResources(this.toolStripMenuItem7, "toolStripMenuItem7");
-            // 
-            // cutToolStripMenuItem
-            // 
-            this.cutToolStripMenuItem.Name = "cutToolStripMenuItem";
-            resources.ApplyResources(this.cutToolStripMenuItem, "cutToolStripMenuItem");
-            this.cutToolStripMenuItem.Click += new System.EventHandler(this.cutToolStripMenuItem_Click);
-            // 
-            // pasteToolStripMenuItem
-            // 
-            this.pasteToolStripMenuItem.Name = "pasteToolStripMenuItem";
-            resources.ApplyResources(this.pasteToolStripMenuItem, "pasteToolStripMenuItem");
-            this.pasteToolStripMenuItem.Click += new System.EventHandler(this.pasteToolStripMenuItem_Click);
             // 
             // Form1
             // 
@@ -1686,7 +1678,6 @@
         private System.Windows.Forms.RadioButton radioButton_crypt_2_CBC;
         private System.Windows.Forms.RadioButton radioButton_crypt_1_CTR;
         private System.Windows.Forms.ComboBox comboBox_CarotDAV_Escape;
-        private System.Windows.Forms.Button button1;
         private System.Windows.Forms.CheckBox checkBox_decodeView;
         private System.Windows.Forms.ToolStripSeparator toolStripMenuItem7;
         private System.Windows.Forms.ToolStripMenuItem cutToolStripMenuItem;

@@ -19,11 +19,8 @@ namespace TSviewACD
         const int EM_SETSEL = 0x00B1;
         const int EM_REPLACESEL = 0x00C2;
 
-        [DllImport("User32.dll")]
-        private static extern int SendMessage(IntPtr hWnd, int uMsg, int wParam, string lParam);
-
-        [DllImport("User32.dll")]
-        private static extern int SendMessage(IntPtr hWnd, int uMsg, int wParam, int lParam);
+        [DllImport("User32.dll", EntryPoint = "SendMessageW")]
+        private static extern IntPtr SendMessage(IntPtr hWnd, uint uMsg, int wParam, [MarshalAs(UnmanagedType.LPWStr)] string lParam);
 
         private readonly SynchronizationContext synchronizationContext;
 
@@ -39,7 +36,7 @@ namespace TSviewACD
                     {
                         try
                         {
-                            LogStream = TextWriter.Synchronized(new StreamWriter(Stream.Synchronized(new FileStream(Path.ChangeExtension(Application.ExecutablePath, "log"), FileMode.Append, FileAccess.Write, FileShare.Read))));
+                            LogStream = TextWriter.Synchronized(new StreamWriter(Stream.Synchronized(new FileStream(Path.Combine(Config.Config_BasePath, Path.GetFileNameWithoutExtension(Application.ExecutablePath) + ".log"), FileMode.Append, FileAccess.Write, FileShare.Read))));
                         }
                         catch { }
                     }

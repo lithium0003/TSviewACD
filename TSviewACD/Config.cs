@@ -97,7 +97,17 @@ namespace TSviewACD
         public static int FontPtSize = 48;
         public static double FFmodule_TransferLimit = 128;
         public static bool FFmodule_AutoResize = true;
-        public static string DrivePassword = "";
+        static string _DrivePassword = "";
+        public static string DrivePassword
+        {
+            get { return _DrivePassword; }
+            set
+            {
+                _DrivePassword = value;
+                CryptCarotDAV.Password = _DrivePassword;
+                CryptCTR.password = _DrivePassword;
+            }
+        }
         public static bool LockPassword = false;
         public static bool UseEncryption = false;
         public static bool UseFilenameEncryption = false;
@@ -280,6 +290,7 @@ namespace TSviewACD
 
         static Config()
         {
+            DrivePassword = "";
             var serializer = new DataContractSerializer(typeof(Savedata));
             try
             {

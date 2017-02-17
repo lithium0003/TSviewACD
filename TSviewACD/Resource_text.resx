@@ -246,6 +246,9 @@
   <data name="SelectUploadFiles_str" xml:space="preserve">
     <value>Select Upload File(s)</value>
   </data>
+  <data name="SelectUploadFolder_str" xml:space="preserve">
+    <value>Select Upload Folder</value>
+  </data>
   <data name="TrashItems_str" xml:space="preserve">
     <value>Do you want to trash items?</value>
   </data>

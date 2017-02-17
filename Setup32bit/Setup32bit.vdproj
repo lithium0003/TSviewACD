@@ -123,20 +123,20 @@
         }
         "Entry"
         {
-        "MsmKey" = "8:_B39B283122AA5AFF9D7E43CBE49D2725"
+        "MsmKey" = "8:_B459C1CBF6B94A75B3F2B7227B9BB4F3"
+        "OwnerKey" = "8:_UNDEFINED"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
+        "MsmKey" = "8:_BDE49949D2368A1FD07754214C697B53"
         "OwnerKey" = "8:_9DA7F93EA8C34345A3A44DD3870C5623"
         "MsmSig" = "8:_UNDEFINED"
         }
         "Entry"
         {
-        "MsmKey" = "8:_B39B283122AA5AFF9D7E43CBE49D2725"
+        "MsmKey" = "8:_BDE49949D2368A1FD07754214C697B53"
         "OwnerKey" = "8:_89199A3CEBA0446A9CEC8D7CA163FC96"
-        "MsmSig" = "8:_UNDEFINED"
-        }
-        "Entry"
-        {
-        "MsmKey" = "8:_B459C1CBF6B94A75B3F2B7227B9BB4F3"
-        "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
         }
         "Entry"
@@ -166,7 +166,7 @@
         "Entry"
         {
         "MsmKey" = "8:_UNDEFINED"
-        "OwnerKey" = "8:_9338F118CFD54DE90EA348A5383157E4"
+        "OwnerKey" = "8:_89199A3CEBA0446A9CEC8D7CA163FC96"
         "MsmSig" = "8:_UNDEFINED"
         }
         "Entry"
@@ -178,13 +178,13 @@
         "Entry"
         {
         "MsmKey" = "8:_UNDEFINED"
-        "OwnerKey" = "8:_89199A3CEBA0446A9CEC8D7CA163FC96"
+        "OwnerKey" = "8:_BDE49949D2368A1FD07754214C697B53"
         "MsmSig" = "8:_UNDEFINED"
         }
         "Entry"
         {
         "MsmKey" = "8:_UNDEFINED"
-        "OwnerKey" = "8:_B39B283122AA5AFF9D7E43CBE49D2725"
+        "OwnerKey" = "8:_9338F118CFD54DE90EA348A5383157E4"
         "MsmSig" = "8:_UNDEFINED"
         }
     }
@@ -570,6 +570,11 @@
             "AssemblyAsmDisplayName" = "8:System.Net.Http, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a"
                 "ScatterAssemblies"
                 {
+                    "_9338F118CFD54DE90EA348A5383157E4"
+                    {
+                    "Name" = "8:System.Net.Http.dll"
+                    "Attributes" = "3:512"
+                    }
                 }
             "SourcePath" = "8:System.Net.Http.dll"
             "TargetName" = "8:"
@@ -649,32 +654,6 @@
             "IsDependency" = "11:FALSE"
             "IsolateTo" = "8:"
             }
-            "{9F6F8455-1EF1-4B85-886A-4223BCC8E7F7}:_B39B283122AA5AFF9D7E43CBE49D2725"
-            {
-            "AssemblyRegister" = "3:1"
-            "AssemblyIsInGAC" = "11:FALSE"
-            "AssemblyAsmDisplayName" = "8:ffmodule_conf, Version=1.0.0.0, Culture=neutral, processorArchitecture=x86"
-                "ScatterAssemblies"
-                {
-                }
-            "SourcePath" = "8:ffmodule_conf.dll"
-            "TargetName" = "8:"
-            "Tag" = "8:"
-            "Folder" = "8:_893A6354AC8049EF8592B19CE4F2EA43"
-            "Condition" = "8:"
-            "Transitive" = "11:FALSE"
-            "Vital" = "11:TRUE"
-            "ReadOnly" = "11:FALSE"
-            "Hidden" = "11:FALSE"
-            "System" = "11:FALSE"
-            "Permanent" = "11:FALSE"
-            "SharedLegacy" = "11:FALSE"
-            "PackageAs" = "3:1"
-            "Register" = "3:1"
-            "Exclude" = "11:TRUE"
-            "IsDependency" = "11:TRUE"
-            "IsolateTo" = "8:"
-            }
             "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_B459C1CBF6B94A75B3F2B7227B9BB4F3"
             {
             "SourcePath" = "8:..\\external\\bin32\\swresample-2.dll"
@@ -693,6 +672,37 @@
             "Register" = "3:1"
             "Exclude" = "11:FALSE"
             "IsDependency" = "11:FALSE"
+            "IsolateTo" = "8:"
+            }
+            "{9F6F8455-1EF1-4B85-886A-4223BCC8E7F7}:_BDE49949D2368A1FD07754214C697B53"
+            {
+            "AssemblyRegister" = "3:1"
+            "AssemblyIsInGAC" = "11:FALSE"
+            "AssemblyAsmDisplayName" = "8:ffmodule_conf, Version=1.0.0.0, Culture=neutral, processorArchitecture=AMD64"
+                "ScatterAssemblies"
+                {
+                    "_BDE49949D2368A1FD07754214C697B53"
+                    {
+                    "Name" = "8:ffmodule_conf.dll"
+                    "Attributes" = "3:512"
+                    }
+                }
+            "SourcePath" = "8:ffmodule_conf.dll"
+            "TargetName" = "8:"
+            "Tag" = "8:"
+            "Folder" = "8:_893A6354AC8049EF8592B19CE4F2EA43"
+            "Condition" = "8:"
+            "Transitive" = "11:FALSE"
+            "Vital" = "11:TRUE"
+            "ReadOnly" = "11:FALSE"
+            "Hidden" = "11:FALSE"
+            "System" = "11:FALSE"
+            "Permanent" = "11:FALSE"
+            "SharedLegacy" = "11:FALSE"
+            "PackageAs" = "3:1"
+            "Register" = "3:1"
+            "Exclude" = "11:TRUE"
+            "IsDependency" = "11:TRUE"
             "IsolateTo" = "8:"
             }
             "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_EC498653D02D487FA18F897303F0B039"
@@ -802,15 +812,15 @@
         {
         "Name" = "8:Microsoft Visual Studio"
         "ProductName" = "8:TSviewACD"
-        "ProductCode" = "8:{D14DA128-14D1-4169-8F85-348D00E408CF}"
-        "PackageCode" = "8:{A2EAD92E-1AAD-4B8C-B0B5-739FE1EEF76C}"
+        "ProductCode" = "8:{5DF95A36-AC9F-4DB3-A935-E5C2E3668B3D}"
+        "PackageCode" = "8:{2F2482D2-C617-40F7-86CF-AC2B2A947BF1}"
         "UpgradeCode" = "8:{2FB4F2BC-56CA-4C1F-88AE-F17A8AF5B9D2}"
         "AspNetVersion" = "8:4.0.30319.0"
         "RestartWWWService" = "11:FALSE"
         "RemovePreviousVersions" = "11:TRUE"
         "DetectNewerInstalledVersion" = "11:TRUE"
         "InstallAllUsers" = "11:FALSE"
-        "ProductVersion" = "8:5.1.1"
+        "ProductVersion" = "8:5.1.4"
         "Manufacturer" = "8:lithium03"
         "ARPHELPTELEPHONE" = "8:"
         "ARPHELPLINK" = "8:"

@@ -65,9 +65,9 @@ namespace TSviewACD
                 button_Start.Enabled = false;
                 var synchronizationContext = SynchronizationContext.Current;
 
-                await Task.Run(async () =>
+                await SelectedRemoteFiles.ForEachAsync(async item =>
                 {
-                    await SelectedRemoteFiles.ForEachAsync(async item =>
+                    await Task.Run(() =>
                     {
                         synchronizationContext.Post(
                             (o) =>
@@ -81,12 +81,10 @@ namespace TSviewACD
                         var retry = 5;
                         while (--retry > 0)
                         {
-                            Func<string, Task> dodownload = async (hash) =>
+                            try
                             {
                                 long length = item.contentProperties.size ?? 0;
-                                const int bufferlen = 16 * 1024 * 1024;
-                                using (var md5calc = new System.Security.Cryptography.MD5CryptoServiceProvider())
-                                using (var ret = await DriveData.Drive.downloadFile(item, autodecrypt: false, ct: cts.Token))
+                                using (var ret = new AmazonDriveBaseStream(DriveData.Drive, item, autodecrypt: false, ct: cts.Token))
                                 using (var f = new PositionStream(ret, length))
                                 {
                                     f.PosChangeEvent += (src, evnt) =>
@@ -100,61 +98,15 @@ namespace TSviewACD
                                                 listitem.SubItems[1].Text = eo.Log;
                                             }, evnt);
                                     };
-                                    byte[] buffer = new byte[(length > bufferlen) ? bufferlen : length];
-                                    while (length > 0)
-                                    {
-                                        cts.Token.ThrowIfCancellationRequested();
-                                        var readbytes = await f.ReadAsync(buffer, 0, buffer.Length, cts.Token);
-                                        md5calc.TransformBlock(buffer, 0, readbytes, buffer, 0);
-                                        length -= readbytes;
-                                        if (buffer.Length > length)
-                                            buffer = new byte[length];
-                                    }
-                                    md5calc.TransformFinalBlock(buffer, 0, 0);
-                                    var MD5 = BitConverter.ToString(md5calc.Hash).ToLower().Replace("-", "");
-                                    if (MD5 == hash)
-                                    {
-                                        synchronizationContext.Post(
-                                            (o) =>
-                                            {
-                                                if (cts == null || cts.Token.IsCancellationRequested) return;
-                                                var listitem = listView1.Items.Find(item.id, false).FirstOrDefault();
-                                                listitem.SubItems[1].Text = "OK";
-                                            }, null);
-                                    }
-                                    else
-                                    {
-                                        synchronizationContext.Post(
-                                            (o) =>
-                                            {
-                                                if (cts == null || cts.Token.IsCancellationRequested) return;
-                                                var listitem = listView1.Items.Find(item.id, false).FirstOrDefault();
-                                                listitem.SubItems[1].Text = "*NG* MD5 remote:" + hash + " download:" + MD5;
-                                            }, null);
-                                    }
-                                    return;
+                                    f.CopyTo(new NullStream());
                                 }
-                            };
-
-                            try
-                            {
-                                if (item.contentProperties.size > ConfigAPI.FilenameChangeTrickSize && !Regex.IsMatch(item.name, "^[\x20-\x7e]*$"))
+                                synchronizationContext.Post(
+                                (o) =>
                                 {
-                                    Config.Log.LogOut("Download : <BIG FILE> temporary filename change");
-                                    try
-                                    {
-                                        var tmpfile = await DriveData.Drive.renameItem(item.id, ConfigAPI.temporaryFilename + item.id);
-                                        await dodownload(item.contentProperties.md5);
-                                    }
-                                    finally
-                                    {
-                                        await DriveData.Drive.renameItem(item.id, item.name);
-                                    }
-                                }
-                                else
-                                {
-                                    await dodownload(item.contentProperties.md5);
-                                }
+                                    if (cts == null || cts.Token.IsCancellationRequested) return;
+                                    var listitem = listView1.Items.Find(item.id, false).FirstOrDefault();
+                                    listitem.SubItems[1].Text = "Done";
+                                }, null);
                                 break;
                             }
                             catch (OperationCanceledException)
@@ -169,8 +121,8 @@ namespace TSviewACD
                         }
                         if (retry == 0)
                         {
-                            // failed
-                            synchronizationContext.Post(
+                                // failed
+                                synchronizationContext.Post(
                                 (o) =>
                                 {
                                     if (cts == null || cts.Token.IsCancellationRequested) return;
@@ -178,8 +130,8 @@ namespace TSviewACD
                                     listitem.SubItems[1].Text = "Failed";
                                 }, null);
                         }
-                    }, 5, cts.Token, false);
-                }, cts.Token);
+                    }, cts.Token).ConfigureAwait(false);
+                }, 5, cts.Token, false);
             }
             catch (OperationCanceledException)
             {

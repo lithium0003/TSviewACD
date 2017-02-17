@@ -36,7 +36,7 @@ namespace TSviewACD
         }
     }
 
-    class ThrottleStream : Stream
+    class ThrottleStream : Stream, IHashStream
     {
         Stream innerStream;
         double _TargetBandwidth = double.PositiveInfinity;
@@ -117,6 +117,14 @@ namespace TSviewACD
             set
             {
                 innerStream.Position = value;
+            }
+        }
+
+        string IHashStream.Hash
+        {
+            get
+            {
+                return (innerStream as IHashStream).Hash;
             }
         }
 

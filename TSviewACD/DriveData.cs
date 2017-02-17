@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
@@ -22,7 +23,7 @@ namespace TSviewACD
         public static AmazonDrive Drive = new AmazonDrive();
 
         static string root_id;
-        static Dictionary<string, ItemInfo> DriveTree = new Dictionary<string, ItemInfo>();
+        static ConcurrentDictionary<string, ItemInfo> DriveTree = new ConcurrentDictionary<string, ItemInfo>();
         static List<FileMetadata_Info> historydata = new List<FileMetadata_Info>();
         static string checkpoint;
 
@@ -33,7 +34,7 @@ namespace TSviewACD
             [DataMember]
             public string checkpoint;
             [DataMember]
-            public Dictionary<string, ItemInfo> DriveTree;
+            public ConcurrentDictionary<string, ItemInfo> DriveTree;
 
             public RecordData()
             {
@@ -58,18 +59,24 @@ namespace TSviewACD
         {
             get { return historydata; }
         }
-        static public void ChangeCryption1()
+        static public async Task ChangeCryption1()
         {
-            foreach(var item in DriveTree.Values)
+            using (await DriveLock.LockAsync())
             {
-                item.ReloadCryptedMethod1();
+                await Task.Run(() =>
+                {
+                    Parallel.ForEach(DriveTree.Values, (item) => item.ReloadCryptedMethod1());
+                });
             }
         }
-        static public void ChangeCryption2()
+        static public async Task ChangeCryption2()
         {
-            foreach (var item in DriveTree.Values)
+            using (await DriveLock.LockAsync())
             {
-                item.ReloadCryptedMethod2();
+                await Task.Run(() =>
+                {
+                    Parallel.ForEach(DriveTree.Values, (item) => item.ReloadCryptedMethod2());
+                });
             }
         }
 
@@ -195,7 +202,7 @@ namespace TSviewACD
                             history = await Drive.changes(checkpoint: checkpoint, ct: ct);
                             break;
                         }
-                        catch (HttpRequestException ex)
+                        catch (Exception ex)
                         {
                             Config.Log.LogOut("[GetChanges] " + ex.Message);
                         }
@@ -204,14 +211,22 @@ namespace TSviewACD
                     {
                         if(!(h.end ?? false))
                         {
-                            if (h.nodes.Count() > 0) updated = true;
-                            ConstructDriveTree(h.nodes);
-                            ret.AddRange(h.nodes);
-                            historydata.AddRange(h.nodes);
+                            if (h.nodes.Count() > 0)
+                            {
+                                updated = true;
+                                ConstructDriveTree(h.nodes);
+                                ret.AddRange(h.nodes);
+                                historydata.AddRange(h.nodes);
+                            }
                             DriveData.checkpoint = h.checkpoint;
+                            checkpoint = h.checkpoint;
                         }
                     }
-                    if (history.LastOrDefault()?.end ?? false) break;
+                    if ((history.FirstOrDefault()?.nodes.Count() ?? 0) == 0 &&
+                        (history.LastOrDefault()?.end ?? false))
+                    {
+                        break;
+                    }
                 }
                 done?.Invoke("Changes Loaded.");
                 if (updated)
@@ -237,9 +252,7 @@ namespace TSviewACD
         static private void ConstructDriveTree(IEnumerable<FileMetadata_Info> newdata)
         {
             foreach (var item in newdata)
-            {
                 AddNewDriveItem(item);
-            }
         }
 
         static private void ConstructDriveTree(RecordData saveddata)
@@ -249,7 +262,7 @@ namespace TSviewACD
             foreach (var key in saveddata.DriveTree.Keys)
             {
                 var newdata = saveddata.DriveTree[key].info;
-                if (newdata.status == "AVAILABLE")
+                if (newdata?.status == "AVAILABLE")
                 {
                     foreach (var p in newdata.parents)
                     {
@@ -278,6 +291,7 @@ namespace TSviewACD
         static private void AddNewDriveItem(FileMetadata_Info newdata)
         {
             ItemInfo value;
+            if (newdata == null) return;
             if (newdata.status == "AVAILABLE")
             {
                 // exist item
@@ -290,7 +304,10 @@ namespace TSviewACD
                             ItemInfo value2;
                             if (DriveTree.TryGetValue(p, out value2))
                             {
-                                value2.children.Remove(value.info.id);
+                                ItemInfo outvalue;
+                                while (!value2.children.TryRemove(value.info.id, out outvalue))
+                                    if (!value2.children.TryGetValue(value.info.id, out outvalue))
+                                        break;
                             }
                         }
                     }
@@ -315,7 +332,7 @@ namespace TSviewACD
                 if (newdata.isRoot ?? false)
                     root_id = newdata.id;
             }
-            else
+            else if (newdata.status == "TRASH" || newdata.status == "PURGED")
             {
                 // deleted item
                 DeleteDriveItem(newdata);
@@ -325,6 +342,7 @@ namespace TSviewACD
         static private void DeleteDriveItem(FileMetadata_Info deldata)
         {
             ItemInfo value;
+            if (deldata == null) return;
             if (DriveTree.TryGetValue(deldata.id, out value))
             {
                 var children = value.children.Values.ToArray();
@@ -332,13 +350,19 @@ namespace TSviewACD
                 {
                     DeleteDriveItem(child.info);
                 }
-                DriveTree.Remove(deldata.id);
+                ItemInfo outitem;
+                while(!DriveTree.TryRemove(deldata.id, out outitem))
+                    if(!DriveTree.TryGetValue(deldata.id, out outitem))
+                        break;
             }
             foreach (var p in deldata.parents)
             {
                 if (DriveTree.TryGetValue(p, out value))
                 {
-                    value.children.Remove(deldata.id);
+                    ItemInfo outvalue;
+                    while(!value.children.TryRemove(deldata.id, out outvalue))
+                        if(!value.children.TryGetValue(deldata.id, out outvalue))
+                            break;
                 }
             }
         }
@@ -403,7 +427,7 @@ namespace TSviewACD
                         byte[] plain = Encoding.UTF8.GetBytes(enckey);
                         ms.Write(plain, 0, plain.Length);
                         ms.Position = 0;
-                        using (var enc = new AES256CTR_CryptStream(ms, Config.DrivePassword, child.id))
+                        using (var enc = new CryptCTR.AES256CTR_CryptStream(ms, child.id))
                         {
                             byte[] buf = new byte[ms.Length];
                             enc.Read(buf, 0, buf.Length);
@@ -440,7 +464,7 @@ namespace TSviewACD
                 }
                 ms.Write(buf, 0, i);
                 ms.Position = 0;
-                using (var dec = new AES256CTR_CryptStream(ms, Config.DrivePassword, downloaditem.id))
+                using (var dec = new CryptCTR.AES256CTR_CryptStream(ms, downloaditem.id))
                 {
                     byte[] plain = new byte[i];
                     dec.Read(plain, 0, plain.Length);
@@ -473,23 +497,23 @@ namespace TSviewACD
     public class ItemInfo
     {
         [DataMember]
-        public FileMetadata_Info info {
-            get { return _info; }
-            set {
-                _info = value;
-                if(value != null)
-                    ProcessCryption();
-            }
-        }
+        public FileMetadata_Info info;
         [DataMember]
         [OptionalField(VersionAdded = 2)]
         public CryptMethods IsEncrypted;
         public bool CryptError = false;
         public TreeNode tree;
-        public Dictionary<string, ItemInfo> children = new Dictionary<string, ItemInfo>();
-        public string DisplayName { get; private set; }
+        public ConcurrentDictionary<string, ItemInfo> children = new ConcurrentDictionary<string, ItemInfo>();
+        public string DisplayName
+        {
+            get
+            {
+                if (_DisplayName == null) ProcessCryption();
+                return _DisplayName;
+            }
+        }
 
-        private FileMetadata_Info _info;
+        private string _DisplayName;
 
         private void ProcessCryption()
         {
@@ -502,7 +526,7 @@ namespace TSviewACD
                 else if (Regex.IsMatch(info?.name ?? "", ".*?\\.[a-z0-9]{8}\\.enc$"))
                 {
                     IsEncrypted = CryptMethods.Method1_CTR;
-                    DisplayName = Path.GetFileNameWithoutExtension(Path.GetFileNameWithoutExtension(info.name));
+                    _DisplayName = Path.GetFileNameWithoutExtension(Path.GetFileNameWithoutExtension(info.name));
                     return;
                 }
                 else if(Regex.IsMatch(info?.name ?? "", "^[\u2800-\u28ff]+$"))
@@ -512,10 +536,10 @@ namespace TSviewACD
                     if (decodename != null)
                     {
                         IsEncrypted = CryptMethods.Method1_CTR;
-                        DisplayName = Path.GetFileNameWithoutExtension(decodename);
+                        _DisplayName = Path.GetFileNameWithoutExtension(decodename);
                         return;
                     }
-                    DisplayName = info?.name;
+                    _DisplayName = info?.name;
                     CryptError = true;
                 }
                 else
@@ -526,12 +550,12 @@ namespace TSviewACD
             switch (IsEncrypted)
             {
                 case CryptMethods.Method0_Plain:
-                    DisplayName = info?.name;
+                    _DisplayName = info?.name;
                     break;
                 case CryptMethods.Method1_CTR:
                     if (Regex.IsMatch(info?.name ?? "", ".*?\\.[a-z0-9]{8}\\.enc$"))
                     {
-                        DisplayName = Path.GetFileNameWithoutExtension(Path.GetFileNameWithoutExtension(info.name));
+                        _DisplayName = Path.GetFileNameWithoutExtension(Path.GetFileNameWithoutExtension(info.name));
                         CryptError = false;
                     }
                     else if (Regex.IsMatch(info?.name ?? "", "^[\u2800-\u28ff]+$"))
@@ -539,32 +563,32 @@ namespace TSviewACD
                         var decodename = DriveData.DecryptFilename(info);
                         if (decodename != null)
                         {
-                            DisplayName = Path.GetFileNameWithoutExtension(decodename);
+                            _DisplayName = Path.GetFileNameWithoutExtension(decodename);
                             CryptError = false;
                         }
                         else
                         {
-                            DisplayName = info?.name;
+                            _DisplayName = info?.name;
                             CryptError = true;
                         }
                     }
                     else
                     {
                         IsEncrypted = CryptMethods.Method0_Plain;
-                        DisplayName = info?.name;
+                        _DisplayName = info?.name;
                     }
                     break;
                 case CryptMethods.Method2_CBC_CarotDAV:
                     {
-                        var decodename = CryptCarotDAV.DecryptFilename(info?.name, Config.DrivePassword);
+                        var decodename = CryptCarotDAV.DecryptFilename(info?.name);
                         if (decodename != null)
                         {
-                            DisplayName = decodename;
+                            _DisplayName = decodename;
                             CryptError = false;
                         }
                         else
                         {
-                            DisplayName = info?.name;
+                            _DisplayName = info?.name;
                             CryptError = true;
                         }
                     }
@@ -581,6 +605,7 @@ namespace TSviewACD
         {
             if(IsEncrypted != CryptMethods.Method0_Plain)
             {
+                _DisplayName = null;
                 ProcessCryption();
             }
         }
@@ -589,6 +614,7 @@ namespace TSviewACD
         {
             if (IsEncrypted == CryptMethods.Method0_Plain || IsEncrypted == CryptMethods.Method2_CBC_CarotDAV)
             {
+                _DisplayName = null;
                 IsEncrypted = CryptMethods.Unknown;
             }
             ProcessCryption();
@@ -597,7 +623,7 @@ namespace TSviewACD
         [OnDeserialized]
         internal void OnDeserializedMethod(StreamingContext context)
         {
-            children = new Dictionary<string, ItemInfo>();
+            children = new ConcurrentDictionary<string, ItemInfo>();
         }
     }
 

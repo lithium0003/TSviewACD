@@ -1,12 +1,15 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
+using System.IO.Compression;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Runtime.Serialization;
 using System.Runtime.Serialization.Json;
+using System.Security.Cryptography;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
@@ -40,6 +43,21 @@ namespace TSviewACD
         public const string temporaryFilename = "temporary_filename";
 
         public const int CopyBufferSize = 64 * 1024 * 1024;
+    }
+
+    public class AmazonDriveUploadException : Exception
+    {
+        public string Hash;
+
+        public AmazonDriveUploadException() : base()
+        {
+        }
+        public AmazonDriveUploadException(string message) : base(message)
+        {
+        }
+        public AmazonDriveUploadException(string message, Exception innerException) : base(message, innerException)
+        {
+        }
     }
 
     class AmazonDrive
@@ -124,6 +142,7 @@ namespace TSviewACD
         {
             Random rnd = new Random();
             var retry = 0;
+            string error_str = "";
             while (++retry < 30)
             {
                 try
@@ -132,7 +151,7 @@ namespace TSviewACD
                 }
                 catch (HttpRequestException ex)
                 {
-                    var error_str = ex.Message;
+                    error_str = ex.Message;
                     Config.Log.LogOut("\t[" + LogPrefix + "] " + error_str);
 
                     if (ex.Message.Contains("401 (Unauthorized)") ||
@@ -144,7 +163,8 @@ namespace TSviewACD
                         Config.Log.LogOut("\t[" + LogPrefix + "] wait " + waitsec.ToString() + " sec");
                         await Task.Delay(waitsec * 1000);
                     }
-                    else {
+                    else
+                    {
                         break;
                     }
                 }
@@ -154,12 +174,12 @@ namespace TSviewACD
                 }
                 catch (Exception ex)
                 {
-                    var error_str = ex.ToString();
+                    error_str = ex.ToString();
                     Config.Log.LogOut("\t[" + LogPrefix + "] " + error_str);
                     break;
                 }
             }
-            throw new SystemException(LogPrefix+" Failed. ");
+            throw new SystemException(LogPrefix + " Failed. " + error_str);
         }
 
 
@@ -340,11 +360,13 @@ namespace TSviewACD
             public string[] parents;
         }
 
+
         public async Task<FileMetadata_Info> uploadFile(string filename, string parent_id = null, string uploadname = null, string uploadkey = null, PoschangeEventHandler process = null, CancellationToken ct = default(CancellationToken))
         {
-            const int transbufsize = 64 * 1024 * 1024;
+            const int transbufsize = 4 * 1024 * 1024;
             Config.Log.LogOut("\t[uploadFile] " + filename);
             string error_str;
+            string HashStr = "";
             using (var client = new HttpClient())
             {
                 client.Timeout = TimeSpan.FromDays(1);
@@ -359,10 +381,10 @@ namespace TSviewACD
                     MemoryStream ms = new MemoryStream();
                     var short_filename = Path.GetFileName(filename);
 
-                    if(uploadname == null)
+                    if (uploadname == null)
                     {
                         uploadname = (Config.UseEncryption) ? short_filename + ".enc" : short_filename;
-                        if(uploadkey == null)
+                        if (uploadkey == null)
                             uploadkey = short_filename;
                     }
                     else
@@ -393,21 +415,30 @@ namespace TSviewACD
                         //    System.Diagnostics.Debug.WriteLine("HTTP pos :" + e.Log);
                         //};
                         StreamContent fileContent = null;
+                        IHashStream hasher = null;
                         if (Config.UseEncryption)
                         {
-                            if (Config.CryptMethod == CryptMethods.Method1_CTR) {
-                                fileContent = new StreamContent(new AES256CTR_CryptStream(f, Config.DrivePassword, uploadkey), transbufsize);
+                            if (Config.CryptMethod == CryptMethods.Method1_CTR)
+                            {
+                                var c = new HashStream(new CryptCTR.AES256CTR_CryptStream(f, uploadkey), new MD5CryptoServiceProvider());
+                                hasher = c;
+                                fileContent = new StreamContent(c, transbufsize);
                                 fileContent.Headers.ContentLength = f.Length;
                             }
-                            if (Config.CryptMethod == CryptMethods.Method2_CBC_CarotDAV){
-                                var cryptstream = new CryptCarotDAV.CryptCarotDAV_CryptStream(f, Config.DrivePassword);
-                                fileContent = new StreamContent(cryptstream, transbufsize);
+                            if (Config.CryptMethod == CryptMethods.Method2_CBC_CarotDAV)
+                            {
+                                var cryptstream = new CryptCarotDAV.CryptCarotDAV_CryptStream(f);
+                                var c = new HashStream(cryptstream, new MD5CryptoServiceProvider());
+                                hasher = c;
+                                fileContent = new StreamContent(c, transbufsize);
                                 fileContent.Headers.ContentLength = cryptstream.Length;
                             }
                         }
                         else
                         {
-                            fileContent = new StreamContent(f, transbufsize);
+                            var c = new HashStream(f, new MD5CryptoServiceProvider());
+                            hasher = c;
+                            fileContent = new StreamContent(c, transbufsize);
                             fileContent.Headers.ContentLength = f.Length;
                         }
                         fileContent.Headers.ContentType = new MediaTypeHeaderValue("application/octet-stream");
@@ -420,18 +451,26 @@ namespace TSviewACD
                                 content,
                                 ct).ConfigureAwait(false);
                             response.EnsureSuccessStatusCode();
+                            HashStr = hasher.Hash.ToLower();
                             string responseBody = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
                             // Above three lines can be replaced with new helper method in following line
                             // string body = await client.GetStringAsync(uri);
-                            return ParseResponse<FileMetadata_Info>(responseBody);
+                            var ret = ParseResponse<FileMetadata_Info>(responseBody);
+                            if (ret.contentProperties?.md5 != HashStr)
+                                throw new AmazonDriveUploadException(HashStr);
+                            return ret;
                         }
                     }
+                }
+                catch (AmazonDriveUploadException)
+                {
+                    throw;
                 }
                 catch (HttpRequestException ex)
                 {
                     error_str = ex.Message;
                     Config.Log.LogOut("\t[uploadFile] " + error_str);
-                    throw;
+                    throw new AmazonDriveUploadException(HashStr, ex);
                 }
                 catch (OperationCanceledException)
                 {
@@ -505,7 +544,7 @@ namespace TSviewACD
             string id = target.id;
             string filename = target.name;
             CryptMethods Encrypted = CryptMethods.Method0_Plain;
-            if(enckey != null)
+            if (enckey != null)
             {
                 Encrypted = CryptMethods.Method1_CTR;
             }
@@ -527,7 +566,7 @@ namespace TSviewACD
                     if (enckey != null) Encrypted = CryptMethods.Method1_CTR;
                 }
 
-                if(enckey == null) Encrypted = CryptMethods.Method0_Plain;
+                if (enckey == null) Encrypted = CryptMethods.Method0_Plain;
             }
             if (!autodecrypt) Encrypted = CryptMethods.Method0_Plain;
             Config.Log.LogOut("\t[downloadFile] " + id);
@@ -541,9 +580,9 @@ namespace TSviewACD
                 client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", Authkey.access_token);
                 if (from != null || to != null)
                 {
-                    if(Encrypted == CryptMethods.Method2_CBC_CarotDAV)
+                    if (Encrypted == CryptMethods.Method2_CBC_CarotDAV)
                     {
-                        if(fix_from != null)
+                        if (fix_from != null)
                         {
                             // ひとつ前のブロックから要求する
                             fix_from -= CryptCarotDAV.BlockSizeByte;
@@ -560,7 +599,7 @@ namespace TSviewACD
                                 fix_from += CryptCarotDAV.CryptHeaderByte;
                             }
                         }
-                        if(fix_to != null)
+                        if (fix_to != null)
                         {
                             if (fix_to >= target.OrignalLength)
                             {
@@ -573,7 +612,7 @@ namespace TSviewACD
                                 fix_to += CryptCarotDAV.CryptHeaderByte;
                             }
                         }
-                        if(fix_from != null || fix_to != null)
+                        if (fix_from != null || fix_to != null)
                             client.DefaultRequestHeaders.Range = new RangeHeaderValue(fix_from, fix_to);
                     }
                     else
@@ -587,22 +626,20 @@ namespace TSviewACD
                 response.EnsureSuccessStatusCode();
                 if (Encrypted == CryptMethods.Method1_CTR)
                 {
-                    return new AES256CTR_CryptStream(new ThrottleDownloadStream(await response.Content.ReadAsStreamAsync().ConfigureAwait(false)),
-                        Config.DrivePassword,
+                    return new CryptCTR.AES256CTR_CryptStream(new ThrottleDownloadStream(new HashStream(await response.Content.ReadAsStreamAsync().ConfigureAwait(false), new MD5CryptoServiceProvider())),
                         enckey,
                         from ?? 0);
                 }
                 else if (Encrypted == CryptMethods.Method2_CBC_CarotDAV)
                 {
-                    return new CryptCarotDAV.CryptCarotDAV_DecryptStream(new ThrottleDownloadStream(await response.Content.ReadAsStreamAsync().ConfigureAwait(false)),
-                        Config.DrivePassword,
+                    return new CryptCarotDAV.CryptCarotDAV_DecryptStream(new ThrottleDownloadStream(new HashStream(await response.Content.ReadAsStreamAsync().ConfigureAwait(false), new MD5CryptoServiceProvider())),
                         from ?? 0,
                         fix_from ?? 0,
                         target.contentProperties?.size ?? -1
                         );
                 }
                 else
-                    return new ThrottleDownloadStream(await response.Content.ReadAsStreamAsync().ConfigureAwait(false));
+                    return new ThrottleDownloadStream(new HashStream(await response.Content.ReadAsStreamAsync().ConfigureAwait(false), new MD5CryptoServiceProvider()));
             }
             catch (HttpRequestException ex)
             {
@@ -802,13 +839,14 @@ namespace TSviewACD
         public async Task<Changes_Info[]> changes(string checkpoint = null, int? chankSize = null, CancellationToken ct = default(CancellationToken))
         {
             Config.Log.LogOut("\t[changes]");
-            using(var handler = new HttpClientHandler())
+            using (var handler = new HttpClientHandler())
             {
                 handler.AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate;
                 using (var client = new HttpClient(handler))
                 {
-                    client.Timeout = TimeSpan.FromDays(1);
-                    return await DoWithRetry(async () => {
+                    return await DoWithRetry(async () =>
+                    {
+                        client.Timeout = TimeSpan.FromDays(1);
                         client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", Authkey.access_token);
 
                         DataContractJsonSerializer jsonSer = new DataContractJsonSerializer(typeof(changesreq_Info));
@@ -819,36 +857,91 @@ namespace TSviewACD
                         {
                             checkpoint = checkpoint,
                             chunkSize = chankSize,
+                            maxNodes = null,
+                            includePurged = "true",
                         });
                         ms.Position = 0;
 
                         // StreamReader で StringContent (Json) をコンストラクトします。
                         StreamReader sr = new StreamReader(ms);
 
-                        var response = await client.PostAsync(
-                            Config.metadataUrl + "changes",
-                            new StringContent(sr.ReadToEnd(), System.Text.Encoding.UTF8, "application/json"),
-                            ct).ConfigureAwait(false);
+                        var res = new List<Changes_Info>();
+
+                        var req = new HttpRequestMessage(HttpMethod.Post, Config.metadataUrl + "changes");
+                        req.Content = new StringContent(sr.ReadToEnd(), System.Text.Encoding.UTF8, "application/json");
+                        var response = await client.SendAsync(req, HttpCompletionOption.ResponseHeadersRead, ct).ConfigureAwait(false);
                         response.EnsureSuccessStatusCode();
-                        using (var responseStream = await response.Content.ReadAsStreamAsync().ConfigureAwait(false))
+
+                        var responseStream = await response.Content.ReadAsStreamAsync().ConfigureAwait(false);
+                        byte[] buf = new byte[16 * 1024 * 1024];
+                        int len = 0;
+                        int offset = 0;
+                        while (true)
                         {
-                            List<Changes_Info> res = new List<Changes_Info>();
-                            while(responseStream.Position < responseStream.Length)
+                            using (var mem = Stream.Synchronized(new MemoryStream()))
                             {
-                                using (var mem = new MemoryStream())
+                                try
                                 {
-                                    byte[] buf = new byte[1] { 0 };
-                                    while (responseStream.Read(buf, 0, 1) == 1)
+                                    bool reading = true;
+                                    while (reading)
                                     {
-                                        if (buf[0] == '\n') break;
-                                        mem.Write(buf, 0, 1);
+                                        ct.ThrowIfCancellationRequested();
+                                        if (offset > 0)
+                                        {
+                                            for (int i = offset; i < len; i++)
+                                            {
+                                                if (buf[i] == '\n')
+                                                {
+                                                    mem.Write(buf, offset, i - offset);
+                                                    offset = i + 1;
+                                                    reading = false;
+                                                    break; // for
+                                                }
+                                            }
+                                            if (!reading)
+                                                break; // reading while
+                                            mem.Write(buf, offset, len - offset);
+                                            len = 0;
+                                            offset = 0;
+                                        }
+                                        var task = responseStream.ReadAsync(buf, 0, buf.Length, ct).ContinueWith((t) =>
+                                        {
+                                            reading = false;
+                                            if (t.Wait(-1, ct))
+                                            {
+                                                len = t.Result;
+                                                if (len == 0) return;
+                                                for (int i = 0; i < len; i++)
+                                                {
+                                                    if (buf[i] == '\n')
+                                                    {
+                                                        mem.Write(buf, 0, i);
+                                                        offset = i + 1;
+                                                        return;
+                                                    }
+                                                }
+                                                mem.Write(buf, 0, len);
+                                                offset = 0;
+                                                reading = true;
+                                            }
+                                        }, ct);
+                                        await task.ConfigureAwait(false);
                                     }
-                                    mem.Position = 0;
+                                }
+                                catch
+                                {
+                                    break;
+                                }
+                                if (mem.Position == 0) break;
+                                mem.Position = 0;
+                                try
+                                {
                                     res.Add(ParseResponse<Changes_Info>(mem));
                                 }
+                                catch { }
                             }
-                            return res.ToArray();
                         }
+                        return res.ToArray();
                     }, "changes").ConfigureAwait(false);
                 }
             }

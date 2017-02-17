@@ -274,10 +274,10 @@ namespace TSviewACD
                 }
             }
 
-            public IEnumerable<ItemInfo> GetItems(ListView.SelectedIndexCollection indecies, bool IncludeSpetial = true)
+            public IEnumerable<ItemInfo> GetItems(ListView.SelectedIndexCollection indices, bool IncludeSpetial = true)
             {
                 List<ItemInfo> ret = new List<ItemInfo>();
-                foreach(int i in indecies)
+                foreach(int i in indices)
                 {
                     if(Root == null)
                     {
@@ -556,7 +556,8 @@ namespace TSviewACD
 
         private TreeNode[] GenerateTreeNode(IEnumerable<ItemInfo> children, int count = 0)
         {
-            return children.Select(x =>
+            var ret = new List<TreeNode>();
+            Parallel.ForEach(children, ()=> new List<TreeNode>(), (x, state, local) =>
             {
                 int img = (x.info.kind == "FOLDER") ? 0 : 2;
                 var node = new TreeNode((Config.AutoDecode) ? x.DisplayName : x.info.name, img, img);
@@ -573,7 +574,7 @@ namespace TSviewACD
                         node.ForeColor = Color.ForestGreen;
                         break;
                 }
-                if (x.info.kind == "FOLDER" && count > 0)
+                if (x.info.kind == "FOLDER" && count > 0 && x.children.Count > 0)
                 {
                     node.Nodes.AddRange(GenerateTreeNode(x.children.Values, count - 1));
                 }
@@ -587,8 +588,16 @@ namespace TSviewACD
                     DriveData.AmazonDriveTree[x.info.id] = new ItemInfo(null);
                     DriveData.AmazonDriveTree[x.info.id].tree = node;
                 }
-                return node;
-            }).ToArray();
+                local.Add(node);
+                return local;
+            },
+            (result)=>
+            {
+                lock(ret)
+                    ret.AddRange(result);
+            }
+            );
+            return ret.ToArray();
         }
 
         private async Task InitView()
@@ -1058,265 +1067,200 @@ namespace TSviewACD
                 {
                     ct.ThrowIfCancellationRequested();
                     Config.Log.LogOut("Upload File: " + filename);
-                    var upload_str = (f_all > 1) ? string.Format("Upload({0}/{1})...", ++f_cur, f_all) : "Upload...";
-                    var short_filename = System.IO.Path.GetFileName(filename);
-                    var enckey = short_filename + "." + Path.GetFileNameWithoutExtension(Path.GetRandomFileName());
-                    string uploadfilename = short_filename;
-                    if (Config.UseEncryption)
+                    var error = await Task.Run(async () =>
                     {
-                        if(Config.CryptMethod == CryptMethods.Method1_CTR)
+                        var upload_str = (f_all > 1) ? string.Format("Upload({0}/{1})...", ++f_cur, f_all) : "Upload...";
+                        var short_filename = System.IO.Path.GetFileName(filename);
+                        var enckey = short_filename + "." + Path.GetFileNameWithoutExtension(Path.GetRandomFileName());
+                        string uploadfilename = short_filename;
+                        if (Config.UseEncryption)
                         {
-                            if (Config.UseFilenameEncryption)
-                                uploadfilename = Path.GetRandomFileName();
-                            else
-                                uploadfilename = enckey + ".enc";
-                        }
-                        else if(Config.CryptMethod == CryptMethods.Method2_CBC_CarotDAV)
-                        {
-                            uploadfilename = CryptCarotDAV.EncryptFilename(short_filename, Config.DrivePassword);
-                            enckey = "";
-                        }
-                    }
-                    var checkpoint = DriveData.ChangeCheckpoint;
-                    var filesize = new FileInfo(filename).Length;
-                    if(Config.UseEncryption && Config.CryptMethod == CryptMethods.Method2_CBC_CarotDAV)
-                    {
-                        filesize = filesize + CryptCarotDAV.BlockSizeByte + CryptCarotDAV.CryptHeaderByte + CryptCarotDAV.CryptFooterByte;
-                    }
-
-                    bool dup_flg = done_files?.Select(x => x.name.ToLower()).Contains(short_filename.ToLower()) ?? false;
-                    if (Config.UseEncryption)
-                    {
-                        if(Config.CryptMethod == CryptMethods.Method1_CTR){
-                            dup_flg = dup_flg || (done_files?.Select(x => (Path.GetExtension(x.name) == ".enc") && (Path.GetFileNameWithoutExtension(Path.GetFileNameWithoutExtension(x.name)) == short_filename)).Any(x => x) ?? false);
-                            if (Config.UseFilenameEncryption)
-                            {
-                                dup_flg = dup_flg || (done_files?.Select(x =>
-                                {
-                                    var enc = DriveData.DecryptFilename(x);
-                                    if (enc == null) return false;
-                                    return Path.GetFileNameWithoutExtension(enc) == short_filename;
-                                }).Any(x => x) ?? false);
-                            }
-                        }
-                        if (Config.CryptMethod == CryptMethods.Method2_CBC_CarotDAV) {
-                            dup_flg = dup_flg || (done_files?.Select(x =>
-                            {
-                                var enc = CryptCarotDAV.DecryptFilename(x.name, Config.DrivePassword);
-                                if (enc == null) return false;
-                                return enc == short_filename;
-                            }).Any(x => x) ?? false);
-                        }
-                    }
-
-                    if (dup_flg)
-                    {
-                        var target = done_files.FirstOrDefault(x => x.name == short_filename);
-                        if(target == null && Config.UseEncryption && Config.CryptMethod == CryptMethods.Method1_CTR)
-                        {
-                            target = done_files.Where(x => (Path.GetExtension(x.name) == ".enc") && (Path.GetFileNameWithoutExtension(Path.GetFileNameWithoutExtension(x.name)) == short_filename)).FirstOrDefault();
-                            if (target == null && Config.UseFilenameEncryption)
-                            {
-                                target = done_files.Where(x =>
-                                {
-                                    var enc = DriveData.DecryptFilename(x);
-                                    if (enc == null) return false;
-                                    return Path.GetFileNameWithoutExtension(enc) == short_filename;
-                                }).FirstOrDefault();
-                            }
-                        }
-                        if (target == null && Config.UseEncryption && Config.CryptMethod == CryptMethods.Method2_CBC_CarotDAV)
-                        {
-                            target = done_files.Where(x =>
-                            {
-                                var enc = CryptCarotDAV.DecryptFilename(x.name, Config.DrivePassword);
-                                if (enc == null) return false;
-                                return enc == short_filename;
-                            }).FirstOrDefault();
-                        }
-
-                        if (filesize == target?.contentProperties?.size)
-                        {
-                            if (!checkBox_MD5.Checked)
-                                continue;
-
-                            using (var md5calc = new System.Security.Cryptography.MD5CryptoServiceProvider())
-                            using (var hfile = File.Open(filename, FileMode.Open, FileAccess.Read, FileShare.Read))
-                            {
-                                byte[] md5 = null;
-                                toolStripProgressBar1.Style = ProgressBarStyle.Marquee;
-                                toolStripStatusLabel1.Text = upload_str + " " + short_filename + " Check file MD5...";
-                                if (Config.UseEncryption)
-                                {
-                                    if (Config.CryptMethod == CryptMethods.Method1_CTR)
-                                    {
-                                        string nonce = null;
-                                        if (Config.UseFilenameEncryption)
-                                        {
-                                            nonce = DriveData.DecryptFilename(target);
-                                        }
-                                        if (Path.GetExtension(target.name) == ".enc")
-                                        {
-                                            nonce = Path.GetFileNameWithoutExtension(target.name);
-                                        }
-                                        if (!string.IsNullOrEmpty(nonce))
-                                            using (var encfile = new AES256CTR_CryptStream(hfile, Config.DrivePassword, nonce))
-                                            {
-                                                await Task.Run(() => { md5 = md5calc.ComputeHash(encfile); }, ct);
-                                            }
-                                    }
-                                    else if (Config.CryptMethod == CryptMethods.Method2_CBC_CarotDAV)
-                                    {
-                                        using (var encfile = new CryptCarotDAV.CryptCarotDAV_CryptStream(hfile, Config.DrivePassword))
-                                        {
-                                            await Task.Run(() => { md5 = md5calc.ComputeHash(encfile); }, ct);
-                                        }
-                                    }
-                                }
-                                else
-                                {
-                                    await Task.Run(() => { md5 = md5calc.ComputeHash(hfile); }, ct);
-                                }
-                                toolStripProgressBar1.Style = ProgressBarStyle.Continuous;
-                                toolStripStatusLabel1.Text = "Check done.";
-                                if (BitConverter.ToString(md5).ToLower().Replace("-", "") == target.contentProperties?.md5)
-                                    continue;
-                            }
-                        }
-                        Config.Log.LogOut(string.Format("conflict. name:{0} upload:{1}", short_filename, uploadfilename));
-                        if (!checkBox_overrideUpload.Checked)
-                            continue;
-                        Config.Log.LogOut("remove item...");
-                        try
-                        {
-                            checkpoint = DriveData.ChangeCheckpoint;
-                            foreach (var conflicts in done_files.Where(x => x.name.ToLower() == short_filename.ToLower()))
-                            {
-                                await Drive.TrashItem(conflicts.id, ct);
-                            }
-                            if (Config.UseEncryption && Config.CryptMethod == CryptMethods.Method2_CBC_CarotDAV)
-                            {
-                                var conflict_crypt = done_files.Where(x =>
-                                {
-                                    var enc = CryptCarotDAV.DecryptFilename(x.name, Config.DrivePassword);
-                                    if (enc == null) return false;
-                                    return enc == short_filename;
-                                });
-                                foreach (var conflicts in conflict_crypt)
-                                {
-                                    await Drive.TrashItem(conflicts.id, ct);
-                                }
-                            }
-                            if (Config.UseEncryption && Config.CryptMethod == CryptMethods.Method1_CTR)
+                            if (Config.CryptMethod == CryptMethods.Method1_CTR)
                             {
                                 if (Config.UseFilenameEncryption)
+                                    uploadfilename = Path.GetRandomFileName();
+                                else
+                                    uploadfilename = enckey + ".enc";
+                            }
+                            else if (Config.CryptMethod == CryptMethods.Method2_CBC_CarotDAV)
+                            {
+                                uploadfilename = CryptCarotDAV.EncryptFilename(short_filename);
+                                enckey = "";
+                            }
+                        }
+                        var checkpoint = DriveData.ChangeCheckpoint;
+                        var filesize = new FileInfo(filename).Length;
+                        if (Config.UseEncryption && Config.CryptMethod == CryptMethods.Method2_CBC_CarotDAV)
+                        {
+                            filesize = filesize + CryptCarotDAV.BlockSizeByte + CryptCarotDAV.CryptHeaderByte + CryptCarotDAV.CryptFooterByte;
+                        }
+
+                        bool dup_flg = done_files?.Select(x => x.name.ToLower()).Contains(short_filename.ToLower()) ?? false;
+                        if (Config.UseEncryption)
+                        {
+                            if (Config.CryptMethod == CryptMethods.Method1_CTR)
+                            {
+                                dup_flg = dup_flg || (done_files?.Select(x => (Path.GetExtension(x.name) == ".enc") && (Path.GetFileNameWithoutExtension(Path.GetFileNameWithoutExtension(x.name)) == short_filename)).Any(x => x) ?? false);
+                                if (Config.UseFilenameEncryption)
                                 {
-                                    var conflict_crypt = done_files.Where(x =>
+                                    dup_flg = dup_flg || (done_files?.Select(x =>
                                     {
                                         var enc = DriveData.DecryptFilename(x);
                                         if (enc == null) return false;
                                         return Path.GetFileNameWithoutExtension(enc) == short_filename;
+                                    }).Any(x => x) ?? false);
+                                }
+                            }
+                            if (Config.CryptMethod == CryptMethods.Method2_CBC_CarotDAV)
+                            {
+                                dup_flg = dup_flg || (done_files?.Select(x =>
+                                {
+                                    var enc = CryptCarotDAV.DecryptFilename(x.name);
+                                    if (enc == null) return false;
+                                    return enc == short_filename;
+                                }).Any(x => x) ?? false);
+                            }
+                        }
+
+                        if (dup_flg)
+                        {
+                            var target = done_files.FirstOrDefault(x => x.name == short_filename);
+                            if (target == null && Config.UseEncryption && Config.CryptMethod == CryptMethods.Method1_CTR)
+                            {
+                                target = done_files.Where(x => (Path.GetExtension(x.name) == ".enc") && (Path.GetFileNameWithoutExtension(Path.GetFileNameWithoutExtension(x.name)) == short_filename)).FirstOrDefault();
+                                if (target == null && Config.UseFilenameEncryption)
+                                {
+                                    target = done_files.Where(x =>
+                                    {
+                                        var enc = DriveData.DecryptFilename(x);
+                                        if (enc == null) return false;
+                                        return Path.GetFileNameWithoutExtension(enc) == short_filename;
+                                    }).FirstOrDefault();
+                                }
+                            }
+                            if (target == null && Config.UseEncryption && Config.CryptMethod == CryptMethods.Method2_CBC_CarotDAV)
+                            {
+                                target = done_files.Where(x =>
+                                {
+                                    var enc = CryptCarotDAV.DecryptFilename(x.name);
+                                    if (enc == null) return false;
+                                    return enc == short_filename;
+                                }).FirstOrDefault();
+                            }
+
+                            if (filesize == target?.contentProperties?.size)
+                            {
+                                if (!checkBox_MD5.Checked)
+                                    return false;
+
+                                using (var md5calc = new System.Security.Cryptography.MD5CryptoServiceProvider())
+                                using (var hfile = File.Open(filename, FileMode.Open, FileAccess.Read, FileShare.Read))
+                                {
+                                    byte[] md5 = null;
+                                    synchronizationContext.Post(
+                                        (txt) =>
+                                        {
+                                            if (ct.IsCancellationRequested) return;
+                                            toolStripProgressBar1.Style = ProgressBarStyle.Marquee;
+                                            toolStripStatusLabel1.Text = txt as string;
+                                        }, upload_str + " " + short_filename + " Check file MD5...");
+                                    if (Config.UseEncryption)
+                                    {
+                                        if (Config.CryptMethod == CryptMethods.Method1_CTR)
+                                        {
+                                            string nonce = null;
+                                            if (Config.UseFilenameEncryption)
+                                            {
+                                                nonce = DriveData.DecryptFilename(target);
+                                            }
+                                            if (Path.GetExtension(target.name) == ".enc")
+                                            {
+                                                nonce = Path.GetFileNameWithoutExtension(target.name);
+                                            }
+                                            if (!string.IsNullOrEmpty(nonce))
+                                                using (var encfile = new CryptCTR.AES256CTR_CryptStream(hfile, nonce))
+                                                {
+                                                    md5 = md5calc.ComputeHash(encfile);
+                                                }
+                                        }
+                                        else if (Config.CryptMethod == CryptMethods.Method2_CBC_CarotDAV)
+                                        {
+                                            using (var encfile = new CryptCarotDAV.CryptCarotDAV_CryptStream(hfile))
+                                            {
+                                                md5 = md5calc.ComputeHash(encfile);
+                                            }
+                                        }
+                                    }
+                                    else
+                                    {
+                                        md5 = md5calc.ComputeHash(hfile);
+                                    }
+                                    synchronizationContext.Post(
+                                        (txt) =>
+                                        {
+                                            if (ct.IsCancellationRequested) return;
+                                            toolStripProgressBar1.Style = ProgressBarStyle.Continuous;
+                                            toolStripStatusLabel1.Text = txt as string;
+                                        }, "Check done.");
+                                    if (BitConverter.ToString(md5).ToLower().Replace("-", "") == target.contentProperties?.md5)
+                                        return false;
+                                }
+                            }
+                            Config.Log.LogOut(string.Format("conflict. name:{0} upload:{1}", short_filename, uploadfilename));
+                            if (!checkBox_overrideUpload.Checked)
+                                return false;
+                            Config.Log.LogOut("remove item...");
+                            try
+                            {
+                                checkpoint = DriveData.ChangeCheckpoint;
+                                foreach (var conflicts in done_files.Where(x => x.name.ToLower() == short_filename.ToLower()))
+                                {
+                                    await Drive.TrashItem(conflicts.id, ct);
+                                }
+                                if (Config.UseEncryption && Config.CryptMethod == CryptMethods.Method2_CBC_CarotDAV)
+                                {
+                                    var conflict_crypt = done_files.Where(x =>
+                                    {
+                                        var enc = CryptCarotDAV.DecryptFilename(x.name);
+                                        if (enc == null) return false;
+                                        return enc == short_filename;
                                     });
                                     foreach (var conflicts in conflict_crypt)
                                     {
                                         await Drive.TrashItem(conflicts.id, ct);
                                     }
                                 }
-                                else
+                                if (Config.UseEncryption && Config.CryptMethod == CryptMethods.Method1_CTR)
                                 {
-                                    var conflict_crypt = done_files.Where(x => (Path.GetExtension(x.name) == ".enc") && (Path.GetFileNameWithoutExtension(Path.GetFileNameWithoutExtension(x.name)) == short_filename));
-                                    foreach (var conflicts in conflict_crypt)
+                                    if (Config.UseFilenameEncryption)
                                     {
-                                        await Drive.TrashItem(conflicts.id, ct);
-                                    }
-                                }
-                            }
-                            await Task.Delay(TimeSpan.FromSeconds(5), ct);
-                            await DriveData.GetChanges(checkpoint, ct);
-                            using (await DriveData.DriveLock.LockAsync())
-                            {
-                                done_files = DriveData.AmazonDriveTree[parent_id].children.Values.Select(x => x.info).ToArray();
-                            }
-                            checkpoint = DriveData.ChangeCheckpoint;
-                        }
-                        catch (OperationCanceledException)
-                        {
-                            throw;
-                        }
-                        catch (Exception)
-                        {
-                        }
-                    }
-
-                    toolStripProgressBar1.Style = ProgressBarStyle.Continuous;
-                    toolStripProgressBar1.Value = toolStripProgressBar1.Minimum;
-                    toolStripProgressBar1.Maximum = 10000;
-                    toolStripStatusLabel1.Text = upload_str + " " + short_filename;
-
-                    int retry = 6;
-                    while (--retry > 0)
-                    {
-                        int checkretry = 4;
-                        try
-                        {
-                            var ret = await Drive.uploadFile(
-                                filename: filename,
-                                uploadname: uploadfilename,
-                                uploadkey: enckey,
-                                parent_id: parent_id,
-                                process: (src, evnt) =>
-                                {
-                                    synchronizationContext.Post(
-                                        (o) =>
+                                        var conflict_crypt = done_files.Where(x =>
                                         {
-                                            if (ct.IsCancellationRequested) return;
-                                            var eo = o as PositionChangeEventArgs;
-                                            toolStripStatusLabel1.Text = upload_str + eo.Log + " " + short_filename;
-                                            toolStripProgressBar1.Style = ProgressBarStyle.Continuous;
-                                            toolStripProgressBar1.Maximum = 10000;
-                                            toolStripProgressBar1.Value = (int)((double)eo.Position / eo.Length * 10000);
-                                        }, evnt);
-                                }, ct: ct);
-                            var tmpDone = done_files.ToList();
-                            tmpDone.Add(ret);
-                            done_files = tmpDone.ToArray();
-                            break;
-                        }
-                        catch (HttpRequestException ex)
-                        {
-                            if (ex.Message.Contains("408 (REQUEST_TIMEOUT)")) checkretry = 6 * 5 + 1;
-                            if (ex.Message.Contains("409 (Conflict)")) checkretry = 6 * 5 + 1;
-                            if (ex.Message.Contains("504 (GATEWAY_TIMEOUT)")) checkretry = 6 * 5 + 1;
-                            if (filesize < Config.SmallFileSize) checkretry = 3;
-                        }
-                        catch (OperationCanceledException)
-                        {
-                            throw;
-                        }
-                        catch (Exception)
-                        {
-                            checkretry = 3 + 1;
-                        }
-
-                        Config.Log.LogOut("Upload faild." + retry.ToString());
-                        // wait for retry
-                        while (--checkretry > 0)
-                        {
-                            try
-                            {
-                                Config.Log.LogOut("Upload : wait 10sec for retry..." + checkretry.ToString());
-                                await Task.Delay(TimeSpan.FromSeconds(10), ct);
-
-                                var children = await DriveData.GetChanges(checkpoint, ct);
-                                if (children.Where(x => x.name.Contains(uploadfilename)).LastOrDefault()?.status == "AVAILABLE")
-                                {
-                                    Config.Log.LogOut("Upload : child found.");
-                                    using (await DriveData.DriveLock.LockAsync())
-                                    {
-                                        done_files = DriveData.AmazonDriveTree[parent_id].children.Values.Select(x => x.info).ToArray();
+                                            var enc = DriveData.DecryptFilename(x);
+                                            if (enc == null) return false;
+                                            return Path.GetFileNameWithoutExtension(enc) == short_filename;
+                                        });
+                                        foreach (var conflicts in conflict_crypt)
+                                        {
+                                            await Drive.TrashItem(conflicts.id, ct);
+                                        }
                                     }
-                                    break;
+                                    else
+                                    {
+                                        var conflict_crypt = done_files.Where(x => (Path.GetExtension(x.name) == ".enc") && (Path.GetFileNameWithoutExtension(Path.GetFileNameWithoutExtension(x.name)) == short_filename));
+                                        foreach (var conflicts in conflict_crypt)
+                                        {
+                                            await Drive.TrashItem(conflicts.id, ct);
+                                        }
+                                    }
                                 }
+                                await Task.Delay(TimeSpan.FromSeconds(5), ct);
+                                await DriveData.GetChanges(checkpoint, ct);
+                                using (await DriveData.DriveLock.LockAsync())
+                                {
+                                    done_files = DriveData.AmazonDriveTree[parent_id].children.Values.Select(x => x.info).ToArray();
+                                }
+                                checkpoint = DriveData.ChangeCheckpoint;
                             }
                             catch (OperationCanceledException)
                             {
@@ -1326,42 +1270,159 @@ namespace TSviewACD
                             {
                             }
                         }
-                        if (checkretry > 0)
-                            break;
-                    }
-                    if (retry == 0)
-                    {
-                        Config.Log.LogOut("Upload : failed.");
-                        toolStripProgressBar1.Style = ProgressBarStyle.Continuous;
-                        toolStripProgressBar1.Value = toolStripProgressBar1.Minimum;
-                        toolStripProgressBar1.Maximum = 100;
-                        toolStripStatusLabel1.Text = "Upload Failed.";
-                        return -1;
-                    }
 
-                    if (Config.UseFilenameEncryption && Config.CryptMethod == CryptMethods.Method1_CTR)
-                    {
-                        Config.Log.LogOut("Encrypt Name.");
-                        if (!await DriveData.EncryptFilename(uploadfilename: uploadfilename, enckey: enckey, checkpoint: checkpoint,ct: ct))
+                        synchronizationContext.Post(
+                            (txt) =>
+                            {
+                                if (ct.IsCancellationRequested) return;
+                                toolStripProgressBar1.Style = ProgressBarStyle.Continuous;
+                                toolStripProgressBar1.Value = toolStripProgressBar1.Minimum;
+                                toolStripProgressBar1.Maximum = 10000;
+                                toolStripStatusLabel1.Text = txt as string;
+                            }, upload_str + " " + short_filename);
+
+                        int retry = 6;
+                        while (--retry > 0)
+                        {
+                            int checkretry = 4;
+                            string uphash = null;
+                            try
+                            {
+                                var ret = await Drive.uploadFile(
+                                    filename: filename,
+                                    uploadname: uploadfilename,
+                                    uploadkey: enckey,
+                                    parent_id: parent_id,
+                                    process: (src, evnt) =>
+                                    {
+                                        synchronizationContext.Post(
+                                            (o) =>
+                                            {
+                                                if (ct.IsCancellationRequested) return;
+                                                var eo = o as PositionChangeEventArgs;
+                                                toolStripStatusLabel1.Text = upload_str + eo.Log + " " + short_filename;
+                                                toolStripProgressBar1.Style = ProgressBarStyle.Continuous;
+                                                toolStripProgressBar1.Maximum = 10000;
+                                                toolStripProgressBar1.Value = (int)((double)eo.Position / eo.Length * 10000);
+                                            }, evnt);
+                                    }, ct: ct);
+                                var tmpDone = done_files.ToList();
+                                tmpDone.Add(ret);
+                                done_files = tmpDone.ToArray();
+                                break;
+                            }
+                            catch (AmazonDriveUploadException ex)
+                            {
+                                uphash = ex.Message;
+                                if(ex.InnerException is HttpRequestException)
+                                {
+                                    if (ex.InnerException.Message.Contains("408 (REQUEST_TIMEOUT)")) checkretry = 6 * 5 + 1;
+                                    if (ex.InnerException.Message.Contains("409 (Conflict)")) checkretry = 3;
+                                    if (ex.InnerException.Message.Contains("504 (GATEWAY_TIMEOUT)")) checkretry = 6 * 5 + 1;
+                                    if (filesize < Config.SmallFileSize) checkretry = 3;
+                                }
+                            }
+                            catch (OperationCanceledException)
+                            {
+                                throw;
+                            }
+                            catch (Exception)
+                            {
+                                checkretry = 3 + 1;
+                            }
+
+                            Config.Log.LogOut("Upload faild." + retry.ToString());
+                            // wait for retry
+                            while (--checkretry > 0)
+                            {
+                                try
+                                {
+                                    Config.Log.LogOut("Upload : wait 10sec for retry..." + checkretry.ToString());
+                                    await Task.Delay(TimeSpan.FromSeconds(10), ct);
+
+                                    var children = await DriveData.GetChanges(checkpoint, ct);
+                                    if (children.Where(x => x.name.Contains(uploadfilename)).LastOrDefault()?.status == "AVAILABLE")
+                                    {
+                                        Config.Log.LogOut("Upload : child found.");
+                                        var uploadeditem = children.Where(x => x.name.Contains(uploadfilename)).LastOrDefault();
+                                        var remotehash = uploadeditem?.contentProperties?.md5;
+                                        if(uphash != remotehash)
+                                        {
+                                            Config.Log.LogOut(string.Format("Upload : but hash not match. upload:{0} remote:{1}", uphash, remotehash));
+                                            checkretry = 0;
+                                            await Drive.TrashItem(uploadeditem.id, ct);
+                                            await Task.Delay(TimeSpan.FromSeconds(5), ct);
+                                        }
+                                        using (await DriveData.DriveLock.LockAsync())
+                                        {
+                                            done_files = DriveData.AmazonDriveTree[parent_id].children.Values.Select(x => x.info).ToArray();
+                                        }
+                                        break;
+                                    }
+                                }
+                                catch (OperationCanceledException)
+                                {
+                                    throw;
+                                }
+                                catch (Exception)
+                                {
+                                }
+                            }
+                            if (checkretry > 0)
+                                break;
+                        }
+                        if (retry == 0)
                         {
                             Config.Log.LogOut("Upload : failed.");
-                            toolStripProgressBar1.Style = ProgressBarStyle.Continuous;
-                            toolStripProgressBar1.Value = toolStripProgressBar1.Minimum;
-                            toolStripProgressBar1.Maximum = 100;
-                            toolStripStatusLabel1.Text = "Upload Failed.";
-                            return -1;
+                            synchronizationContext.Post(
+                                (txt) =>
+                                {
+                                    if (ct.IsCancellationRequested) return;
+                                    toolStripProgressBar1.Style = ProgressBarStyle.Continuous;
+                                    toolStripProgressBar1.Value = toolStripProgressBar1.Minimum;
+                                    toolStripProgressBar1.Maximum = 100;
+                                    toolStripStatusLabel1.Text = txt as string;
+                                }, "Upload Failed.");
+                            return true;
                         }
-                        using (await DriveData.DriveLock.LockAsync())
-                        {
-                            done_files = DriveData.AmazonDriveTree[parent_id].children.Values.Select(x => x.info).ToArray();
-                        }
-                    }
 
-                    Config.Log.LogOut("Upload : done.");
-                    toolStripProgressBar1.Style = ProgressBarStyle.Continuous;
-                    toolStripStatusLabel1.Text = "Upload done.";
-                    toolStripProgressBar1.Value = toolStripProgressBar1.Minimum;
-                    toolStripProgressBar1.Maximum = 100;
+                        if (Config.UseFilenameEncryption && Config.CryptMethod == CryptMethods.Method1_CTR)
+                        {
+                            Config.Log.LogOut("Encrypt Name.");
+                            if (!await DriveData.EncryptFilename(uploadfilename: uploadfilename, enckey: enckey, checkpoint: checkpoint, ct: ct))
+                            {
+                                Config.Log.LogOut("Upload : failed.");
+                                synchronizationContext.Post(
+                                    (txt) =>
+                                    {
+                                        if (ct.IsCancellationRequested) return;
+                                        toolStripProgressBar1.Style = ProgressBarStyle.Continuous;
+                                        toolStripProgressBar1.Value = toolStripProgressBar1.Minimum;
+                                        toolStripProgressBar1.Maximum = 100;
+                                        toolStripStatusLabel1.Text = txt as string;
+                                    }, "Upload Failed.");
+                                return true;
+                            }
+                            using (await DriveData.DriveLock.LockAsync())
+                            {
+                                done_files = DriveData.AmazonDriveTree[parent_id].children.Values.Select(x => x.info).ToArray();
+                            }
+                        }
+
+                        Config.Log.LogOut("Upload : done.");
+                        synchronizationContext.Post(
+                            (txt) =>
+                            {
+                                if (ct.IsCancellationRequested) return;
+                                toolStripProgressBar1.Style = ProgressBarStyle.Continuous;
+                                toolStripProgressBar1.Value = toolStripProgressBar1.Minimum;
+                                toolStripProgressBar1.Maximum = 100;
+                                toolStripStatusLabel1.Text = txt as string;
+                            }, "Upload done.");
+                        return false;
+                    }, ct);
+
+                    if (error) return -1;
                 }
                 return f_cur;
             }
@@ -1402,25 +1463,42 @@ namespace TSviewACD
                     }
                     if (newdir == null && Config.UseEncryption)
                     {
-                        var selection = done_files?.Where(x => (x.kind == "FOLDER") && (Path.GetExtension(x.name) == ".enc") && (Path.GetFileNameWithoutExtension(Path.GetFileNameWithoutExtension(x.name)) == short_name));
-                        if(selection?.Any() ?? false)
+                        if (Config.CryptMethod == CryptMethods.Method1_CTR)
                         {
-                            newdir = selection.FirstOrDefault();
+                            var selection = done_files?.Where(x => (Path.GetExtension(x.name) == ".enc") && (Path.GetFileNameWithoutExtension(Path.GetFileNameWithoutExtension(x.name)) == short_name));
+                            if (selection?.Any() ?? false)
+                            {
+                                newdir = selection.FirstOrDefault();
+                            }
+                            if (newdir == null && Config.UseFilenameEncryption)
+                            {
+                                selection = done_files?.Where(x =>
+                                {
+                                    var enc = DriveData.DecryptFilename(x);
+                                    if (enc == null) return false;
+                                    return Path.GetFileNameWithoutExtension(enc) == short_name;
+                                });
+                                if (selection?.Any() ?? false)
+                                {
+                                    newdir = selection.FirstOrDefault();
+                                }
+                            }
+                        }
+                        if (Config.CryptMethod == CryptMethods.Method2_CBC_CarotDAV)
+                        {
+                            var selection = done_files?.Where(x =>
+                            {
+                                var enc = CryptCarotDAV.DecryptFilename(x.name);
+                                if (enc == null) return false;
+                                return enc == short_name;
+                            });
+                            if (selection?.Any() ?? false)
+                            {
+                                newdir = selection.FirstOrDefault();
+                            }
                         }
                     }
-                    if (newdir == null && Config.UseFilenameEncryption)
-                    {
-                        var selection = done_files?.Where(x => x.kind == "FOLDER").Where(x => {
-                            var enc = DriveData.DecryptFilename(x);
-                            if (enc == null) return false;
-                            return Path.GetFileNameWithoutExtension(enc) == short_name;
-                        });
-                        if (selection?.Any() ?? false)
-                        {
-                            newdir = selection.FirstOrDefault();
-                        }
-                    }
-
+                    
                     if (newdir == null)
                     {
                         var enckey = short_name + "." + Path.GetFileNameWithoutExtension(Path.GetRandomFileName());
@@ -1435,7 +1513,7 @@ namespace TSviewACD
                             }
                             else if (Config.CryptMethod == CryptMethods.Method2_CBC_CarotDAV)
                             {
-                                makedirname = CryptCarotDAV.EncryptFilename(short_name, Config.DrivePassword);
+                                makedirname = CryptCarotDAV.EncryptFilename(short_name);
                             }
                         }
 
@@ -1470,6 +1548,10 @@ namespace TSviewACD
                                 if (children?.Where(x => x.name.Contains(makedirname)).LastOrDefault()?.status == "AVAILABLE")
                                 {
                                     Config.Log.LogOut("createFolder : child found.");
+                                    if (newdir == null)
+                                    {
+                                        newdir = children.Where(x => x.name.Contains(makedirname) && x.status == "AVAILABLE").LastOrDefault();
+                                    }
                                     break;
                                 }
                                 await Task.Delay(2000);
@@ -1523,20 +1605,35 @@ namespace TSviewACD
             if (parent_id == null) return;
 
             toolStripStatusLabel1.Text = "Upload...";
-            openFileDialog1.Title = Resource_text.SelectUploadFiles_str;
-            if (openFileDialog1.ShowDialog() != DialogResult.OK)
-            {
-                toolStripStatusLabel1.Text = "Canceled.";
-                return;
-            }
-
+            toolStripProgressBar1.Style = ProgressBarStyle.Marquee;
             try
             {
-                int f_all = openFileDialog1.FileNames.Count();
-                int f_cur = 0;
+                if ((ModifierKeys & Keys.Shift) == Keys.Shift ||
+                    (ModifierKeys & Keys.Control) == Keys.Control)
+                {
+                    folderBrowserDialog1.Description = Resource_text.SelectUploadFolder_str;
+                    if (folderBrowserDialog1.ShowDialog() != DialogResult.OK)
+                    {
+                        toolStripStatusLabel1.Text = "Canceled.";
+                        return;
+                    }
 
-                if (await DoFileUpload(openFileDialog1.FileNames, parent_id, f_all, f_cur) < 0) return;
+                    if (await DoDirectoryUpload(new string[] { folderBrowserDialog1.SelectedPath }, parent_id, 1, 0) < 0) return;
+                }
+                else
+                {
+                    openFileDialog1.Title = Resource_text.SelectUploadFiles_str;
+                    if (openFileDialog1.ShowDialog() != DialogResult.OK)
+                    {
+                        toolStripStatusLabel1.Text = "Canceled.";
+                        return;
+                    }
 
+                    int f_all = openFileDialog1.FileNames.Count();
+                    int f_cur = 0;
+
+                    if (await DoFileUpload(openFileDialog1.FileNames, parent_id, f_all, f_cur) < 0) return;
+                }
                 toolStripProgressBar1.Style = ProgressBarStyle.Marquee;
                 await Task.Delay(TimeSpan.FromSeconds(2));
                 await ReloadItems(parent_id);
@@ -1630,6 +1727,7 @@ namespace TSviewACD
             try
             {
                 listView1.VirtualListSize = 0;
+                treeView1.Nodes.Clear();
 
                 // Load Root
                 var changes = await DriveData.GetChanges(ct: ct, 
@@ -1642,7 +1740,6 @@ namespace TSviewACD
                     });
                 // load tree
                 var items = GenerateTreeNode(DriveData.AmazonDriveTree[DriveData.AmazonDriveRootID].children.Values, 1);
-                treeView1.Nodes.Clear();
                 treeView1.Nodes.AddRange(items);
 
                 List<string> tree_ids = new List<string>();
@@ -1707,6 +1804,7 @@ namespace TSviewACD
             try
             {
                 listView1.VirtualListSize = 0;
+                treeView1.Nodes.Clear();
 
                 // Load Changed items
                 if (getchange)
@@ -1728,7 +1826,6 @@ namespace TSviewACD
 
                 // load tree
                 var items = GenerateTreeNode(DriveData.AmazonDriveTree[DriveData.AmazonDriveRootID].children.Values, 1);
-                treeView1.Nodes.Clear();
                 treeView1.Nodes.AddRange(items);
 
                 List<string> tree_ids = new List<string>();
@@ -1965,63 +2062,88 @@ namespace TSviewACD
                 // all item selected
             }
 
-            if (checkBox_Regex.Checked)
+            var task = TaskCanceler.CreateTask("Search");
+            try
             {
-                if (checkBox_findCaseSensitive.Checked)
-                    selection = selection.Where(x => Regex.IsMatch(x.DisplayName ?? "", search_str));
+                toolStripProgressBar1.Style = ProgressBarStyle.Marquee;
+                toolStripStatusLabel1.Text = "Create index...";
+
+                await Task.Run(() => {
+                    Parallel.ForEach(selection, (item) =>
+                    {
+                        if(task.cts.Token.IsCancellationRequested) return;
+                        var disp = item.DisplayName;
+                    }
+                    );
+                }, task.cts.Token);
+
+                if (checkBox_Regex.Checked)
+                {
+                    if (checkBox_findCaseSensitive.Checked)
+                        selection = selection.Where(x => Regex.IsMatch(x.DisplayName ?? "", search_str));
+                    else
+                        selection = selection.Where(x => Regex.IsMatch(x.DisplayName ?? "", search_str, RegexOptions.IgnoreCase));
+                }
                 else
-                    selection = selection.Where(x => Regex.IsMatch(x.DisplayName ?? "", search_str, RegexOptions.IgnoreCase));
+                {
+                    if (checkBox_findCaseSensitive.Checked)
+                        selection = selection.Where(x => (x.DisplayName?.IndexOf(search_str) >= 0));
+                    else
+                        selection = selection.Where(x => (
+                        System.Globalization.CultureInfo.CurrentCulture.CompareInfo.IndexOf(
+                            x.DisplayName ?? "",
+                            search_str,
+                            System.Globalization.CompareOptions.IgnoreCase | System.Globalization.CompareOptions.IgnoreKanaType | System.Globalization.CompareOptions.IgnoreWidth
+                            | System.Globalization.CompareOptions.IgnoreNonSpace | System.Globalization.CompareOptions.IgnoreSymbols
+                            ) >= 0));
+                }
+
+                if (checkBox_sizeOver.Checked)
+                    selection = selection.Where(x => (x.info.contentProperties?.size ?? 0) > numericUpDown_sizeOver.Value);
+                if (checkBox_sizeUnder.Checked)
+                    selection = selection.Where(x => (x.info.contentProperties?.size ?? 0) < numericUpDown_sizeUnder.Value);
+
+
+                if (radioButton_createTime.Checked)
+                {
+                    if (checkBox_dateFrom.Checked)
+                        selection = selection.Where(x => x.info.createdDate > dateTimePicker_from.Value);
+                    if (checkBox_dateTo.Checked)
+                        selection = selection.Where(x => x.info.createdDate < dateTimePicker_to.Value);
+                }
+                if (radioButton_modifiedDate.Checked)
+                {
+                    if (checkBox_dateFrom.Checked)
+                        selection = selection.Where(x => x.info.modifiedDate > dateTimePicker_from.Value);
+                    if (checkBox_dateTo.Checked)
+                        selection = selection.Where(x => x.info.modifiedDate < dateTimePicker_to.Value);
+                }
+
+                toolStripStatusLabel1.Text = "Searching...";
+
+                ItemInfo[] result = null;
+                await Task.Run(() =>
+                {
+                    result = selection.ToArray();
+                }, task.cts.Token);
+
+                toolStripProgressBar1.Style = ProgressBarStyle.Continuous;
+                toolStripProgressBar1.Value = toolStripProgressBar1.Minimum;
+                toolStripStatusLabel1.Text = "Found : " + result.Length.ToString();
+
+                listviewitem.SearchResult = result;
+                listView1.VirtualListSize = listviewitem.Count;
             }
-            else
+            catch (TaskCanceledException)
             {
-                if (checkBox_findCaseSensitive.Checked)
-                    selection = selection.Where(x => (x.DisplayName?.IndexOf(search_str) >= 0));
-                else
-                    selection = selection.Where(x => (
-                    System.Globalization.CultureInfo.CurrentCulture.CompareInfo.IndexOf(
-                        x.DisplayName ?? "",
-                        search_str,
-                        System.Globalization.CompareOptions.IgnoreCase | System.Globalization.CompareOptions.IgnoreKanaType | System.Globalization.CompareOptions.IgnoreWidth
-                        | System.Globalization.CompareOptions.IgnoreNonSpace | System.Globalization.CompareOptions.IgnoreSymbols
-                        ) >= 0));
+                toolStripProgressBar1.Style = ProgressBarStyle.Continuous;
+                toolStripProgressBar1.Value = toolStripProgressBar1.Minimum;
+                toolStripStatusLabel1.Text = "Cancel.";
             }
-
-            if (checkBox_sizeOver.Checked)
-                selection = selection.Where(x => (x.info.contentProperties?.size ?? 0) > numericUpDown_sizeOver.Value);
-            if (checkBox_sizeUnder.Checked)
-                selection = selection.Where(x => (x.info.contentProperties?.size ?? 0) < numericUpDown_sizeUnder.Value);
-
-
-            if (radioButton_createTime.Checked)
+            finally
             {
-                if (checkBox_dateFrom.Checked)
-                    selection = selection.Where(x => x.info.createdDate > dateTimePicker_from.Value);
-                if (checkBox_dateTo.Checked)
-                    selection = selection.Where(x => x.info.createdDate < dateTimePicker_to.Value);
+                TaskCanceler.FinishTask(task);
             }
-            if (radioButton_modifiedDate.Checked)
-            {
-                if (checkBox_dateFrom.Checked)
-                    selection = selection.Where(x => x.info.modifiedDate > dateTimePicker_from.Value);
-                if (checkBox_dateTo.Checked)
-                    selection = selection.Where(x => x.info.modifiedDate < dateTimePicker_to.Value);
-            }
-
-            toolStripProgressBar1.Style = ProgressBarStyle.Marquee;
-            toolStripStatusLabel1.Text = "Searching...";
-
-            ItemInfo[] result = null;
-            await Task.Run(() =>
-            {
-                result = selection.ToArray();
-            });
-
-            toolStripProgressBar1.Style = ProgressBarStyle.Continuous;
-            toolStripProgressBar1.Value = toolStripProgressBar1.Minimum;
-            toolStripStatusLabel1.Text = "Found : " + result.Length.ToString();
-
-            listviewitem.SearchResult = result;
-            listView1.VirtualListSize = listviewitem.Count;
         }
 
         private async void button_search_Click(object sender, EventArgs e)
@@ -2107,8 +2229,9 @@ namespace TSviewACD
 
                         var newfilename = NewName.NewItemName;
                         if (DriveData.AmazonDriveTree[downitem.id].IsEncrypted == CryptMethods.Method2_CBC_CarotDAV)
-                            newfilename = CryptCarotDAV.EncryptFilename(newfilename, Config.DrivePassword);
-
+                        {
+                            newfilename = CryptCarotDAV.EncryptFilename(newfilename);
+                        }
                         ct.ThrowIfCancellationRequested();
                         changecount++;
                         await Drive.renameItem(downitem.id, newfilename, ct: ct);
@@ -2150,11 +2273,26 @@ namespace TSviewACD
             }
         }
 
-        private void listView1_ItemDrag(object sender, ItemDragEventArgs e)
+        private async void listView1_ItemDrag(object sender, ItemDragEventArgs e)
         {
             if (listviewitem.Root != null && (listView1.SelectedIndices.Contains(0) || listView1.SelectedIndices.Contains(1)))
                 return;
-            listView1.DoDragDrop(new ClipboardAmazonDrive(listviewitem.GetItems(listView1.SelectedIndices)), DragDropEffects.Copy | DragDropEffects.Move);
+            ClipboardAmazonDrive data = null;
+            var items = listviewitem.GetItems(listView1.SelectedIndices);
+            var t = Task.Run(() =>
+            {
+                data = new ClipboardAmazonDrive(items);
+            });
+            if((await Task.WhenAny(t, Task.Delay(500))) != t)
+            {
+                toolStripProgressBar1.Style = ProgressBarStyle.Marquee;
+                toolStripStatusLabel1.Text = "Loading drag items...";
+                await t;
+                toolStripProgressBar1.Style = ProgressBarStyle.Continuous;
+                toolStripProgressBar1.Value = toolStripProgressBar1.Minimum;
+                toolStripStatusLabel1.Text = "Done.";
+            }
+            listView1.DoDragDrop(data, DragDropEffects.Copy | DragDropEffects.Move);
         }
 
         private FileMetadata_Info[] GetSelectedItemsFromDataObject(System.Windows.Forms.IDataObject data)
@@ -2288,6 +2426,8 @@ namespace TSviewACD
         {
             var task = TaskCanceler.CreateTask(string.Format("upload({0})", logprefix));
             string disp_id = listviewitem.Root?.info.id;
+            toolStripStatusLabel1.Text = "Upload...";
+            toolStripProgressBar1.Style = ProgressBarStyle.Marquee;
             try
             {
                 string[] dir_drags = null;
@@ -2308,12 +2448,23 @@ namespace TSviewACD
                         f_cur = await DoDirectoryUpload(dir_drags, parent_id, f_all, f_cur, task.cts.Token);
 
                     toolStripProgressBar1.Style = ProgressBarStyle.Marquee;
+                    await Task.Delay(TimeSpan.FromSeconds(2));
                     await ReloadItems(disp_id);
                     Config.Log.LogOut(string.Format("upload({0}) : done.", logprefix));
                 }
                 catch (OperationCanceledException)
                 {
-                    throw;
+                    if (!Config.IsClosing)
+                    {
+                        toolStripProgressBar1.Style = ProgressBarStyle.Marquee;
+                        await Task.Delay(TimeSpan.FromSeconds(2));
+                        await ReloadItems(disp_id);
+
+                        toolStripProgressBar1.Style = ProgressBarStyle.Continuous;
+                        toolStripProgressBar1.Value = toolStripProgressBar1.Minimum;
+                        toolStripProgressBar1.Maximum = 100;
+                        toolStripStatusLabel1.Text = "Operation Aborted.";
+                    }
                 }
                 catch (Exception ex)
                 {
@@ -3702,25 +3853,36 @@ namespace TSviewACD
         private async void comboBox_CarotDAV_Escape_SelectedIndexChanged(object sender, EventArgs e)
         {
             Config.CarotDAV_CryptNameHeader = comboBox_CarotDAV_Escape.Text;
-            DriveData.ChangeCryption2();
-            await ReloadItems(listviewitem.Root?.info.id, false);
+            try
+            {
+                toolStripProgressBar1.Style = ProgressBarStyle.Marquee;
+                toolStripStatusLabel1.Text = "Apply changes...";
+                await DriveData.ChangeCryption2();
+                await ReloadItems(listviewitem.Root?.info.id, false);
+                toolStripProgressBar1.Style = ProgressBarStyle.Continuous;
+                toolStripStatusLabel1.Text = "Done.";
+            }
+            catch (OperationCanceledException)
+            {
+                if (!Config.IsClosing)
+                {
+                    toolStripProgressBar1.Style = ProgressBarStyle.Continuous;
+                    toolStripStatusLabel1.Text = "Operation Aborted.";
+                }
+            }
+            catch (Exception ex)
+            {
+                toolStripProgressBar1.Style = ProgressBarStyle.Continuous;
+                toolStripStatusLabel1.Text = "Error detected.";
+                MessageBox.Show("comboBox_CarotDAV_Escape_SelectedIndexChanged : ERROR\r\n" + ex.Message);
+                Config.Log.LogOut(ex.ToString());
+            }
         }
 
         private async void textBox_Password_Leave(object sender, EventArgs e)
         {
-            DriveData.ChangeCryption1();
+            await DriveData.ChangeCryption1();
             await ReloadItems(listviewitem.Root?.info.id, false);
-        }
-
-        private void button1_Click(object sender, EventArgs e)
-        {
-            using (var st = new CryptCarotDAV.CryptCarotDAV_CryptStream(new FileStream("test.txt", FileMode.Open), "test"))
-            {
-                using(var outst = new FileStream("test.txt.enc", FileMode.Create))
-                {
-                    st.CopyTo(outst);
-                }
-            }
         }
 
         private void cutToolStripMenuItem_Click(object sender, EventArgs e)
@@ -3751,7 +3913,7 @@ namespace TSviewACD
 
             var ParentId = current.info.id;
             if (Clipboard.ContainsData(DataFormats.FileDrop)) {
-                Config.Log.LogOut("upload(listview) Start.");
+                Config.Log.LogOut("upload(clipboard) Start.");
                 string[] drags = (string[])Clipboard.GetData(DataFormats.FileDrop);
 
                 if (drags.Where(x => Directory.Exists(x)).Count() > 0)
@@ -3766,6 +3928,7 @@ namespace TSviewACD
                 await DragDrop_AmazonItem(data, ParentId, "clipboard");
             }
         }
+
     }
 
     static class Extensions

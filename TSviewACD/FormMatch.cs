@@ -238,7 +238,7 @@ namespace TSviewACD
                                 {
                                     byte[] md5 = null;
                                     ++i;
-                                    synchronizationContext.Send(
+                                    synchronizationContext.Post(
                                         (o) =>
                                         {
                                             if (cts.IsCancellationRequested) return;
@@ -255,7 +255,7 @@ namespace TSviewACD
                                 else
                                 {
                                     ++i;
-                                    synchronizationContext.Send(
+                                    synchronizationContext.Post(
                                         (o) =>
                                         {
                                             if (cts.IsCancellationRequested) return;
@@ -270,7 +270,7 @@ namespace TSviewACD
                                {
                                    byte[] md5 = null;
                                    ++i;
-                                   synchronizationContext.Send(
+                                   synchronizationContext.Post(
                                        (o) =>
                                        {
                                            if (cts.IsCancellationRequested) return;
@@ -287,7 +287,7 @@ namespace TSviewACD
                                else
                                {
                                    ++i;
-                                   synchronizationContext.Send(
+                                   synchronizationContext.Post(
                                        (o) =>
                                        {
                                            if (cts.IsCancellationRequested) return;
@@ -317,7 +317,7 @@ namespace TSviewACD
                             foreach (var item in litem)
                             {
                                 ++i;
-                                synchronizationContext.Send(
+                                synchronizationContext.Post(
                                     (o) =>
                                     {
                                         if (cts.IsCancellationRequested) return;
@@ -366,7 +366,7 @@ namespace TSviewACD
                             foreach (var item in litem)
                             {
                                 ++i;
-                                synchronizationContext.Send(
+                                synchronizationContext.Post(
                                     (o) =>
                                     {
                                         if (cts.IsCancellationRequested) return;

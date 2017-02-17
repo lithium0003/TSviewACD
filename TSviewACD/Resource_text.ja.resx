@@ -244,7 +244,10 @@
     <value>複数ファイルの名前を変更しますか?</value>
   </data>
   <data name="SelectUploadFiles_str" xml:space="preserve">
-    <value>アップロードするファイルを選んでください</value>
+    <value>アップロードするファイル(複数可)を選んでください</value>
+  </data>
+  <data name="SelectUploadFolder_str" xml:space="preserve">
+    <value>アップロードするフォルダを選んでください</value>
   </data>
   <data name="TrashItems_str" xml:space="preserve">
     <value>これらの項目をゴミ箱に移しますか?</value>

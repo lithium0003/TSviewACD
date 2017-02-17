@@ -3,6 +3,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Security.Cryptography;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
@@ -21,6 +22,158 @@ namespace TSviewACD
         public const int shortbuflen = slotsize;
         public const int extraslot = 10;
     }
+
+    public interface IHashStream
+    {
+        string Hash
+        {
+            get;
+        }
+    }
+
+    public class AmazonDriveHashException : Exception
+    {
+    }
+
+    class NullStream : Stream
+    {
+        public override bool CanRead { get { return true; } }
+        public override bool CanSeek { get { return true; } }
+        public override bool CanWrite { get { return true; } }
+        public override long Length { get { return 0; } }
+        public override long Position
+        {
+            get { return 0; }
+            set { }
+        }
+
+        public override void Flush() { }
+        public override int Read(byte[] buffer, int offset, int count)
+        {
+            return count;
+        }
+
+        public override long Seek(long offset, SeekOrigin origin)
+        {
+            return 0;
+        }
+
+        public override void SetLength(long value) { }
+
+        public override void Write(byte[] buffer, int offset, int count) { }
+    }
+
+    class HashStream : Stream, IHashStream
+    {
+        Stream innerStream;
+        HashAlgorithm hasher;
+        bool Invalid = false;
+        long pos;
+        bool lengthSeek = false;
+
+        public string Hash
+        {
+            get
+            {
+                Flush();
+                return (Invalid) ? "" : BitConverter.ToString(hasher.Hash).Replace("-", "");
+            }
+        }
+
+        public HashStream(Stream s, HashAlgorithm hash) : base()
+        {
+            innerStream = s;
+            try
+            {
+                pos = innerStream.Position;
+            }
+            catch
+            {
+                pos = 0;
+            }
+            hasher = hash;
+        }
+
+        public HashStream(HashAlgorithm hash) : base()
+        {
+            pos = 0;
+            hasher = hash;
+        }
+
+        public override long Length
+        {
+            get
+            {
+                if (innerStream == null) throw new NotImplementedException();
+                return innerStream.Length;
+            }
+        }
+        public override bool CanRead { get { return true; } }
+        public override bool CanWrite { get { return true; } }
+        public override bool CanSeek { get { return true; } }
+        public override void Flush()
+        {
+            hasher.TransformFinalBlock(new byte[0], 0, 0);
+        }
+
+        public override long Position
+        {
+            get
+            {
+                return pos;
+            }
+            set
+            {
+                if (pos != value) Invalid = true;
+                if (innerStream != null) innerStream.Position = value;
+                else throw new NotImplementedException();
+            }
+        }
+
+        public override int Read(byte[] buffer, int offset, int count)
+        {
+            if (innerStream == null) return -1;
+            int ret = innerStream.Read(buffer, offset, count);
+            if (!lengthSeek && !Invalid)
+                hasher.TransformBlock(buffer, offset, ret, buffer, offset);
+            pos += ret;
+            return ret;
+        }
+
+        public override long Seek(long offset, SeekOrigin origin)
+        {
+            if (offset == 0 && origin == SeekOrigin.Current) return pos;
+            if (pos == 0 && offset == 0 && origin == SeekOrigin.Begin)
+            {
+                lengthSeek = false;
+            }
+            else if (pos == 0 && offset == 0 && origin == SeekOrigin.End)
+            {
+                lengthSeek = true;
+            }
+            else
+            {
+                Invalid = true;
+            }
+            if (innerStream != null)
+                return innerStream.Seek(offset, origin);
+            else
+                throw new NotImplementedException();
+        }
+
+        public override void Write(byte[] buffer, int offset, int count)
+        {
+            if (lengthSeek || Invalid) return;
+            hasher.TransformBlock(buffer, offset, count, buffer, offset);
+            pos += count;
+        }
+
+        public override void SetLength(long value)
+        {
+            throw new NotImplementedException();
+        }
+    }
+
 
     class MemoryStreamSlot : IDisposable
     {
@@ -821,19 +974,25 @@ namespace TSviewACD
         AmazonDrive Drive;
         FileMetadata_Info targetItem;
         long FileSize;
+        long pos = 0;
         string OrgFilename = null;
         Stream innerStream;
         int failcount = 0;
-        TaskCanselToken task = TaskCanceler.CreateTask("AmazonDriveBaseStream");
+        TaskCanselToken task;
         CancellationTokenSource cts;
+        CancellationToken ct;
         bool autodecrypt;
+        bool EOF = false;
+        bool hashcheck = false;
 
         protected void InitStream()
         {
-            Drive.downloadFile(targetItem, ct: cts.Token, autodecrypt: autodecrypt).ContinueWith(x =>
+            Drive.downloadFile(targetItem, ct: ct, autodecrypt: autodecrypt).ContinueWith(x =>
             {
                 innerStream = x.Result;
-            }, cts.Token)
+                EOF = false;
+                pos = 0;
+            }, ct)
             .ContinueWith(task =>
             {
                 if (task.IsFaulted)
@@ -851,7 +1010,6 @@ namespace TSviewACD
                     if (++failcount < 10)
                     {
                         Config.Log.LogOut(string.Format("AmazonDriveBaseStream : ERROR restart to download"));
-                        cts.Cancel(true);
                         InitStream();
                     }
                     else
@@ -861,7 +1019,7 @@ namespace TSviewACD
                     }
                 }
             })
-            .Wait(cts.Token);
+            .Wait(ct);
         }
 
         public override bool CanRead
@@ -900,7 +1058,7 @@ namespace TSviewACD
         {
             get
             {
-                return innerStream?.Position ?? 0;
+                return pos;
             }
 
             set
@@ -909,13 +1067,22 @@ namespace TSviewACD
             }
         }
 
-        public AmazonDriveBaseStream(AmazonDrive Drive, FileMetadata_Info downitem, bool autodecrypt = true) : base()
+        public AmazonDriveBaseStream(AmazonDrive Drive, FileMetadata_Info downitem, bool autodecrypt = true, CancellationToken ct = default(CancellationToken)) : base()
         {
             this.Drive = Drive;
             targetItem = downitem;
             FileSize = targetItem.OrignalLength ?? 0;
             this.autodecrypt = autodecrypt;
-            cts = task.cts;
+            if (ct == default(CancellationToken))
+            {
+                task = TaskCanceler.CreateTask("AmazonDriveBaseStream");
+                cts = task.cts;
+                this.ct = cts.Token;
+            }
+            else
+            {
+                this.ct = ct;
+            }
 
             if (FileSize < 0) return;
 
@@ -935,8 +1102,9 @@ namespace TSviewACD
         {
             if (disposing)
             {
-                cts.Cancel();
-                TaskCanceler.FinishTask(task);
+                cts?.Cancel();
+                if(task != null)
+                    TaskCanceler.FinishTask(task);
                 innerStream?.Dispose();
             }
 
@@ -965,7 +1133,9 @@ namespace TSviewACD
                     InitStream();
                 }
             }
-            return innerStream?.Seek(offset, origin) ?? 0;
+            var ret = innerStream?.Seek(offset, origin) ?? 0;
+            pos = ret;
+            return ret;
         }
 
         public override void SetLength(long value)
@@ -975,8 +1145,27 @@ namespace TSviewACD
 
         public override int Read(byte[] buffer, int offset, int count)
         {
-            cts.Token.ThrowIfCancellationRequested();
-            return innerStream?.Read(buffer, offset, count) ?? -1;
+            ct.ThrowIfCancellationRequested();
+            var ret = innerStream?.Read(buffer, offset, count) ?? -1;
+            pos += ret;
+            if (pos >= FileSize) EOF = true;
+            if (EOF && !hashcheck)
+            {
+                if ((innerStream as IHashStream).Hash.ToLower() != targetItem.contentProperties?.md5)
+                {
+                    Config.Log.LogOut(string.Format("AmazonDriveBaseStream : MD5 ERROR(Server:{0}, download:{1})",
+                        targetItem.contentProperties?.md5,
+                        (innerStream as IHashStream).Hash.ToLower()
+                        ));
+                    throw new AmazonDriveHashException();
+                }
+                else
+                {
+                    Config.Log.LogOut("AmazonDriveBaseStream : MD5 OK");
+                }
+                hashcheck = true;
+            }
+            return ret;
         }
 
         public override void Write(byte[] buffer, int offset, int count)

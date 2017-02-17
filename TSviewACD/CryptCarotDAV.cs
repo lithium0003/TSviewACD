@@ -19,7 +19,26 @@ namespace TSviewACD
         public const int CryptHeaderByte = 64;
         public const int CryptFooterByte = 64;
 
-        public static string EncryptFilename(string uploadfilename, string enckey)
+        static byte[] Key;
+        static byte[] IV;
+        static string _password;
+        public static string Password
+        {
+            get { return _password; }
+            set
+            {
+                if (_password == value) return;
+                if (value == null) return;
+                _password = value;
+                Rfc2898DeriveBytes key = new Rfc2898DeriveBytes(_password, _salt, PBKDF2_ITERATION);
+
+                Key = key.GetBytes(KeySize / 8);
+                IV = key.GetBytes(BlockSize / 8);
+            }
+        }
+
+
+        public static string EncryptFilename(string uploadfilename)
         {
             ICryptoTransform encryptor;
             byte[] cryptbuf1 = new byte[BlockSizeByte];
@@ -33,12 +52,9 @@ namespace TSviewACD
             aes.Mode = CipherMode.CBC;
             aes.Padding = PaddingMode.Zeros;
 
-            // generate the key from the shared secret and the salt
-            Rfc2898DeriveBytes key = new Rfc2898DeriveBytes(enckey, _salt, PBKDF2_ITERATION);
-
             // Create a RijndaelManaged object
-            aes.Key = key.GetBytes(aes.KeySize / 8);
-            aes.IV = key.GetBytes(aes.BlockSize / 8);
+            aes.Key = Key;
+            aes.IV = IV;
             encryptor = aes.CreateEncryptor();
 
             using (var ms = new MemoryStream()) {
@@ -81,7 +97,7 @@ namespace TSviewACD
             }
         }
 
-        public static string DecryptFilename(string cryptfilename, string enckey)
+        public static string DecryptFilename(string cryptfilename)
         {
             if (!(cryptfilename?.StartsWith(Config.CarotDAV_CryptNameHeader) ?? false)) return null;
 
@@ -114,12 +130,8 @@ namespace TSviewACD
             aes.KeySize = KeySize;
             aes.Padding = PaddingMode.Zeros;
 
-            // generate the key from the shared secret and the salt
-            Rfc2898DeriveBytes key = new Rfc2898DeriveBytes(enckey, _salt, PBKDF2_ITERATION);
-
-            // Create a RijndaelManaged object
-            aes.Key = key.GetBytes(aes.KeySize / 8);
-            aes.IV = key.GetBytes(aes.BlockSize / 8);
+            aes.Key = Key;
+            aes.IV = IV;
 
             aes.Mode = CipherMode.CBC;
             decryptor = aes.CreateDecryptor();
@@ -168,82 +180,6 @@ namespace TSviewACD
             }
         }
 
-        class HashStream : Stream
-        {
-            Stream innerStream;
-            HashAlgorithm hasher;
-
-            public string Hash
-            {
-                get
-                {
-                    return BitConverter.ToString(hasher.Hash).Replace("-", "");
-                }
-            }
-
-            public HashStream(Stream s, HashAlgorithm hash) : base()
-            {
-                innerStream = s;
-                hasher = hash;
-            }
-
-            public HashStream(HashAlgorithm hash) : base()
-            {
-                hasher = hash;
-            }
-
-            public override long Length
-            {
-                get {
-                    if(innerStream == null) throw new NotImplementedException();
-                    return innerStream.Length;
-                }
-            }
-            public override bool CanRead { get { return true; } }
-            public override bool CanWrite { get { return true; } }
-            public override bool CanSeek { get { return false; } }
-            public override void Flush()
-            {
-                innerStream?.Flush();
-                hasher.TransformFinalBlock(new byte[0], 0, 0);
-            }
-
-            public override long Position
-            {
-                get
-                {
-                    throw new NotImplementedException();
-                }
-                set
-                {
-                    throw new NotImplementedException();
-                }
-            }
-
-            public override int Read(byte[] buffer, int offset, int count)
-            {
-                if (innerStream == null) return -1;
-                int ret = innerStream.Read(buffer, offset, count);
-                hasher.TransformBlock(buffer, offset, ret, buffer, offset);
-                return ret;
-            }
-
-            public override long Seek(long offset, SeekOrigin origin)
-            {
-                throw new NotImplementedException();
-            }
-
-            public override void Write(byte[] buffer, int offset, int count)
-            {
-                hasher.TransformBlock(buffer, offset, count, buffer, offset);
-            }
-
-            public override void SetLength(long value)
-            {
-                throw new NotImplementedException();
-            }
-        }
-
         public class CryptCarotDAV_CryptStream : Stream
         {
             byte[] header = new byte[CryptHeaderByte];
@@ -257,7 +193,7 @@ namespace TSviewACD
             int patlen;
             long cryptlen;
 
-            public CryptCarotDAV_CryptStream(Stream baseStream, string password) : base()
+            public CryptCarotDAV_CryptStream(Stream baseStream) : base()
             {
                 innerStream = new HashStream(baseStream, new SHA256CryptoServiceProvider());
 
@@ -269,16 +205,15 @@ namespace TSviewACD
                 aes.Mode = CipherMode.CBC;
                 aes.Padding = PaddingMode.Zeros;
 
-                // generate the key from the shared secret and the salt
-                Rfc2898DeriveBytes key = new Rfc2898DeriveBytes(password, _salt, PBKDF2_ITERATION);
-
-                // Create a RijndaelManaged object
-                aes.Key = key.GetBytes(aes.KeySize / 8);
-                aes.IV = key.GetBytes(aes.BlockSize / 8);
+                aes.Key = Key;
+                aes.IV = IV;
                 encryptor = aes.CreateEncryptor();
 
                 cryptStream = new CryptoStream(innerStream, encryptor, CryptoStreamMode.Read);
-                patlen = (int)((innerStream.Length - 1) % BlockSizeByte + 1);
+                if (innerStream.Length > 0)
+                    patlen = (int)((innerStream.Length - 1) % BlockSizeByte + 1);
+                else
+                    patlen = BlockSizeByte;
                 cryptlen = innerStream.Length + BlockSizeByte - patlen;
             }
 
@@ -370,7 +305,7 @@ namespace TSviewACD
             }
         }
 
-        public class CryptCarotDAV_DecryptStream : Stream
+        public class CryptCarotDAV_DecryptStream : Stream, IHashStream
         {
             Stream innerStream;
             HashStream hash;
@@ -387,7 +322,7 @@ namespace TSviewACD
             bool EOF = false;
             bool LengthSeek = false;
 
-            public CryptCarotDAV_DecryptStream(Stream baseStream, string password, long orignalOffset = 0, long cryptedOffset = 0, long cryptedLength = -1) : base()
+            public CryptCarotDAV_DecryptStream(Stream baseStream, long orignalOffset = 0, long cryptedOffset = 0, long cryptedLength = -1) : base()
             {
                 innerStream = baseStream;
                 if (cryptedLength < 0) cryptedLength = innerStream.Length;
@@ -425,12 +360,8 @@ namespace TSviewACD
                 aes.Mode = CipherMode.CBC;
                 aes.Padding = PaddingMode.Zeros;
 
-                // generate the key from the shared secret and the salt
-                Rfc2898DeriveBytes key = new Rfc2898DeriveBytes(password, _salt, PBKDF2_ITERATION);
-
-                // Create a RijndaelManaged object
-                aes.Key = key.GetBytes(aes.KeySize / 8);
-                aes.IV = key.GetBytes(aes.BlockSize / 8);
+                aes.Key = Key;
+                aes.IV = IV;
                 decryptor = aes.CreateDecryptor();
 
                 decryptStream = new CryptoStream(innerStream, decryptor, CryptoStreamMode.Read);
@@ -491,6 +422,14 @@ namespace TSviewACD
                 set
                 {
                     throw new NotImplementedException();
+                }
+            }
+
+            public string Hash
+            {
+                get
+                {
+                    return (innerStream as IHashStream).Hash;
                 }
             }
 

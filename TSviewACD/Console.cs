@@ -137,10 +137,9 @@ namespace TSviewACD
                     Console.WriteLine("\t\t--md5: show MD5 hash");
                     Console.WriteLine("\t\t--nodecrypt: disable auto decrypt");
                     Console.WriteLine("\tdownload (REMOTE_PATH) (LOCAL_DIR_PATH)   : download item");
-                    Console.WriteLine("\t\t--md5 : hash check after download");
                     Console.WriteLine("\t\t--nodecrypt: disable auto decrypt");
                     Console.WriteLine("\tupload   (LOCAL_FILE_PATH) (REMOTE_PATH)  : upload item");
-                    Console.WriteLine("\t\t--md5 : hash check after upload");
+                    Console.WriteLine("\t\t--md5 : hash check for conflict");
                     Console.WriteLine("\t\t--createpath: make upload target folder mode");
                     Console.WriteLine("\t\t--crypt1: crypt upload mode(CTR mode)");
                     Console.WriteLine("\t\t--crypt1name: crypt filename(CTR mode)");
@@ -428,16 +427,11 @@ namespace TSviewACD
                     return 0;
                 }
 
-                bool hashflag = false;
                 bool autodecrypt = true;
                 foreach (var p in paramArgs)
                 {
                     switch (p)
                     {
-                        case "md5":
-                            Console.Error.WriteLine("(--md5: hash check mode)");
-                            hashflag = true;
-                            break;
                         case "nodecrypt":
                             Console.Error.WriteLine("(--nodecrypt: disable auto decrypt)");
                             autodecrypt = false;
@@ -477,6 +471,7 @@ namespace TSviewACD
                     return 1;
                 }
 
+                bool SelectFullpath = false;
                 if (String.IsNullOrEmpty(localpath))
                 {
                     Thread t = new Thread(new ThreadStart(() =>
@@ -499,6 +494,7 @@ namespace TSviewACD
                                 save.FileName = filename;
                                 if (save.ShowDialog() != DialogResult.OK) return;
                                 localpath = save.FileName;
+                                SelectFullpath = true;
                             }
                         }
                     }));
@@ -516,7 +512,8 @@ namespace TSviewACD
                     if (target.Length == 1)
                     {
                         var filename = DriveData.AmazonDriveTree[target[0].id].DisplayName;
-                        localpath = Path.Combine(localpath, filename);
+                        if(!SelectFullpath)
+                            localpath = Path.Combine(localpath, filename);
                     }
                     if (target.Length > 1 && Path.GetFileName(localpath) != "")
                     {
@@ -581,53 +578,6 @@ namespace TSviewACD
                                 }
                                 Console.Error.WriteLine("\r\nDownload : done.");
 
-                                if (hashflag && downitem.contentProperties?.md5 != null)
-                                {
-                                    using (var md5calc = new System.Security.Cryptography.MD5CryptoServiceProvider())
-                                    using (var hfile = File.Open(savefilename, FileMode.Open, FileAccess.Read, FileShare.Read))
-                                    {
-                                        byte[] md5 = null;
-                                        Console.Error.WriteLine("Hash check start...");
-                                        if (cryptflg == CryptMethods.Method1_CTR)
-                                        {
-                                            string nonce = null;
-                                            nonce = DriveData.DecryptFilename(downitem);
-                                            if (nonce == null && Path.GetExtension(downitem.name) == ".enc")
-                                            {
-                                                nonce = Path.GetFileNameWithoutExtension(downitem.name);
-                                            }
-                                            if (!string.IsNullOrEmpty(nonce))
-                                                using (var encfile = new AES256CTR_CryptStream(hfile, Config.DrivePassword, nonce))
-                                                {
-                                                    await Task.Run(() => { md5 = md5calc.ComputeHash(encfile); }, ct).ConfigureAwait(false);
-                                                }
-                                            else
-                                                await Task.Run(() => { md5 = md5calc.ComputeHash(hfile); }, ct).ConfigureAwait(false);
-                                        }
-                                        else if (cryptflg == CryptMethods.Method2_CBC_CarotDAV)
-                                        {
-                                            using (var encfile = new CryptCarotDAV.CryptCarotDAV_CryptStream(hfile, Config.DrivePassword))
-                                            {
-                                                await Task.Run(() => { md5 = md5calc.ComputeHash(encfile); }, ct).ConfigureAwait(false);
-                                            }
-                                        }
-                                        else
-                                        {
-                                            await Task.Run(() => { md5 = md5calc.ComputeHash(hfile); }, ct).ConfigureAwait(false);
-                                        }
-                                        Console.Error.WriteLine("Hash done.");
-                                        var md5string = BitConverter.ToString(md5).ToLower().Replace("-", "");
-                                        if (md5string == downitem.contentProperties.md5)
-                                        {
-                                            Console.Error.WriteLine("Hash check is OK.");
-                                        }
-                                        else
-                                        {
-                                            Console.Error.WriteLine("Hash check failed. retry..." + retry.ToString());
-                                            continue;
-                                        }
-                                    }
-                                }
                                 break;
                             }
                             catch (OperationCanceledException)
@@ -711,7 +661,7 @@ namespace TSviewACD
                     }
                     else if (Config.CryptMethod == CryptMethods.Method2_CBC_CarotDAV)
                     {
-                        makedirname = CryptCarotDAV.EncryptFilename(makedirname, Config.DrivePassword);
+                        makedirname = CryptCarotDAV.EncryptFilename(makedirname);
                     }
                 }
 
@@ -903,7 +853,7 @@ namespace TSviewACD
                         }
                         else if (Config.CryptMethod == CryptMethods.Method2_CBC_CarotDAV)
                         {
-                            uploadfilename = CryptCarotDAV.EncryptFilename(short_filename, Config.DrivePassword);
+                            uploadfilename = CryptCarotDAV.EncryptFilename(short_filename);
                             enckey = "";
                         }
                     }
@@ -934,7 +884,7 @@ namespace TSviewACD
                         {
                             dup_flg = dup_flg || (done_files?.Select(x =>
                             {
-                                var enc = CryptCarotDAV.DecryptFilename(x.name, Config.DrivePassword);
+                                var enc = CryptCarotDAV.DecryptFilename(x.name);
                                 if (enc == null) return false;
                                 return enc == short_filename;
                             }).Any(x => x) ?? false);
@@ -961,7 +911,7 @@ namespace TSviewACD
                         {
                             target = done_files.Where(x =>
                             {
-                                var enc = CryptCarotDAV.DecryptFilename(x.name, Config.DrivePassword);
+                                var enc = CryptCarotDAV.DecryptFilename(x.name);
                                 if (enc == null) return false;
                                 return enc == short_filename;
                             }).FirstOrDefault();
@@ -992,14 +942,14 @@ namespace TSviewACD
                                             nonce = Path.GetFileNameWithoutExtension(target.name);
                                         }
                                         if (!string.IsNullOrEmpty(nonce))
-                                            using (var encfile = new AES256CTR_CryptStream(hfile, Config.DrivePassword, nonce))
+                                            using (var encfile = new CryptCTR.AES256CTR_CryptStream(hfile, nonce))
                                             {
                                                 await Task.Run(() => { md5 = md5calc.ComputeHash(encfile); }, ct).ConfigureAwait(false);
                                             }
                                     }
                                     else if (Config.CryptMethod == CryptMethods.Method2_CBC_CarotDAV)
                                     {
-                                        using (var encfile = new CryptCarotDAV.CryptCarotDAV_CryptStream(hfile, Config.DrivePassword))
+                                        using (var encfile = new CryptCarotDAV.CryptCarotDAV_CryptStream(hfile))
                                         {
                                             await Task.Run(() => { md5 = md5calc.ComputeHash(encfile); }, ct).ConfigureAwait(false);
                                         }
@@ -1032,7 +982,7 @@ namespace TSviewACD
                             {
                                 var conflict_crypt = done_files.Where(x =>
                                 {
-                                    var enc = CryptCarotDAV.DecryptFilename(x.name, Config.DrivePassword);
+                                    var enc = CryptCarotDAV.DecryptFilename(x.name);
                                     if (enc == null) return false;
                                     return enc == short_filename;
                                 });
@@ -1077,38 +1027,6 @@ namespace TSviewACD
                         {
                         }
                     }
-                    if (hashflag && md5string == null)
-                    {
-                        using (var md5calc = new System.Security.Cryptography.MD5CryptoServiceProvider())
-                        using (var hfile = File.Open(localpath, FileMode.Open, FileAccess.Read, FileShare.Read))
-                        {
-                            byte[] md5 = null;
-                            Console.Error.WriteLine("Hash check start...");
-                            if (Config.UseEncryption)
-                            {
-                                if (Config.CryptMethod == CryptMethods.Method1_CTR)
-                                {
-                                    using (var encfile = new AES256CTR_CryptStream(hfile, Config.DrivePassword, enckey))
-                                    {
-                                        await Task.Run(() => { md5 = md5calc.ComputeHash(encfile); }, ct).ConfigureAwait(false);
-                                    }
-                                }
-                                else if (Config.CryptMethod == CryptMethods.Method2_CBC_CarotDAV)
-                                {
-                                    using (var encfile = new CryptCarotDAV.CryptCarotDAV_CryptStream(hfile, Config.DrivePassword))
-                                    {
-                                        await Task.Run(() => { md5 = md5calc.ComputeHash(encfile); }, ct).ConfigureAwait(false);
-                                    }
-                                }
-                            }
-                            else
-                            {
-                                await Task.Run(() => { md5 = md5calc.ComputeHash(hfile); }, ct).ConfigureAwait(false);
-                            }
-                            Console.Error.WriteLine("Hash done.");
-                            md5string = BitConverter.ToString(md5).ToLower().Replace("-", "");
-                        }
-                    }
                     Console.Error.WriteLine("ok. Upload...");
                     Console.Error.WriteLine("");
 
@@ -1116,6 +1034,7 @@ namespace TSviewACD
                     while (--retry > 0)
                     {
                         int checkretry = 4;
+                        string uphash = null;
                         try
                         {
                             var ret = await Drive.uploadFile(
@@ -1128,32 +1047,20 @@ namespace TSviewACD
                                     Console.Error.Write("\r{0,-79}", upload_str + evnt.Log);
                                 },
                                 ct: ct).ConfigureAwait(false);
-                            if (!hashflag)
-                                break;
-                            if (ret.contentProperties.md5 == md5string)
+                            break;
+                        }
+                        catch (AmazonDriveUploadException ex)
+                        {
+                            uphash = ex.Message;
+                            if (ex.InnerException is HttpRequestException)
                             {
                                 Console.Error.WriteLine("");
-                                Console.Error.WriteLine("hash check OK.");
-                                break;
+                                if (ex.InnerException.Message.Contains("408 (REQUEST_TIMEOUT)")) checkretry = 6 * 5 + 1;
+                                if (ex.InnerException.Message.Contains("409 (Conflict)")) checkretry = 3;
+                                if (ex.InnerException.Message.Contains("504 (GATEWAY_TIMEOUT)")) checkretry = 6 * 5 + 1;
+                                if (filesize < Config.SmallFileSize) checkretry = 3;
+                                Console.Error.WriteLine("Error: " + ex.InnerException.Message);
                             }
-
-                            Console.Error.WriteLine("");
-                            Console.Error.WriteLine("MD5 hash not match. retry...");
-
-                            Console.Error.WriteLine("remove item...");
-                            await Drive.TrashItem(ret.id, ct).ConfigureAwait(false);
-                            await Task.Delay(TimeSpan.FromSeconds(5), ct).ConfigureAwait(false);
-                            Console.Error.WriteLine("retry to upload..." + retry.ToString());
-                            continue;
-                        }
-                        catch (HttpRequestException ex)
-                        {
-                            Console.Error.WriteLine("");
-                            if (ex.Message.Contains("408 (REQUEST_TIMEOUT)")) checkretry = 6 * 5 + 1;
-                            if (ex.Message.Contains("409 (Conflict)")) checkretry = 6 * 5 + 1;
-                            if (ex.Message.Contains("504 (GATEWAY_TIMEOUT)")) checkretry = 6 * 5 + 1;
-                            if (filesize < Config.SmallFileSize) checkretry = 3;
-                            Console.Error.WriteLine("Error: " + ex.Message);
                         }
                         catch (OperationCanceledException)
                         {
@@ -1179,10 +1086,9 @@ namespace TSviewACD
                                 if (children.Where(x => x.name.Contains(uploadfilename)).LastOrDefault()?.status == "AVAILABLE")
                                 {
                                     Console.Error.WriteLine("Upload : child found.");
-                                    if (!hashflag)
-                                        break;
                                     var uploadeditem = children.Where(x => x.name == uploadfilename).LastOrDefault();
-                                    if (uploadeditem.contentProperties.md5 != md5string)
+                                    var remotehash = uploadeditem.contentProperties.md5;
+                                    if (remotehash != uphash)
                                     {
                                         Console.Error.WriteLine("Upload : but hash is not match. retry..." + retry.ToString());
                                         checkretry = 0;
@@ -1190,10 +1096,6 @@ namespace TSviewACD
                                         Console.Error.WriteLine("remove item...");
                                         await Drive.TrashItem(uploadeditem.id, ct).ConfigureAwait(false);
                                         await Task.Delay(TimeSpan.FromSeconds(5), ct).ConfigureAwait(false);
-                                    }
-                                    else
-                                    {
-                                        Console.Error.WriteLine("Upload : hash check OK.");
                                     }
                                     break;
                                 }
