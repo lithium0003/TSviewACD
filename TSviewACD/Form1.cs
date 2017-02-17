@@ -2087,12 +2087,12 @@ namespace TSviewACD
                                                 var eo = o as WriteToFFplayEventArgs;
                                                 trackBar_FFplay_pos.Tag = 1;
                                                 trackBar_FFplay_pos.Maximum = 10000;
-                                                trackBar_FFplay_pos.Value = (int)((double)eo.Position / downitem.contentProperties.size.Value * 10000);
+                                                trackBar_FFplay_pos.Value = (int)((double)(eo.Position + (SkipByte??0)) / downitem.contentProperties.size.Value * 10000);
                                                 trackBar_FFplay_pos.Tag = 0;
                                                 label_FFplay_stream.Text = string.Format(
                                                     "pos {0} % ({1} / {2})",
-                                                    ((double)eo.Position / downitem.contentProperties.size.Value * 100).ToString("##0.00"),
-                                                    eo.Position.ToString("#,0"),
+                                                    ((double)(eo.Position + (SkipByte ?? 0)) / downitem.contentProperties.size.Value * 100).ToString("##0.00"),
+                                                    (eo.Position + (SkipByte ?? 0)).ToString("#,0"),
                                                     downitem.contentProperties.size.Value.ToString("#,0"));
                                             }, evnt);
                                     };
@@ -2113,7 +2113,7 @@ namespace TSviewACD
                         }
                         break;
                     }
-                    catch (IOException e)
+                    catch (IOException)
                     {
                         break;
                     }
