@@ -218,9 +218,13 @@ namespace TSviewACD
                     await Task.Delay(100);
             }
             initialized = false;
-            Drive = new AmazonDrive();
+            DriveData.RemoveCache();
+            DriveData.Drive = new AmazonDrive();
+            Drive = DriveData.Drive;
             Config.refresh_token = "";
             Config.Save();
+            treeView1.Nodes.Clear();
+            listView1.Items.Clear();
             loginToolStripMenuItem.Enabled = true;
             toolStripMenuItem_Logout.Enabled = false;
         }
@@ -842,6 +846,7 @@ namespace TSviewACD
 
         private void button_Go_Click(object sender, EventArgs e)
         {
+            if (!initialized) return;
             FollowPath(textBox_path.Text);
         }
 
@@ -1343,6 +1348,7 @@ namespace TSviewACD
 
         private async void button_reload_Click(object sender, EventArgs e)
         {
+            if (!initialized) return;
             var currect = listView1.Items.Find(".", false);
             string target_id = DriveData.AmazonDriveRootID;
             if (currect.Length > 0) target_id = (currect[0].Tag as ItemInfo).info.id;
@@ -1561,6 +1567,7 @@ namespace TSviewACD
 
         private void button_search_Click(object sender, EventArgs e)
         {
+            if (!initialized) return;
             comboBox_FindStr.Items.Add(comboBox_FindStr.Text);
 
             ItemInfo[] selection = DriveData.AmazonDriveTree.Values.ToArray();
@@ -2584,6 +2591,7 @@ namespace TSviewACD
         private async Task PlayWithFFmpeg()
         {
             await CancelTask("play");
+            if (!initialized) return;
 
             var asm = Assembly.LoadFrom("ffmodule.dll");
             var typeInfo = asm.GetType("ffmodule.FFplayer");

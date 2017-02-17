@@ -765,7 +765,7 @@ namespace TSviewACD
                     MemoryStreamSlot o;
                     while (!slots.TryGetSlot(s, out o))
                     {
-                        if ((DateTime.Now - stime).TotalSeconds > 20)
+                        if ((DateTime.Now - stime).TotalSeconds > 120)
                         {
                             Config.Log.LogOut(string.Format("AmazonDriveStream : ERROR timeout Ensure pos {0:#,0}({2}) end {1:#,0}({3})", Offset, LastOffset, s, e));
                             return false;

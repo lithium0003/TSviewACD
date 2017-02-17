@@ -7,15 +7,43 @@ using System.Runtime.Serialization;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows.Forms;
 using System.Xml;
 
 namespace TSviewACD
 {
     static class Config
     {
-        private static string filepath = System.IO.Path.ChangeExtension(System.Windows.Forms.Application.ExecutablePath, "xml");
+        private static string GetFileSystemPath(Environment.SpecialFolder folder)
+        {
+            // パスを取得
+            string path = string.Format(@"{0}\{1}\{2}",
+              Environment.GetFolderPath(folder),  // ベース・パス
+              Application.CompanyName,            // 会社名
+              Application.ProductName);           // 製品名
 
-        public static string Version = System.Diagnostics.FileVersionInfo.GetVersionInfo(System.Reflection.Assembly.GetExecutingAssembly().Location).ProductVersion.ToString();
+            // パスのフォルダを作成
+            lock (typeof(Application))
+            {
+                if (!Directory.Exists(path))
+                {
+                    Directory.CreateDirectory(path);
+                }
+            }
+            return path;
+        }
+        private static readonly bool IsInstalled = File.Exists(Path.Combine(Application.StartupPath, "_installed.txt"));
+        private static readonly string _config_basepath = (IsInstalled) ? GetFileSystemPath(Environment.SpecialFolder.ApplicationData) : "";
+        public static string Config_BasePath
+        {
+            get { return _config_basepath; }
+        }
+        private static readonly string _filepath = Path.Combine(_config_basepath, Path.GetFileNameWithoutExtension(Application.ExecutablePath) + ".xml");
+        private static string filepath {
+            get { return _filepath; }
+        }
+
+        public static readonly string Version = System.Diagnostics.FileVersionInfo.GetVersionInfo(System.Reflection.Assembly.GetExecutingAssembly().Location).ProductVersion.ToString();
         public static string SendToHost = "localhost";
         public static int SendToPort = 1240;
         public static int SendPacketNum = 32;

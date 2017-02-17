@@ -84,9 +84,29 @@ namespace TSviewACD
             }
         }
 
-        public const string cachefile = "drivecache.bin";
+        private static readonly string cachefile = Path.Combine(Config.Config_BasePath, "drivecache.bin");
 
         public delegate void DriveProgressHandler(string info);
+
+        public static void RemoveCache()
+        {
+            while (true)
+            {
+                try
+                {
+                    File.Delete(cachefile);
+                    historydata.Clear();
+                    DriveTree.Clear();
+                    checkpoint = null;
+                    root_id = null;
+                    break;
+                }
+                catch
+                {
+                    continue;
+                }
+            }
+        }
 
         public static async Task InitDrive(
             CancellationToken ct = default(CancellationToken),
@@ -105,6 +125,7 @@ namespace TSviewACD
                         var cache = (DriveData_Info)LoadFromBinaryFile(cachefile);
                         checkpoint = cache.checkpoint;
                         historydata.AddRange(cache.nodes);
+                        if (historydata.Count == 0) checkpoint = null;
                         ConstructDriveTree(historydata);
                     }, ct);
                 }

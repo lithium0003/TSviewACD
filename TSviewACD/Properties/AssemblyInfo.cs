@@ -9,7 +9,7 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyTitle("TSviewACD")]
 [assembly: AssemblyDescription("TS file streaming viewer for Amazon Drive. This software uses libraries from the FFmpeg project under the LGPLv2.1.")]
 [assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCompany("")]
+[assembly: AssemblyCompany("lithium03")]
 [assembly: AssemblyProduct("TSviewACD")]
 [assembly: AssemblyCopyright("Copyright © lithium03 2016")]
 [assembly: AssemblyTrademark("")]
@@ -33,6 +33,6 @@ using System.Runtime.InteropServices;
 // You can specify all the values or you can default the Build and Revision Numbers 
 // by using the '*' as shown below:
 // [assembly: AssemblyVersion("1.0.*")]
-[assembly: AssemblyVersion("4.1.4.1013")]
+[assembly: AssemblyVersion("4.1.5.1016")]
 [assembly: NeutralResourcesLanguage("")]
 //[assembly: AssemblyFileVersion("1.0.0.0")]
