@@ -679,7 +679,7 @@ namespace ffmodule {
 		font = NULL;
 
 		audio_only = false;
-		audio_eof = false;
+		audio_eof = audio_eof_enum::playing;
 		video_eof = false;
 		quit = false;
 	}
@@ -687,7 +687,7 @@ namespace ffmodule {
 	bool _FFplayer::IsQuit()
 	{
 		if (ct->IsCancellationRequested) Quit();
-		return quit || ct->IsCancellationRequested || (audio_eof && video_eof);
+		return quit || ct->IsCancellationRequested || (audio_eof == audio_eof_enum::eof && video_eof);
 	}
 
 	int _FFplayer::decode_interrupt_cb(void *ctx)
@@ -817,7 +817,7 @@ namespace ffmodule {
 		}
 		if (audio_filter_src.audio_volume_auto) {
 			snprintf(asrc_args, sizeof(asrc_args),
-				"f=100");
+				"f=500");
 			if (avfilter_graph_create_filter(&filt_loudnorm,
 				avfilter_get_by_name("dynaudnorm"), "ffplay_dynaudnorm",
 				asrc_args, NULL, graph.get()) < 0)
@@ -868,81 +868,96 @@ namespace ffmodule {
 
 	int _FFplayer::audio_decode_frame(uint8_t *audio_buf, int buf_size, double *pts_ptr)
 	{
+		int buf_limit = buf_size / 10;
 		AVCodecContext *aCodecCtx = audio_ctx.get();
 		SwrContext *a_convert_ctx = swr_ctx.get();
-		AVPacket pkt = { 0 };
-		AVFrame audio_frame_in = { 0 };
+		AVPacket pkt = { 0 }, *inpkt = &pkt;
+		AVFrame audio_frame_in = { 0 }, *inframe = &audio_frame_in;
 		AVFrame audio_frame_out = { 0 };
-		bool timepkt = true;
 
-		for (;;) {
+		while(true) {
 			int ret;
-			if ((ret = audioq.get(&pkt, 0)) < 0) {
+			if ((ret = audioq.get(inpkt, 0)) < 0) {
 				av_log(NULL, AV_LOG_INFO, "audio Quit\n");
-				audio_eof = true;
+				audio_eof = audio_eof_enum::eof;
 				goto quit_audio;
 			}
-			if (ret == 0) {
+			if (audio_eof == audio_eof_enum::playing && ret == 0) {
 				av_log(NULL, AV_LOG_INFO, "audio queue empty\n");
 				SDL_PauseAudioDevice(audio_deviceID, 1);
 				audio_pause = true;
 				return -1;
 			}
-			if (pkt.data == flush_pkt.data) {
+			if (inpkt->data == flush_pkt.data) {
 				av_log(NULL, AV_LOG_INFO, "audio buffer flush\n");
 				avcodec_flush_buffers(aCodecCtx);
 				pkt = { 0 };
+				audio_serial = av_gettime();
+				inpkt = &pkt;
+				inframe = &audio_frame_in;
 				continue;
 			}
-			if (pkt.data == eof_pkt.data) {
+			if (inpkt->data == eof_pkt.data) {
 				av_log(NULL, AV_LOG_INFO, "audio buffer EOF\n");
-				audio_eof = true;
-				if (video_eof) Quit();
-				goto quit_audio;
+				audio_eof = audio_eof_enum::input_eof;
+			}
+			if (audio_eof >= audio_eof_enum::input_eof) {
+				inpkt = NULL;
+				if (audio_eof == audio_eof_enum::output_eof) {
+					audio_eof = audio_eof_enum::eof;
+					return -1;
+				}
 			}
 
 			// send packet to codec context
-			if (avcodec_send_packet(aCodecCtx, &pkt) >= 0) {
-				av_packet_unref(&pkt);
+			ret = avcodec_send_packet(aCodecCtx, inpkt);
+			if (ret >= 0 || (audio_eof == audio_eof_enum::input_eof && ret == AVERROR_EOF)) {
+				if(inpkt) av_packet_unref(inpkt);
 				int data_size = 0;
 
 				// Decode audio frame
-				while (avcodec_receive_frame(aCodecCtx, &audio_frame_in) >= 0) {
+				while (ret = avcodec_receive_frame(aCodecCtx, inframe), ret >= 0 || ret == AVERROR_EOF) {
+					if (ret == AVERROR_EOF)
+						inframe = NULL;
 
-					auto dec_channel_layout = get_valid_channel_layout(audio_frame_in.channel_layout, av_frame_get_channels(&audio_frame_in));
-					bool reconfigure =
-						cmp_audio_fmts(audio_filter_src.fmt, audio_filter_src.channels,
-						(enum AVSampleFormat)audio_frame_in.format, av_frame_get_channels(&audio_frame_in)) ||
-						audio_filter_src.channel_layout != dec_channel_layout ||
-						audio_filter_src.freq != audio_frame_in.sample_rate ||
-						audio_filter_src.audio_volume_dB != audio_volume_dB ||
-						audio_filter_src.audio_volume_auto != audio_volume_auto;
+					if (inframe) {
+						auto dec_channel_layout = get_valid_channel_layout(inframe->channel_layout, av_frame_get_channels(inframe));
+						bool reconfigure =
+							cmp_audio_fmts(audio_filter_src.fmt, audio_filter_src.channels,
+							(enum AVSampleFormat)inframe->format, av_frame_get_channels(inframe)) ||
+							audio_filter_src.channel_layout != dec_channel_layout ||
+							audio_filter_src.freq != inframe->sample_rate ||
+							audio_filter_src.audio_volume_dB != audio_volume_dB ||
+							audio_filter_src.audio_volume_auto != audio_volume_auto ||
+							audio_filter_src.serial != audio_serial;
 
-					if (reconfigure) {
-						audio_filter_src.fmt = (enum AVSampleFormat)audio_frame_in.format;
-						audio_filter_src.channels = av_frame_get_channels(&audio_frame_in);
-						audio_filter_src.channel_layout = dec_channel_layout;
-						audio_filter_src.freq = audio_frame_in.sample_rate;
-						audio_filter_src.audio_volume_dB = audio_volume_dB;
-						audio_filter_src.audio_volume_auto = audio_volume_auto;
+						if (reconfigure) {
+							audio_filter_src.fmt = (enum AVSampleFormat)inframe->format;
+							audio_filter_src.channels = av_frame_get_channels(inframe);
+							audio_filter_src.channel_layout = dec_channel_layout;
+							audio_filter_src.freq = inframe->sample_rate;
+							audio_filter_src.audio_volume_dB = audio_volume_dB;
+							audio_filter_src.audio_volume_auto = audio_volume_auto;
+							audio_filter_src.serial = audio_serial;
 
-						if (!configure_audio_filters())
-							goto quit_audio;
+							if (!configure_audio_filters())
+								goto quit_audio;
 
-						a_convert_ctx = swr_alloc_set_opts(NULL,
-							av_get_default_channel_layout(audio_out_channels), AV_SAMPLE_FMT_S16, audio_out_sample_rate,
-							afilt_out->inputs[0]->channel_layout, (enum AVSampleFormat)afilt_out->inputs[0]->format, afilt_out->inputs[0]->sample_rate,
-							0, NULL);
-						swr_init(a_convert_ctx);
+							a_convert_ctx = swr_alloc_set_opts(NULL,
+								av_get_default_channel_layout(audio_out_channels), AV_SAMPLE_FMT_S16, audio_out_sample_rate,
+								afilt_out->inputs[0]->channel_layout, (enum AVSampleFormat)afilt_out->inputs[0]->format, afilt_out->inputs[0]->sample_rate,
+								0, NULL);
+							swr_init(a_convert_ctx);
 
-						swr_ctx = std::shared_ptr<SwrContext>(a_convert_ctx, [](SwrContext *ptr) { swr_free(&ptr); });
+							swr_ctx = std::shared_ptr<SwrContext>(a_convert_ctx, [](SwrContext *ptr) { swr_free(&ptr); });
+						}
 					}
 
-					if (av_buffersrc_add_frame(afilt_in, &audio_frame_in) < 0)
+					if (av_buffersrc_add_frame(afilt_in, inframe) < 0)
 						goto quit_audio;
 
-					av_frame_unref(&audio_frame_in);
-					while ((ret = av_buffersink_get_frame_flags(afilt_out, &audio_frame_out, 0)) >= 0) {
+					if(inframe) av_frame_unref(inframe);
+					while (buf_size > buf_limit && (ret = av_buffersink_get_frame(afilt_out, &audio_frame_out)) >= 0) {
 
 						if (av_frame_get_best_effort_timestamp(&audio_frame_out) != AV_NOPTS_VALUE) {
 							audio_clock = av_q2d(audio_st->time_base)*av_frame_get_best_effort_timestamp(&audio_frame_out);
@@ -964,26 +979,31 @@ namespace ffmodule {
 						buf_size -= out_size;
 						data_size += out_size;
 
-						if (timepkt) {
-							int n = 2 * audio_out_channels;
-							audio_clock += (double)out_size /
-								(double)(n * audio_out_sample_rate);
-						}
+						int n = 2 * audio_out_channels;
+						audio_clock += (double)out_size /
+							(double)(n * audio_out_sample_rate);
 
 						av_frame_unref(&audio_frame_out);
+					}//while(av_buffersink_get_frame)
+
+					if (ret == AVERROR_EOF) {
+						audio_eof = audio_eof_enum::output_eof;
 					}
-				}
+
+					if (!inframe) break;
+				}//while(avcodec_receive_frame)
+
 				double pts = audio_clock;
 				*pts_ptr = pts;
 				/* We have data, return it and come back for more later */
 				return data_size;
-			}
-			av_packet_unref(&pkt);
+			} //if (avcodec_send_packet)
+			if(inpkt) av_packet_unref(inpkt);
 
 			if (IsQuit()) {
 				goto quit_audio;
 			}
-		}
+		}//while(true)
 	quit_audio:
 		av_log(NULL, AV_LOG_INFO, "audio Pause\n");
 		SDL_PauseAudioDevice(audio_deviceID, 1);
@@ -1233,14 +1253,15 @@ namespace ffmodule {
 	{
 		av_log(NULL, AV_LOG_INFO, "video_thread start\n");
 		_FFplayer *is = (_FFplayer *)arg;
-		AVPacket packet = { 0 };
+		AVPacket packet = { 0 }, *inpkt = &packet;
 		AVCodecContext *video_ctx = is->video_ctx.get();
-		AVFrame frame = { 0 };
+		AVFrame frame = { 0 }, *inframe = &frame;
 		std::shared_ptr<AVFilterGraph> graph(avfilter_graph_alloc(), [](AVFilterGraph *ptr) { avfilter_graph_free(&ptr); });
 		AVFilterContext *filt_out = NULL, *filt_in = NULL;
 		int last_w = 0;
 		int last_h = 0;
 		AVPixelFormat last_format = (AVPixelFormat)-2;
+		int64_t last_serial = 0, serial = 0;
 		AVRational frame_rate = av_guess_frame_rate(is->pFormatCtx.get(), is->video_st, NULL);
 
 		switch (is->video_ctx->codec_id)
@@ -1259,50 +1280,67 @@ namespace ffmodule {
 		std::deque<double> lastpts;
 		double pts = 0;
 		double prevpts = NAN;
-		for (;;) {
+		while (true) {
 			video_ctx = is->video_ctx.get();
-			if (is->videoq.get(&packet, 1) < 0) {
+			if (is->video_eof) {
+				while (!is->IsQuit() && is->videoq.get(&packet, 0) == 0)
+					SDL_Delay(100);
+			}
+			else if (is->videoq.get(&packet, 1) < 0) {
 				// means we quit getting packets
 				av_log(NULL, AV_LOG_INFO, "video Quit\n");
 				is->video_eof = true;
+				packet = { 0 };
 				break;
 			}
+			if (is->IsQuit()) break;
+
 			if (packet.data == flush_pkt.data) {
 				is->pictq_active_serial = av_gettime();
 				av_log(NULL, AV_LOG_INFO, "video buffer flush\n");
 				avcodec_flush_buffers(is->video_ctx.get());
 				packet = { 0 };
+				inpkt = &packet;
+				inframe = &frame;
+				is->video_eof = false;
+				serial = av_gettime();
 				continue;
 			}
 			if (packet.data == eof_pkt.data) {
 				av_log(NULL, AV_LOG_INFO, "video buffer EOF\n");
-				is->video_eof = true;
-				if (is->audio_eof) is->Quit();
 				packet = { 0 };
-				break;
+				inpkt = NULL;
 			}
 			// send packet to codec context
-			if (avcodec_send_packet(video_ctx, &packet) >= 0) {
+			if (avcodec_send_packet(video_ctx, inpkt) >= 0) {
 
 				// Decode video frame
-				while (avcodec_receive_frame(video_ctx, &frame) >= 0) {
-					
-					if (frame.width != last_w || frame.height != last_h ||
-						frame.format != last_format) {
-						graph = std::shared_ptr<AVFilterGraph>(avfilter_graph_alloc(), [](AVFilterGraph *ptr) { avfilter_graph_free(&ptr); });
-						if (!is->Configure_VideoFilter(&filt_in, &filt_out, &frame, graph.get())) {
-							is->Quit();
-							return 1;
+				int ret;
+				while (ret = avcodec_receive_frame(video_ctx, &frame), ret >= 0 || ret == AVERROR_EOF) {
+					if (ret == AVERROR_EOF)
+						inframe = NULL;
+
+					if (inframe) {
+						if (frame.width != last_w || 
+							frame.height != last_h ||
+							frame.format != last_format ||
+							last_serial != serial) {
+							graph = std::shared_ptr<AVFilterGraph>(avfilter_graph_alloc(), [](AVFilterGraph *ptr) { avfilter_graph_free(&ptr); });
+							if (!is->Configure_VideoFilter(&filt_in, &filt_out, &frame, graph.get())) {
+								is->Quit();
+								return 1;
+							}
+							last_w = frame.width;
+							last_h = frame.height;
+							last_format = (AVPixelFormat)frame.format;
+							last_serial = serial;
 						}
-						last_w = frame.width;
-						last_h = frame.height;
-						last_format = (AVPixelFormat)frame.format;
 					}
 
-					if (av_buffersrc_write_frame(filt_in, &frame) < 0)
+					if (av_buffersrc_write_frame(filt_in, inframe) < 0)
 						return 1;
 
-					av_frame_unref(&frame);
+					if (inframe) av_frame_unref(inframe);
 					while (av_buffersink_get_frame(filt_out, &frame) >= 0) {
 
 						if (frame.width != is->video_srcwidth || frame.height != is->video_srcheight
@@ -1356,13 +1394,10 @@ namespace ffmodule {
 									is->video_height, AV_PIX_FMT_YUV420P,
 									SWS_BICUBLIN, NULL, NULL, NULL
 								), &sws_freeContext);
-						}
+						} //if src.size != frame.size
 
 						int64_t pts_t;
-						if ((pts_t = av_frame_get_best_effort_timestamp(&frame)) == AV_NOPTS_VALUE) {
-							//pts = 0;
-						}
-						else {
+						if ((pts_t = av_frame_get_best_effort_timestamp(&frame)) != AV_NOPTS_VALUE) {
 							pts = pts_t * av_q2d(is->video_st->time_base);
 
 							if (isnan(is->video_clock_start)) {
@@ -1398,12 +1433,23 @@ namespace ffmodule {
 							return 1;
 						}
 						av_frame_unref(&frame);
+					} //while(av_buffersink_get_frame)
+
+					if (!inframe) {
+						break;
 					}
-				}
+				} //while(avcodec_receive_frame)
+
 				av_frame_unref(&frame);
+			} //if(avcodec_send_packet)
+
+			if (inpkt) av_packet_unref(inpkt);
+			if (!inframe) {
+				is->video_eof = true;
 			}
-			av_packet_unref(&packet);
-		}
+		}//while(true)
+
+		if (is->audio_eof == audio_eof_enum::eof) is->Quit();
 		return 0;
 	}
 
@@ -1855,7 +1901,7 @@ namespace ffmodule {
 			else {
 				av_log(NULL, AV_LOG_VERBOSE, "audio missing\n");
 				is->av_sync_type = AV_SYNC_VIDEO_MASTER;
-				is->audio_eof = true;
+				is->audio_eof = audio_eof_enum::eof;
 			}
 		}
 
@@ -1912,10 +1958,12 @@ namespace ffmodule {
 				}
 				if (ret1 >=0) {
 					if (is->audioStream >= 0) {
+						is->audio_eof = audio_eof_enum::playing;
 						av_log(NULL, AV_LOG_INFO, "audio flush request\n");
 						is->audioq.flush();
 					}
 					if (is->videoStream >= 0) {
+						is->video_eof = false;
 						av_log(NULL, AV_LOG_INFO, "video flush request\n");
 						is->videoq.flush();
 					}
@@ -1986,9 +2034,11 @@ namespace ffmodule {
 				is->external_clock = av_gettime() / 1000000.0;
 			// Is this a packet from the video stream?
 			if (packet.stream_index == is->videoStream) {
+				is->video_eof = false;
 				is->videoq.put(&packet);
 			}
 			else if (packet.stream_index == is->audioStream) {
+				is->audio_eof = audio_eof_enum::playing;
 				is->audioq.put(&packet);
 				if(!is->pause)
 					SDL_PauseAudioDevice(is->audio_deviceID, 0);
@@ -2233,7 +2283,7 @@ namespace ffmodule {
 			mm = ((int)(ns) % 3600) / 60;
 			ss = ((int)(ns) % 60);
 			ns -= (int)(ns);
-			if (0) {
+			if (1) {
 				sprintf_s(out_text, "%2d:%02d:%02d.%03d/%2d:%02d:%02d",
 					hh, mm, ss, (int)(ns * 1000), thh, tmm, tss);
 			}

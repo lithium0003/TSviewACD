@@ -57,7 +57,7 @@ extern "C" {
 #define MAX_VIDEOQ_SIZE (64 * 32 * 1024)
 
 #define AV_SYNC_THRESHOLD 0.01
-#define AV_NOSYNC_THRESHOLD 5.0
+#define AV_NOSYNC_THRESHOLD 8.0
 
 #define SAMPLE_CORRECTION_PERCENT_MAX 10
 #define AUDIO_DIFF_AVG_NB 20
@@ -264,7 +264,7 @@ namespace ffmodule {
 		AVStream        *audio_st;
 		std::shared_ptr<AVCodecContext> audio_ctx;
 		PacketQueue     audioq;
-		uint8_t         audio_buf[(MAX_AUDIO_FRAME_SIZE * 3) / 2];
+		uint8_t         audio_buf[MAX_AUDIO_FRAME_SIZE * 2];
 		unsigned int    audio_buf_size;
 		unsigned int    audio_buf_index;
 		double          audio_diff_cum; /* used for AV difference average computation */
@@ -276,12 +276,18 @@ namespace ffmodule {
 		int             audio_out_channels;
 		double          audio_clock;
 		double          audio_clock_start;
-		bool            audio_eof;
+		enum audio_eof_enum {
+			playing,
+			input_eof,
+			output_eof,
+			eof,
+		}				audio_eof;
 		bool            audio_only;
 		std::shared_ptr<AVFilterGraph> agraph;
 		AVFilterContext *afilt_out, *afilt_in;
 		int             audio_volume_dB;
 		bool            audio_volume_auto;
+		int64_t         audio_serial;
 
 		typedef struct AudioParams {
 			int freq;
@@ -292,6 +298,7 @@ namespace ffmodule {
 			int bytes_per_sec;
 			int audio_volume_dB;
 			bool audio_volume_auto;
+			int64_t serial;
 		} AudioParams;
 		AudioParams audio_filter_src;
 
