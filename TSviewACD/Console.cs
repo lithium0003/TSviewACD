@@ -61,6 +61,17 @@ namespace TSviewACD
             var paramArgs = paramArgsList.ToArray();
             var targetArgs = targetArgsList.ToArray();
 
+            foreach (var p in paramArgs)
+            {
+                switch (p)
+                {
+                    case "debug":
+                        Console.Error.WriteLine("(--debug: debug output mode)");
+                        Config.debug = true;
+                        break;
+                }
+            }
+
             switch (targetArgs[0])
             {
                 case "help":
@@ -68,7 +79,11 @@ namespace TSviewACD
                     Console.WriteLine("\thelp                                      : show help");
                     Console.WriteLine("\tlist     (REMOTE_PATH)                    : list item");
                     Console.WriteLine("\tdownload (REMOTE_PATH) (LOCAL_DIR_PATH)   : download item");
+                    Console.WriteLine("\t\t--md5 : hash check after download");
                     Console.WriteLine("\tupload   (LOCAL_FILE_PATH) (REMOTE_PATH)  : upload item");
+                    Console.WriteLine("\t\t--md5 : hash check after upload");
+                    Console.WriteLine("");
+                    Console.WriteLine("\t\t--debug : debug log output");
                     break;
                 case "list":
                     Console.Error.WriteLine("list...");
@@ -95,8 +110,8 @@ namespace TSviewACD
         {
             Console.Error.WriteLine("Login Start.");
             // Login & GetEndpoint
-            if (await Drive.Login() &&
-                await Drive.GetEndpoint())
+            if (await Drive.Login().ConfigureAwait(false) &&
+                await Drive.GetEndpoint().ConfigureAwait(false))
             {
                 Console.Error.WriteLine("Login done.");
             }
@@ -521,8 +536,22 @@ namespace TSviewACD
                             }
                         }
                     }
+                    Console.Error.WriteLine("conflict.");
+                    Console.Error.WriteLine("remove item...");
+                    try
+                    {
+                        await Drive.TrashItem(target.id);
+                        await Task.Delay(TimeSpan.FromSeconds(5), Drive.ct);
+                    }
+                    catch (OperationCanceledException)
+                    {
+                        throw;
+                    }
+                    catch (Exception)
+                    {
+                    }
                 }
-                if(hashflag && md5string == null)
+                if (hashflag && md5string == null)
                 {
                     using (var md5calc = new System.Security.Cryptography.MD5CryptoServiceProvider())
                     using (var hfile = File.Open(localpath, FileMode.Open, FileAccess.Read, FileShare.Read))
@@ -550,8 +579,14 @@ namespace TSviewACD
                             {
                                 Console.Error.Write("\r{0,-79}", upload_str + evnt.Log);
                             });
-                        if(!hashflag || ret.contentProperties.md5 == md5string)
+                        if(!hashflag)
                             break;
+                        if(ret.contentProperties.md5 == md5string)
+                        {
+                            Console.Error.WriteLine("");
+                            Console.Error.WriteLine("hash check OK.");
+                            break;
+                        }
 
                         Console.Error.WriteLine("");
                         Console.Error.WriteLine("MD5 hash not match. retry...");
@@ -601,6 +636,14 @@ namespace TSviewACD
                                 {
                                     Console.Error.WriteLine("Upload : but hash is not match. retry..."+retry.ToString());
                                     checkretry = 0;
+                                    Console.Error.WriteLine("conflict.");
+                                    Console.Error.WriteLine("remove item...");
+                                    await Drive.TrashItem(uploadeditem.id);
+                                    await Task.Delay(TimeSpan.FromSeconds(5), Drive.ct);
+                                }
+                                else
+                                {
+                                    Console.Error.WriteLine("Upload : hash check OK.");
                                 }
                                 break;
                             }

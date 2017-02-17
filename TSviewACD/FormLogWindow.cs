@@ -63,6 +63,8 @@ namespace TSviewACD
 
         public void LogOut(string str)
         {
+            if(Config.debug)
+                Console.Error.WriteLine(str);
             str = string.Format("[{0}] {1}\r\n", DateTime.Now.ToString(), str);
             LogStream?.Write(str);
             LogStream?.Flush();

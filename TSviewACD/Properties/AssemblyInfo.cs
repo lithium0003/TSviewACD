@@ -6,7 +6,7 @@ using System.Runtime.InteropServices;
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
 [assembly: AssemblyTitle("TSviewACD")]
-[assembly: AssemblyDescription("TS file streaming viewer for Amazon Cloud Drive")]
+[assembly: AssemblyDescription("TS file streaming viewer for Amazon Drive. This software uses libraries from the FFmpeg project under the LGPLv2.1.")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("")]
 [assembly: AssemblyProduct("TSviewACD")]
@@ -32,5 +32,5 @@ using System.Runtime.InteropServices;
 // You can specify all the values or you can default the Build and Revision Numbers 
 // by using the '*' as shown below:
 // [assembly: AssemblyVersion("1.0.*")]
-[assembly: AssemblyVersion("2.0.0.0509")]
+[assembly: AssemblyVersion("3.0.2.0831")]
 //[assembly: AssemblyFileVersion("1.0.0.0")]

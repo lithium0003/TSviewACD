@@ -32,7 +32,7 @@
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(Form1));
             this.splitContainer1 = new System.Windows.Forms.SplitContainer();
             this.tabControl1 = new System.Windows.Forms.TabControl();
-            this.tabPage1 = new System.Windows.Forms.TabPage();
+            this.tabPage_Navigation = new System.Windows.Forms.TabPage();
             this.checkBox_MD5 = new System.Windows.Forms.CheckBox();
             this.checkBox_upSkip = new System.Windows.Forms.CheckBox();
             this.button_upload = new System.Windows.Forms.Button();
@@ -40,7 +40,7 @@
             this.button_break = new System.Windows.Forms.Button();
             this.textBox_path = new System.Windows.Forms.TextBox();
             this.button_reload = new System.Windows.Forms.Button();
-            this.tabPage2 = new System.Windows.Forms.TabPage();
+            this.tabPage_Find = new System.Windows.Forms.TabPage();
             this.comboBox_FindStr = new System.Windows.Forms.ComboBox();
             this.label2 = new System.Windows.Forms.Label();
             this.radioButton_modifiedDate = new System.Windows.Forms.RadioButton();
@@ -54,12 +54,12 @@
             this.checkBox_File = new System.Windows.Forms.CheckBox();
             this.checkBox_Folder = new System.Windows.Forms.CheckBox();
             this.button_search = new System.Windows.Forms.Button();
-            this.tabPage3 = new System.Windows.Forms.TabPage();
+            this.tabPage_Folder = new System.Windows.Forms.TabPage();
             this.button_LocalRemoteMatch = new System.Windows.Forms.Button();
             this.textBox_newName = new System.Windows.Forms.TextBox();
             this.label3 = new System.Windows.Forms.Label();
             this.button_mkdir = new System.Windows.Forms.Button();
-            this.tabPage4 = new System.Windows.Forms.TabPage();
+            this.tabPage_SendUDP = new System.Windows.Forms.TabPage();
             this.button_next = new System.Windows.Forms.Button();
             this.label_stream = new System.Windows.Forms.Label();
             this.label6 = new System.Windows.Forms.Label();
@@ -76,7 +76,7 @@
             this.textBox_HostName = new System.Windows.Forms.TextBox();
             this.button_stop = new System.Windows.Forms.Button();
             this.button_Play = new System.Windows.Forms.Button();
-            this.tabPage5 = new System.Windows.Forms.TabPage();
+            this.tabPage_UDPConfig = new System.Windows.Forms.TabPage();
             this.label19 = new System.Windows.Forms.Label();
             this.textBox_SendLongOffset = new System.Windows.Forms.TextBox();
             this.label20 = new System.Windows.Forms.Label();
@@ -97,6 +97,14 @@
             this.label9 = new System.Windows.Forms.Label();
             this.textBox_SendPacketNum = new System.Windows.Forms.TextBox();
             this.label8 = new System.Windows.Forms.Label();
+            this.tabPage_FFplay = new System.Windows.Forms.TabPage();
+            this.label_FFplay_stream = new System.Windows.Forms.Label();
+            this.textBox_FFplay_command = new System.Windows.Forms.TextBox();
+            this.button_FFplay_next = new System.Windows.Forms.Button();
+            this.trackBar_FFplay_pos = new System.Windows.Forms.TrackBar();
+            this.label_FFplay_sendname = new System.Windows.Forms.Label();
+            this.button_FFplay_stop = new System.Windows.Forms.Button();
+            this.button_FFplay = new System.Windows.Forms.Button();
             this.menuStrip1 = new System.Windows.Forms.MenuStrip();
             this.fileToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.loginToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
@@ -120,6 +128,7 @@
             this.contextMenuStrip1 = new System.Windows.Forms.ContextMenuStrip(this.components);
             this.downloadItemToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.sendUDPToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.playWithFFplayToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.toolStripMenuItem3 = new System.Windows.Forms.ToolStripSeparator();
             this.renameToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.toolStripMenuItem2 = new System.Windows.Forms.ToolStripSeparator();
@@ -136,17 +145,20 @@
             this.timer1 = new System.Windows.Forms.Timer(this.components);
             this.toolTip1 = new System.Windows.Forms.ToolTip(this.components);
             this.timer2 = new System.Windows.Forms.Timer(this.components);
+            this.timer3 = new System.Windows.Forms.Timer(this.components);
             ((System.ComponentModel.ISupportInitialize)(this.splitContainer1)).BeginInit();
             this.splitContainer1.Panel1.SuspendLayout();
             this.splitContainer1.Panel2.SuspendLayout();
             this.splitContainer1.SuspendLayout();
             this.tabControl1.SuspendLayout();
-            this.tabPage1.SuspendLayout();
-            this.tabPage2.SuspendLayout();
-            this.tabPage3.SuspendLayout();
-            this.tabPage4.SuspendLayout();
+            this.tabPage_Navigation.SuspendLayout();
+            this.tabPage_Find.SuspendLayout();
+            this.tabPage_Folder.SuspendLayout();
+            this.tabPage_SendUDP.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.trackBar_Pos)).BeginInit();
-            this.tabPage5.SuspendLayout();
+            this.tabPage_UDPConfig.SuspendLayout();
+            this.tabPage_FFplay.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.trackBar_FFplay_pos)).BeginInit();
             this.menuStrip1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.splitContainer2)).BeginInit();
             this.splitContainer2.Panel1.SuspendLayout();
@@ -178,11 +190,12 @@
             // tabControl1
             // 
             this.tabControl1.Alignment = System.Windows.Forms.TabAlignment.Bottom;
-            this.tabControl1.Controls.Add(this.tabPage1);
-            this.tabControl1.Controls.Add(this.tabPage2);
-            this.tabControl1.Controls.Add(this.tabPage3);
-            this.tabControl1.Controls.Add(this.tabPage4);
-            this.tabControl1.Controls.Add(this.tabPage5);
+            this.tabControl1.Controls.Add(this.tabPage_Navigation);
+            this.tabControl1.Controls.Add(this.tabPage_Find);
+            this.tabControl1.Controls.Add(this.tabPage_Folder);
+            this.tabControl1.Controls.Add(this.tabPage_SendUDP);
+            this.tabControl1.Controls.Add(this.tabPage_UDPConfig);
+            this.tabControl1.Controls.Add(this.tabPage_FFplay);
             this.tabControl1.Dock = System.Windows.Forms.DockStyle.Fill;
             this.tabControl1.HotTrack = true;
             this.tabControl1.Location = new System.Drawing.Point(0, 24);
@@ -192,24 +205,24 @@
             this.tabControl1.ShowToolTips = true;
             this.tabControl1.Size = new System.Drawing.Size(874, 98);
             this.tabControl1.TabIndex = 6;
-            this.toolTip1.SetToolTip(this.tabControl1, "選択したファイルをUDPで送信します");
             // 
-            // tabPage1
+            // tabPage_Navigation
             // 
-            this.tabPage1.Controls.Add(this.checkBox_MD5);
-            this.tabPage1.Controls.Add(this.checkBox_upSkip);
-            this.tabPage1.Controls.Add(this.button_upload);
-            this.tabPage1.Controls.Add(this.button_Go);
-            this.tabPage1.Controls.Add(this.button_break);
-            this.tabPage1.Controls.Add(this.textBox_path);
-            this.tabPage1.Controls.Add(this.button_reload);
-            this.tabPage1.Location = new System.Drawing.Point(4, 4);
-            this.tabPage1.Name = "tabPage1";
-            this.tabPage1.Padding = new System.Windows.Forms.Padding(3);
-            this.tabPage1.Size = new System.Drawing.Size(866, 72);
-            this.tabPage1.TabIndex = 0;
-            this.tabPage1.Text = "Navigation";
-            this.tabPage1.UseVisualStyleBackColor = true;
+            this.tabPage_Navigation.Controls.Add(this.checkBox_MD5);
+            this.tabPage_Navigation.Controls.Add(this.checkBox_upSkip);
+            this.tabPage_Navigation.Controls.Add(this.button_upload);
+            this.tabPage_Navigation.Controls.Add(this.button_Go);
+            this.tabPage_Navigation.Controls.Add(this.button_break);
+            this.tabPage_Navigation.Controls.Add(this.textBox_path);
+            this.tabPage_Navigation.Controls.Add(this.button_reload);
+            this.tabPage_Navigation.Location = new System.Drawing.Point(4, 4);
+            this.tabPage_Navigation.Name = "tabPage_Navigation";
+            this.tabPage_Navigation.Padding = new System.Windows.Forms.Padding(3);
+            this.tabPage_Navigation.Size = new System.Drawing.Size(866, 72);
+            this.tabPage_Navigation.TabIndex = 0;
+            this.tabPage_Navigation.Text = "Navigation";
+            this.tabPage_Navigation.ToolTipText = "表示するフォルダの移動や、ファイルのアップロードをします";
+            this.tabPage_Navigation.UseVisualStyleBackColor = true;
             // 
             // checkBox_MD5
             // 
@@ -292,28 +305,29 @@
             this.button_reload.UseVisualStyleBackColor = true;
             this.button_reload.Click += new System.EventHandler(this.button_reload_Click);
             // 
-            // tabPage2
+            // tabPage_Find
             // 
-            this.tabPage2.Controls.Add(this.comboBox_FindStr);
-            this.tabPage2.Controls.Add(this.label2);
-            this.tabPage2.Controls.Add(this.radioButton_modifiedDate);
-            this.tabPage2.Controls.Add(this.radioButton_createTime);
-            this.tabPage2.Controls.Add(this.checkBox_dateTo);
-            this.tabPage2.Controls.Add(this.checkBox_dateFrom);
-            this.tabPage2.Controls.Add(this.dateTimePicker_to);
-            this.tabPage2.Controls.Add(this.dateTimePicker_from);
-            this.tabPage2.Controls.Add(this.checkBox_Regex);
-            this.tabPage2.Controls.Add(this.label1);
-            this.tabPage2.Controls.Add(this.checkBox_File);
-            this.tabPage2.Controls.Add(this.checkBox_Folder);
-            this.tabPage2.Controls.Add(this.button_search);
-            this.tabPage2.Location = new System.Drawing.Point(4, 4);
-            this.tabPage2.Name = "tabPage2";
-            this.tabPage2.Padding = new System.Windows.Forms.Padding(3);
-            this.tabPage2.Size = new System.Drawing.Size(866, 72);
-            this.tabPage2.TabIndex = 1;
-            this.tabPage2.Text = "Find";
-            this.tabPage2.UseVisualStyleBackColor = true;
+            this.tabPage_Find.Controls.Add(this.comboBox_FindStr);
+            this.tabPage_Find.Controls.Add(this.label2);
+            this.tabPage_Find.Controls.Add(this.radioButton_modifiedDate);
+            this.tabPage_Find.Controls.Add(this.radioButton_createTime);
+            this.tabPage_Find.Controls.Add(this.checkBox_dateTo);
+            this.tabPage_Find.Controls.Add(this.checkBox_dateFrom);
+            this.tabPage_Find.Controls.Add(this.dateTimePicker_to);
+            this.tabPage_Find.Controls.Add(this.dateTimePicker_from);
+            this.tabPage_Find.Controls.Add(this.checkBox_Regex);
+            this.tabPage_Find.Controls.Add(this.label1);
+            this.tabPage_Find.Controls.Add(this.checkBox_File);
+            this.tabPage_Find.Controls.Add(this.checkBox_Folder);
+            this.tabPage_Find.Controls.Add(this.button_search);
+            this.tabPage_Find.Location = new System.Drawing.Point(4, 4);
+            this.tabPage_Find.Name = "tabPage_Find";
+            this.tabPage_Find.Padding = new System.Windows.Forms.Padding(3);
+            this.tabPage_Find.Size = new System.Drawing.Size(866, 72);
+            this.tabPage_Find.TabIndex = 1;
+            this.tabPage_Find.Text = "Find";
+            this.tabPage_Find.ToolTipText = "検索を行います";
+            this.tabPage_Find.UseVisualStyleBackColor = true;
             // 
             // comboBox_FindStr
             // 
@@ -469,18 +483,19 @@
             this.button_search.UseVisualStyleBackColor = true;
             this.button_search.Click += new System.EventHandler(this.button_search_Click);
             // 
-            // tabPage3
+            // tabPage_Folder
             // 
-            this.tabPage3.Controls.Add(this.button_LocalRemoteMatch);
-            this.tabPage3.Controls.Add(this.textBox_newName);
-            this.tabPage3.Controls.Add(this.label3);
-            this.tabPage3.Controls.Add(this.button_mkdir);
-            this.tabPage3.Location = new System.Drawing.Point(4, 4);
-            this.tabPage3.Name = "tabPage3";
-            this.tabPage3.Size = new System.Drawing.Size(866, 72);
-            this.tabPage3.TabIndex = 2;
-            this.tabPage3.Text = "Folder";
-            this.tabPage3.UseVisualStyleBackColor = true;
+            this.tabPage_Folder.Controls.Add(this.button_LocalRemoteMatch);
+            this.tabPage_Folder.Controls.Add(this.textBox_newName);
+            this.tabPage_Folder.Controls.Add(this.label3);
+            this.tabPage_Folder.Controls.Add(this.button_mkdir);
+            this.tabPage_Folder.Location = new System.Drawing.Point(4, 4);
+            this.tabPage_Folder.Name = "tabPage_Folder";
+            this.tabPage_Folder.Size = new System.Drawing.Size(866, 72);
+            this.tabPage_Folder.TabIndex = 2;
+            this.tabPage_Folder.Text = "Folder";
+            this.tabPage_Folder.ToolTipText = "フォルダの作成と、ローカルファイルとの一致チェックを行います";
+            this.tabPage_Folder.UseVisualStyleBackColor = true;
             // 
             // button_LocalRemoteMatch
             // 
@@ -521,30 +536,31 @@
             this.button_mkdir.UseVisualStyleBackColor = true;
             this.button_mkdir.Click += new System.EventHandler(this.button_mkdir_Click);
             // 
-            // tabPage4
+            // tabPage_SendUDP
             // 
-            this.tabPage4.Controls.Add(this.button_next);
-            this.tabPage4.Controls.Add(this.label_stream);
-            this.tabPage4.Controls.Add(this.label6);
-            this.tabPage4.Controls.Add(this.radioButton_DiffTime);
-            this.tabPage4.Controls.Add(this.radioButton_AbsTime);
-            this.tabPage4.Controls.Add(this.label7);
-            this.tabPage4.Controls.Add(this.textBox_Duration);
-            this.tabPage4.Controls.Add(this.textBox_StartTime);
-            this.tabPage4.Controls.Add(this.trackBar_Pos);
-            this.tabPage4.Controls.Add(this.label_sendname);
-            this.tabPage4.Controls.Add(this.label5);
-            this.tabPage4.Controls.Add(this.textBox_Port);
-            this.tabPage4.Controls.Add(this.label4);
-            this.tabPage4.Controls.Add(this.textBox_HostName);
-            this.tabPage4.Controls.Add(this.button_stop);
-            this.tabPage4.Controls.Add(this.button_Play);
-            this.tabPage4.Location = new System.Drawing.Point(4, 4);
-            this.tabPage4.Name = "tabPage4";
-            this.tabPage4.Size = new System.Drawing.Size(866, 72);
-            this.tabPage4.TabIndex = 3;
-            this.tabPage4.Text = "Send UDP";
-            this.tabPage4.UseVisualStyleBackColor = true;
+            this.tabPage_SendUDP.Controls.Add(this.button_next);
+            this.tabPage_SendUDP.Controls.Add(this.label_stream);
+            this.tabPage_SendUDP.Controls.Add(this.label6);
+            this.tabPage_SendUDP.Controls.Add(this.radioButton_DiffTime);
+            this.tabPage_SendUDP.Controls.Add(this.radioButton_AbsTime);
+            this.tabPage_SendUDP.Controls.Add(this.label7);
+            this.tabPage_SendUDP.Controls.Add(this.textBox_Duration);
+            this.tabPage_SendUDP.Controls.Add(this.textBox_StartTime);
+            this.tabPage_SendUDP.Controls.Add(this.trackBar_Pos);
+            this.tabPage_SendUDP.Controls.Add(this.label_sendname);
+            this.tabPage_SendUDP.Controls.Add(this.label5);
+            this.tabPage_SendUDP.Controls.Add(this.textBox_Port);
+            this.tabPage_SendUDP.Controls.Add(this.label4);
+            this.tabPage_SendUDP.Controls.Add(this.textBox_HostName);
+            this.tabPage_SendUDP.Controls.Add(this.button_stop);
+            this.tabPage_SendUDP.Controls.Add(this.button_Play);
+            this.tabPage_SendUDP.Location = new System.Drawing.Point(4, 4);
+            this.tabPage_SendUDP.Name = "tabPage_SendUDP";
+            this.tabPage_SendUDP.Size = new System.Drawing.Size(866, 72);
+            this.tabPage_SendUDP.TabIndex = 3;
+            this.tabPage_SendUDP.Text = "Send UDP";
+            this.tabPage_SendUDP.ToolTipText = "選択したファイルをUDPで送信します";
+            this.tabPage_SendUDP.UseVisualStyleBackColor = true;
             // 
             // button_next
             // 
@@ -715,34 +731,35 @@
             this.button_Play.UseVisualStyleBackColor = true;
             this.button_Play.Click += new System.EventHandler(this.button_Play_Click);
             // 
-            // tabPage5
+            // tabPage_UDPConfig
             // 
-            this.tabPage5.Controls.Add(this.label19);
-            this.tabPage5.Controls.Add(this.textBox_SendLongOffset);
-            this.tabPage5.Controls.Add(this.label20);
-            this.tabPage5.Controls.Add(this.textBox_keySendApp);
-            this.tabPage5.Controls.Add(this.label18);
-            this.tabPage5.Controls.Add(this.label17);
-            this.tabPage5.Controls.Add(this.textBox_VK);
-            this.tabPage5.Controls.Add(this.label16);
-            this.tabPage5.Controls.Add(this.label15);
-            this.tabPage5.Controls.Add(this.textBox_SendRatebyTOTCount);
-            this.tabPage5.Controls.Add(this.label14);
-            this.tabPage5.Controls.Add(this.label13);
-            this.tabPage5.Controls.Add(this.textBox_SendRatebySendCount);
-            this.tabPage5.Controls.Add(this.label12);
-            this.tabPage5.Controls.Add(this.label11);
-            this.tabPage5.Controls.Add(this.label10);
-            this.tabPage5.Controls.Add(this.textBox_SendDelay);
-            this.tabPage5.Controls.Add(this.label9);
-            this.tabPage5.Controls.Add(this.textBox_SendPacketNum);
-            this.tabPage5.Controls.Add(this.label8);
-            this.tabPage5.Location = new System.Drawing.Point(4, 4);
-            this.tabPage5.Name = "tabPage5";
-            this.tabPage5.Size = new System.Drawing.Size(866, 72);
-            this.tabPage5.TabIndex = 4;
-            this.tabPage5.Text = "Config";
-            this.tabPage5.UseVisualStyleBackColor = true;
+            this.tabPage_UDPConfig.Controls.Add(this.label19);
+            this.tabPage_UDPConfig.Controls.Add(this.textBox_SendLongOffset);
+            this.tabPage_UDPConfig.Controls.Add(this.label20);
+            this.tabPage_UDPConfig.Controls.Add(this.textBox_keySendApp);
+            this.tabPage_UDPConfig.Controls.Add(this.label18);
+            this.tabPage_UDPConfig.Controls.Add(this.label17);
+            this.tabPage_UDPConfig.Controls.Add(this.textBox_VK);
+            this.tabPage_UDPConfig.Controls.Add(this.label16);
+            this.tabPage_UDPConfig.Controls.Add(this.label15);
+            this.tabPage_UDPConfig.Controls.Add(this.textBox_SendRatebyTOTCount);
+            this.tabPage_UDPConfig.Controls.Add(this.label14);
+            this.tabPage_UDPConfig.Controls.Add(this.label13);
+            this.tabPage_UDPConfig.Controls.Add(this.textBox_SendRatebySendCount);
+            this.tabPage_UDPConfig.Controls.Add(this.label12);
+            this.tabPage_UDPConfig.Controls.Add(this.label11);
+            this.tabPage_UDPConfig.Controls.Add(this.label10);
+            this.tabPage_UDPConfig.Controls.Add(this.textBox_SendDelay);
+            this.tabPage_UDPConfig.Controls.Add(this.label9);
+            this.tabPage_UDPConfig.Controls.Add(this.textBox_SendPacketNum);
+            this.tabPage_UDPConfig.Controls.Add(this.label8);
+            this.tabPage_UDPConfig.Location = new System.Drawing.Point(4, 4);
+            this.tabPage_UDPConfig.Name = "tabPage_UDPConfig";
+            this.tabPage_UDPConfig.Size = new System.Drawing.Size(866, 72);
+            this.tabPage_UDPConfig.TabIndex = 4;
+            this.tabPage_UDPConfig.Text = "UDP Config";
+            this.tabPage_UDPConfig.ToolTipText = "UDPで送信する際の詳細なパラメータを設定します";
+            this.tabPage_UDPConfig.UseVisualStyleBackColor = true;
             // 
             // label19
             // 
@@ -933,6 +950,99 @@
             this.label8.TabIndex = 0;
             this.label8.Text = "UDP send packet size = 188 *";
             // 
+            // tabPage_FFplay
+            // 
+            this.tabPage_FFplay.Controls.Add(this.label_FFplay_stream);
+            this.tabPage_FFplay.Controls.Add(this.textBox_FFplay_command);
+            this.tabPage_FFplay.Controls.Add(this.button_FFplay_next);
+            this.tabPage_FFplay.Controls.Add(this.trackBar_FFplay_pos);
+            this.tabPage_FFplay.Controls.Add(this.label_FFplay_sendname);
+            this.tabPage_FFplay.Controls.Add(this.button_FFplay_stop);
+            this.tabPage_FFplay.Controls.Add(this.button_FFplay);
+            this.tabPage_FFplay.Location = new System.Drawing.Point(4, 4);
+            this.tabPage_FFplay.Name = "tabPage_FFplay";
+            this.tabPage_FFplay.Padding = new System.Windows.Forms.Padding(3);
+            this.tabPage_FFplay.Size = new System.Drawing.Size(866, 72);
+            this.tabPage_FFplay.TabIndex = 5;
+            this.tabPage_FFplay.Text = "FFplay";
+            this.tabPage_FFplay.ToolTipText = "選択したファイルを、FFmpeg(FFplay)を使って再生します";
+            this.tabPage_FFplay.UseVisualStyleBackColor = true;
+            // 
+            // label_FFplay_stream
+            // 
+            this.label_FFplay_stream.AutoSize = true;
+            this.label_FFplay_stream.Location = new System.Drawing.Point(335, 54);
+            this.label_FFplay_stream.Name = "label_FFplay_stream";
+            this.label_FFplay_stream.Size = new System.Drawing.Size(0, 12);
+            this.label_FFplay_stream.TabIndex = 17;
+            // 
+            // textBox_FFplay_command
+            // 
+            this.textBox_FFplay_command.Location = new System.Drawing.Point(3, 3);
+            this.textBox_FFplay_command.Multiline = true;
+            this.textBox_FFplay_command.Name = "textBox_FFplay_command";
+            this.textBox_FFplay_command.Size = new System.Drawing.Size(315, 63);
+            this.textBox_FFplay_command.TabIndex = 16;
+            this.textBox_FFplay_command.Text = "ffplay -";
+            this.toolTip1.SetToolTip(this.textBox_FFplay_command, "FFplayを起動するコマンドライン引数を指定します。\r\n再生するファイルは、pipeを使って開かれます。\r\n指定が抜けている場合は、自動で追加されます。");
+            // 
+            // button_FFplay_next
+            // 
+            this.button_FFplay_next.Location = new System.Drawing.Point(815, 3);
+            this.button_FFplay_next.Name = "button_FFplay_next";
+            this.button_FFplay_next.Size = new System.Drawing.Size(48, 23);
+            this.button_FFplay_next.TabIndex = 15;
+            this.button_FFplay_next.Text = "Next >";
+            this.toolTip1.SetToolTip(this.button_FFplay_next, "複数選択時、次のファイルに移ります");
+            this.button_FFplay_next.UseVisualStyleBackColor = true;
+            this.button_FFplay_next.Click += new System.EventHandler(this.button_FFplay_next_Click);
+            // 
+            // trackBar_FFplay_pos
+            // 
+            this.trackBar_FFplay_pos.LargeChange = 500;
+            this.trackBar_FFplay_pos.Location = new System.Drawing.Point(324, 27);
+            this.trackBar_FFplay_pos.Maximum = 10000;
+            this.trackBar_FFplay_pos.Name = "trackBar_FFplay_pos";
+            this.trackBar_FFplay_pos.Size = new System.Drawing.Size(539, 45);
+            this.trackBar_FFplay_pos.TabIndex = 14;
+            this.trackBar_FFplay_pos.TickFrequency = 500;
+            this.toolTip1.SetToolTip(this.trackBar_FFplay_pos, "再生しているファイルの再生位置を示します。位置を操作することによりシークも可能です。\r\nただし、ファイルの先頭にのみメタデータが存在するフォーマットではシークでき" +
+        "ません。");
+            this.trackBar_FFplay_pos.ValueChanged += new System.EventHandler(this.trackBar_FFplay_pos_ValueChanged);
+            this.trackBar_FFplay_pos.MouseCaptureChanged += new System.EventHandler(this.trackBar_FFplay_pos_MouseCaptureChanged);
+            // 
+            // label_FFplay_sendname
+            // 
+            this.label_FFplay_sendname.AutoSize = true;
+            this.label_FFplay_sendname.Location = new System.Drawing.Point(384, 3);
+            this.label_FFplay_sendname.Name = "label_FFplay_sendname";
+            this.label_FFplay_sendname.Size = new System.Drawing.Size(77, 12);
+            this.label_FFplay_sendname.TabIndex = 11;
+            this.label_FFplay_sendname.Text = "Play Filename";
+            // 
+            // button_FFplay_stop
+            // 
+            this.button_FFplay_stop.Image = global::TSviewACD.Properties.Resources.stop;
+            this.button_FFplay_stop.Location = new System.Drawing.Point(354, -1);
+            this.button_FFplay_stop.Name = "button_FFplay_stop";
+            this.button_FFplay_stop.Size = new System.Drawing.Size(24, 23);
+            this.button_FFplay_stop.TabIndex = 13;
+            this.toolTip1.SetToolTip(this.button_FFplay_stop, "FFplayストップ");
+            this.button_FFplay_stop.UseVisualStyleBackColor = true;
+            this.button_FFplay_stop.Click += new System.EventHandler(this.button_FFplay_stop_Click);
+            // 
+            // button_FFplay
+            // 
+            this.button_FFplay.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Center;
+            this.button_FFplay.Image = global::TSviewACD.Properties.Resources.play;
+            this.button_FFplay.Location = new System.Drawing.Point(324, 0);
+            this.button_FFplay.Name = "button_FFplay";
+            this.button_FFplay.Size = new System.Drawing.Size(24, 23);
+            this.button_FFplay.TabIndex = 12;
+            this.toolTip1.SetToolTip(this.button_FFplay, "FFplay再生開始");
+            this.button_FFplay.UseVisualStyleBackColor = true;
+            this.button_FFplay.Click += new System.EventHandler(this.button_FFplay_Click);
+            // 
             // menuStrip1
             // 
             this.menuStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
@@ -1101,12 +1211,13 @@
             // 
             // listView1
             // 
-            this.listView1.Activation = System.Windows.Forms.ItemActivation.OneClick;
             this.listView1.AllowDrop = true;
             this.listView1.ContextMenuStrip = this.contextMenuStrip1;
             this.listView1.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.listView1.FullRowSelect = true;
             this.listView1.Location = new System.Drawing.Point(0, 0);
             this.listView1.Name = "listView1";
+            this.listView1.ShowItemToolTips = true;
             this.listView1.Size = new System.Drawing.Size(696, 553);
             this.listView1.TabIndex = 0;
             this.listView1.UseCompatibleStateImageBehavior = false;
@@ -1124,49 +1235,57 @@
             this.contextMenuStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.downloadItemToolStripMenuItem,
             this.sendUDPToolStripMenuItem,
+            this.playWithFFplayToolStripMenuItem,
             this.toolStripMenuItem3,
             this.renameToolStripMenuItem,
             this.toolStripMenuItem2,
             this.trashItemToolStripMenuItem});
             this.contextMenuStrip1.Name = "contextMenuStrip1";
-            this.contextMenuStrip1.Size = new System.Drawing.Size(155, 104);
+            this.contextMenuStrip1.Size = new System.Drawing.Size(159, 126);
             // 
             // downloadItemToolStripMenuItem
             // 
             this.downloadItemToolStripMenuItem.Name = "downloadItemToolStripMenuItem";
-            this.downloadItemToolStripMenuItem.Size = new System.Drawing.Size(154, 22);
+            this.downloadItemToolStripMenuItem.Size = new System.Drawing.Size(158, 22);
             this.downloadItemToolStripMenuItem.Text = "&Download Item";
             this.downloadItemToolStripMenuItem.Click += new System.EventHandler(this.downloadItemToolStripMenuItem_Click);
             // 
             // sendUDPToolStripMenuItem
             // 
             this.sendUDPToolStripMenuItem.Name = "sendUDPToolStripMenuItem";
-            this.sendUDPToolStripMenuItem.Size = new System.Drawing.Size(154, 22);
+            this.sendUDPToolStripMenuItem.Size = new System.Drawing.Size(158, 22);
             this.sendUDPToolStripMenuItem.Text = "&Send UDP";
             this.sendUDPToolStripMenuItem.Click += new System.EventHandler(this.sendUDPToolStripMenuItem_Click);
+            // 
+            // playWithFFplayToolStripMenuItem
+            // 
+            this.playWithFFplayToolStripMenuItem.Name = "playWithFFplayToolStripMenuItem";
+            this.playWithFFplayToolStripMenuItem.Size = new System.Drawing.Size(158, 22);
+            this.playWithFFplayToolStripMenuItem.Text = "&Play with FFplay";
+            this.playWithFFplayToolStripMenuItem.Click += new System.EventHandler(this.playWithFFplayToolStripMenuItem_Click);
             // 
             // toolStripMenuItem3
             // 
             this.toolStripMenuItem3.Name = "toolStripMenuItem3";
-            this.toolStripMenuItem3.Size = new System.Drawing.Size(151, 6);
+            this.toolStripMenuItem3.Size = new System.Drawing.Size(155, 6);
             // 
             // renameToolStripMenuItem
             // 
             this.renameToolStripMenuItem.Name = "renameToolStripMenuItem";
-            this.renameToolStripMenuItem.Size = new System.Drawing.Size(154, 22);
+            this.renameToolStripMenuItem.Size = new System.Drawing.Size(158, 22);
             this.renameToolStripMenuItem.Text = "&Rename";
             this.renameToolStripMenuItem.Click += new System.EventHandler(this.renameToolStripMenuItem_Click);
             // 
             // toolStripMenuItem2
             // 
             this.toolStripMenuItem2.Name = "toolStripMenuItem2";
-            this.toolStripMenuItem2.Size = new System.Drawing.Size(151, 6);
+            this.toolStripMenuItem2.Size = new System.Drawing.Size(155, 6);
             // 
             // trashItemToolStripMenuItem
             // 
             this.trashItemToolStripMenuItem.Name = "trashItemToolStripMenuItem";
             this.trashItemToolStripMenuItem.ShortcutKeys = System.Windows.Forms.Keys.Delete;
-            this.trashItemToolStripMenuItem.Size = new System.Drawing.Size(154, 22);
+            this.trashItemToolStripMenuItem.Size = new System.Drawing.Size(158, 22);
             this.trashItemToolStripMenuItem.Text = "Trash Item";
             this.trashItemToolStripMenuItem.Click += new System.EventHandler(this.trashItemToolStripMenuItem_Click);
             // 
@@ -1228,6 +1347,11 @@
             this.timer2.Interval = 1000;
             this.timer2.Tick += new System.EventHandler(this.timer2_Tick);
             // 
+            // timer3
+            // 
+            this.timer3.Interval = 1500;
+            this.timer3.Tick += new System.EventHandler(this.timer3_Tick);
+            // 
             // Form1
             // 
             this.AllowDrop = true;
@@ -1248,17 +1372,20 @@
             ((System.ComponentModel.ISupportInitialize)(this.splitContainer1)).EndInit();
             this.splitContainer1.ResumeLayout(false);
             this.tabControl1.ResumeLayout(false);
-            this.tabPage1.ResumeLayout(false);
-            this.tabPage1.PerformLayout();
-            this.tabPage2.ResumeLayout(false);
-            this.tabPage2.PerformLayout();
-            this.tabPage3.ResumeLayout(false);
-            this.tabPage3.PerformLayout();
-            this.tabPage4.ResumeLayout(false);
-            this.tabPage4.PerformLayout();
+            this.tabPage_Navigation.ResumeLayout(false);
+            this.tabPage_Navigation.PerformLayout();
+            this.tabPage_Find.ResumeLayout(false);
+            this.tabPage_Find.PerformLayout();
+            this.tabPage_Folder.ResumeLayout(false);
+            this.tabPage_Folder.PerformLayout();
+            this.tabPage_SendUDP.ResumeLayout(false);
+            this.tabPage_SendUDP.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)(this.trackBar_Pos)).EndInit();
-            this.tabPage5.ResumeLayout(false);
-            this.tabPage5.PerformLayout();
+            this.tabPage_UDPConfig.ResumeLayout(false);
+            this.tabPage_UDPConfig.PerformLayout();
+            this.tabPage_FFplay.ResumeLayout(false);
+            this.tabPage_FFplay.PerformLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.trackBar_FFplay_pos)).EndInit();
             this.menuStrip1.ResumeLayout(false);
             this.menuStrip1.PerformLayout();
             this.splitContainer2.Panel1.ResumeLayout(false);
@@ -1310,8 +1437,8 @@
         private System.Windows.Forms.FolderBrowserDialog folderBrowserDialog1;
         private System.Windows.Forms.ToolStripMenuItem sendUDPToolStripMenuItem;
         private System.Windows.Forms.TabControl tabControl1;
-        private System.Windows.Forms.TabPage tabPage1;
-        private System.Windows.Forms.TabPage tabPage2;
+        private System.Windows.Forms.TabPage tabPage_Navigation;
+        private System.Windows.Forms.TabPage tabPage_Find;
         private System.Windows.Forms.Button button_search;
         private System.Windows.Forms.CheckBox checkBox_File;
         private System.Windows.Forms.CheckBox checkBox_Folder;
@@ -1324,13 +1451,13 @@
         private System.Windows.Forms.DateTimePicker dateTimePicker_from;
         private System.Windows.Forms.RadioButton radioButton_modifiedDate;
         private System.Windows.Forms.Label label2;
-        private System.Windows.Forms.TabPage tabPage3;
+        private System.Windows.Forms.TabPage tabPage_Folder;
         private System.Windows.Forms.Button button_mkdir;
         private System.Windows.Forms.TextBox textBox_newName;
         private System.Windows.Forms.Label label3;
         private System.Windows.Forms.ToolStripSeparator toolStripMenuItem3;
         private System.Windows.Forms.ToolStripMenuItem renameToolStripMenuItem;
-        private System.Windows.Forms.TabPage tabPage4;
+        private System.Windows.Forms.TabPage tabPage_SendUDP;
         private System.Windows.Forms.Label label_sendname;
         private System.Windows.Forms.Label label5;
         private System.Windows.Forms.TextBox textBox_Port;
@@ -1351,7 +1478,7 @@
         private System.Windows.Forms.Label label_stream;
         private System.Windows.Forms.Timer timer1;
         private System.Windows.Forms.Button button_next;
-        private System.Windows.Forms.TabPage tabPage5;
+        private System.Windows.Forms.TabPage tabPage_UDPConfig;
         private System.Windows.Forms.Label label10;
         private System.Windows.Forms.TextBox textBox_SendDelay;
         private System.Windows.Forms.Label label9;
@@ -1381,6 +1508,16 @@
         private System.Windows.Forms.Label label19;
         private System.Windows.Forms.TextBox textBox_SendLongOffset;
         private System.Windows.Forms.Label label20;
+        private System.Windows.Forms.TabPage tabPage_FFplay;
+        private System.Windows.Forms.TextBox textBox_FFplay_command;
+        private System.Windows.Forms.Button button_FFplay_next;
+        private System.Windows.Forms.TrackBar trackBar_FFplay_pos;
+        private System.Windows.Forms.Label label_FFplay_sendname;
+        private System.Windows.Forms.Button button_FFplay_stop;
+        private System.Windows.Forms.Button button_FFplay;
+        private System.Windows.Forms.Label label_FFplay_stream;
+        private System.Windows.Forms.Timer timer3;
+        private System.Windows.Forms.ToolStripMenuItem playWithFFplayToolStripMenuItem;
     }
 }
 

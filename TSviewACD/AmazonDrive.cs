@@ -58,7 +58,13 @@ namespace TSviewACD
             Config.Log.LogOut("\t[Login]");
             if (string.IsNullOrEmpty(Config.refresh_token))
             {
-                Authkey = new FormLogin().Login();
+                Thread t = new Thread(new ThreadStart(() =>
+                {
+                    Authkey = new FormLogin().Login();
+                }));
+                t.SetApartmentState(System.Threading.ApartmentState.STA);
+                t.Start();
+                t.Join();
                 if (Authkey != null && !string.IsNullOrEmpty(Authkey.access_token))
                 {
                     key_timer = DateTime.Now;
@@ -250,7 +256,7 @@ namespace TSviewACD
             {
                 Random rnd = new Random();
                 var retry = 0;
-                while (++retry > 0)
+                while (++retry < 30)
                 {
                     try
                     {
@@ -281,7 +287,8 @@ namespace TSviewACD
                         Config.Log.LogOut("\t[ListMetadata] " + error_str);
                         System.Diagnostics.Debug.WriteLine(error_str);
 
-                        if (ex.Message.Contains("500 (Internal Server Error)") ||
+                        if (ex.Message.Contains("401 (Unauthorized)") ||
+                            ex.Message.Contains("500 (Internal Server Error)") ||
                             ex.Message.Contains("503 (Service Unavailable)"))
                         {
                             var waitsec = rnd.Next((int)Math.Pow(2, Math.Min(retry - 1, 8)));
@@ -310,43 +317,60 @@ namespace TSviewACD
         public async Task<FileListdata_Info> ListChildren(string id, string startToken = null)
         {
             Config.Log.LogOut("\t[ListChildren] " + id);
-            string error_str;
+            string error_str = "";
             using (var client = new HttpClient())
             {
-                try
+                Random rnd = new Random();
+                var retry = 0;
+                while (++retry < 30)
                 {
-                    client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", Authkey.access_token);
-                    var response = await client.GetAsync(
-                        metadataUrl + "nodes/" + id + "/children" + (string.IsNullOrEmpty(startToken) ? "" : "?startToken=" + startToken),
-                        ct
-                    ).ConfigureAwait(false);
-                    response.EnsureSuccessStatusCode();
-                    string responseBody = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
-                    // Above three lines can be replaced with new helper method in following line
-                    // string body = await client.GetStringAsync(uri);
-                    var info = ParseResponse<FileListdata_Info>(responseBody);
-                    if (!string.IsNullOrEmpty(info.nextToken))
+                    try
                     {
-                        var next_info = await ListChildren(id, info.nextToken).ConfigureAwait(false);
-                        info.data = info.data.Concat(next_info.data).ToArray();
+                        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", Authkey.access_token);
+                        var response = await client.GetAsync(
+                            metadataUrl + "nodes/" + id + "/children" + (string.IsNullOrEmpty(startToken) ? "" : "?startToken=" + startToken),
+                            ct
+                        ).ConfigureAwait(false);
+                        response.EnsureSuccessStatusCode();
+                        string responseBody = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
+                        // Above three lines can be replaced with new helper method in following line
+                        // string body = await client.GetStringAsync(uri);
+                        var info = ParseResponse<FileListdata_Info>(responseBody);
+                        if (!string.IsNullOrEmpty(info.nextToken))
+                        {
+                            var next_info = await ListChildren(id, info.nextToken).ConfigureAwait(false);
+                            info.data = info.data.Concat(next_info.data).ToArray();
+                        }
+                        return info;
                     }
-                    return info;
-                }
-                catch (HttpRequestException ex)
-                {
-                    error_str = ex.Message;
-                    Config.Log.LogOut("\t[ListChildren] " + error_str);
-                    System.Diagnostics.Debug.WriteLine(error_str);
-                }
-                catch (OperationCanceledException)
-                {
-                    throw;
-                }
-                catch (Exception ex)
-                {
-                    error_str = ex.ToString();
-                    Config.Log.LogOut("\t[ListChildren] " + error_str);
-                    System.Diagnostics.Debug.WriteLine(error_str);
+                    catch (HttpRequestException ex)
+                    {
+                        error_str = ex.Message;
+                        Config.Log.LogOut("\t[ListChildren] " + error_str);
+                        System.Diagnostics.Debug.WriteLine(error_str);
+
+                        if (ex.Message.Contains("401 (Unauthorized)") ||
+                            ex.Message.Contains("500 (Internal Server Error)") ||
+                            ex.Message.Contains("503 (Service Unavailable)"))
+                        {
+                            var waitsec = rnd.Next((int)Math.Pow(2, Math.Min(retry - 1, 8)));
+                            Config.Log.LogOut("\t[ListChildren] wait " + waitsec.ToString() + " sec");
+                            System.Diagnostics.Debug.WriteLine("{0} sec wait", waitsec);
+                            await Task.Delay(waitsec * 1000);
+                        }
+                        else { break; }
+                    }
+                    catch (OperationCanceledException)
+                    {
+                        throw;
+                    }
+                    catch (Exception ex)
+                    {
+                        error_str = ex.ToString();
+                        Config.Log.LogOut("\t[ListChildren] " + error_str);
+                        System.Diagnostics.Debug.WriteLine(error_str);
+                        break;
+                    }
                 }
             }
             throw new SystemException("ListMetadata Failed. " + error_str);

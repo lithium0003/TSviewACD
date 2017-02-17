@@ -334,6 +334,7 @@ namespace TSviewACD
                 }, 0);
             rootitem.Tag = root;
             rootitem.Name = (root.info.id == root_id) ? "/" : ".";
+            rootitem.ToolTipText = "このフォルダ自身";
             ret.Add(rootitem);
 
             var up = (root.info.id == root_id) ? DriveTree[root.info.id] : DriveTree[root.info.parents[0]];
@@ -350,6 +351,7 @@ namespace TSviewACD
                 }, 0);
             upitem.Tag = up;
             upitem.Name = (up.info.id == root_id)? "/": "..";
+            upitem.ToolTipText = "ひとつ上のフォルダ";
             ret.Add(upitem);
 
             var childitem = root.children.Values.Select(x =>
@@ -367,6 +369,7 @@ namespace TSviewACD
                     }, (x.info.kind == "FOLDER") ? 0 : 2);
                 item.Name = x.info.name;
                 item.Tag = x;
+                item.ToolTipText = item.Name;
                 return item;
             });
             ret.AddRange(childitem);
@@ -393,6 +396,7 @@ namespace TSviewACD
                     }, (x.info.kind == "FOLDER") ? 0 : 2);
                 item.Name = x.info.name;
                 item.Tag = x;
+                item.ToolTipText = item.Name;
                 return item;
             });
             ret.AddRange(childitem);
@@ -644,7 +648,7 @@ namespace TSviewACD
             detailToolStripMenuItem.Checked = true;
         }
 
-        private void listView1_DoubleClick(object sender, EventArgs e)
+        private async void listView1_DoubleClick(object sender, EventArgs e)
         {
             if (listView1.SelectedItems.Count == 0) return;
             var selectitem = listView1.SelectedItems[0];
@@ -653,11 +657,25 @@ namespace TSviewACD
             selectitem.Focused = false;
 
             var selectdata = selectitem.Tag as ItemInfo;
-            if (selectdata == null || selectdata.info.kind != "FOLDER") return;
-
-            listView1.Items.Clear();
-            listView1.Items.AddRange(GenerateListViewItem(selectdata));
-            listView1.Sort();
+            if (selectdata == null) return;
+            if (selectdata.info.kind == "FOLDER")
+            {
+                listView1.Items.Clear();
+                listView1.Items.AddRange(GenerateListViewItem(selectdata));
+                listView1.Sort();
+            }
+            else if (tabControl1.SelectedTab.Name == "tabPage_SendUDP")
+            {
+                selectitem.Selected = true;
+                Drive.Cancel();
+                await PlayFiles(PlayOneTSFile, "Send UDP");
+            }
+            else if (tabControl1.SelectedTab.Name == "tabPage_FFplay")
+            {
+                selectitem.Selected = true;
+                Drive.Cancel();
+                await PlayFiles(PlayOneFFplay, "FFplay");
+            }
         }
 
         private void listView1_SelectedIndexChanged(object sender, EventArgs e)
@@ -1313,23 +1331,8 @@ namespace TSviewACD
 
         private async void sendUDPToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            await PlayTSFiles();
-        }
-
-        private ListViewItem MakeListviewItem(FileMetadata_Info info, TreeNode tree)
-        {
-            var item = new ListViewItem(
-                new string[] {
-                        info.name,
-                        info.contentProperties?.size?.ToString("#,0"),
-                        info.modifiedDate.ToString(),
-                        info.createdDate.ToString(),
-                        "/"+tree.FullPath,
-                        info.id,
-                }, (info.kind == "FOLDER") ? 0 : 2);
-            item.Name = info.name;
-            item.Tag = tree;
-            return item;
+            Drive.Cancel();
+            await PlayFiles(PlayOneTSFile, "Send UDP");
         }
 
         private void button_search_Click(object sender, EventArgs e)
@@ -1880,389 +1883,6 @@ namespace TSviewACD
             Config.Log.Show(this);
         }
 
-        private async void button_Play_Click(object sender, EventArgs e)
-        {
-            await PlayTSFiles();
-        }
-
-        private TimeSpan SendDuration;
-        private TimeSpan SendStartDelay;
-        private DateTime SendStartTime;
-
-        private TimeSpan SeektoPos = TimeSpan.FromDays(100);
-        CancellationTokenSource seek_ct_source = new CancellationTokenSource();
-
-        private int nextcount = 0;
-
-        private void CancelForSeek()
-        {
-            var t = seek_ct_source;
-            seek_ct_source = new CancellationTokenSource();
-            t.Cancel();
-        }
-
-        private async Task PlayOneTSFile(FileMetadata_Info downitem, string download_str)
-        {
-            long bytePerSec = 0;
-            long? SkipByte = null;
-            DateTime InitialTOT = default(DateTime);
-
-            trackBar_Pos.Tag = 1;
-            trackBar_Pos.Minimum = 0;
-            trackBar_Pos.Maximum = (int)(downitem.contentProperties.size / (10/8*1024*1024));
-            trackBar_Pos.Value = 0;
-            trackBar_Pos.Tag = 0;
-
-            while (true)
-            {
-                PressKeyForOtherApp();
-
-                toolStripProgressBar1.Style = ProgressBarStyle.Continuous;
-                toolStripProgressBar1.Value = toolStripProgressBar1.Minimum;
-                toolStripStatusLabel1.Text = download_str + " " + downitem.name;
-                toolStripProgressBar1.Maximum = 10000;
-
-                var internalToken = seek_ct_source.Token;
-                var externalToken = Drive.ct;
-                try
-                {
-                    using (CancellationTokenSource linkedCts =
-                           CancellationTokenSource.CreateLinkedTokenSource(internalToken, externalToken))
-                    using (var ret = await Drive.downloadFile(downitem.id, SkipByte))
-                    using (var bufst = new BufferedStream(ret, ConfigAPI.CopyBufferSize))
-                    using (var f = new PositionStream(bufst, downitem.contentProperties.size.Value, SkipByte))
-                    {
-                        f.PosChangeEvent += (src, evnt) =>
-                        {
-                            synchronizationContext.Post(
-                                (o) =>
-                                {
-                                    if (linkedCts.Token.IsCancellationRequested) return;
-                                    var eo = o as PositionChangeEventArgs;
-                                    toolStripStatusLabel1.Text = download_str + eo.Log + " " + downitem.name;
-                                    toolStripProgressBar1.Value = (int)((double)eo.Position / eo.Length * 10000);
-                                }, evnt);
-                        };
-                        using (var UDP = new UDP_TS_Stream(linkedCts.Token))
-                        {
-                            label_sendname.Text = downitem.name;
-                            if (SeektoPos < TimeSpan.FromDays(30))
-                            {
-                                if(SendDuration != default(TimeSpan))
-                                    UDP.SendDuration = SendDuration - SeektoPos;
-
-                                if (InitialTOT != default(DateTime))
-                                    UDP.SendStartTime = InitialTOT + SeektoPos;
-                                else
-                                    UDP.SendDelay = SeektoPos;
-                            }
-                            else
-                            {
-                                UDP.SendDuration = SendDuration;
-                                if (SkipByte == null)
-                                {
-                                    UDP.SendDelay = SendStartDelay;
-                                    UDP.SendStartTime = SendStartTime;
-                                }
-                                else
-                                {
-                                    if (SendStartTime != default(DateTime))
-                                        UDP.SendStartTime = SendStartTime;
-                                    else if (InitialTOT != default(DateTime))
-                                        UDP.SendStartTime = InitialTOT + SendStartDelay;
-                                }
-                            }
-                            UDP.TOTChangeHander += (src, evnt) =>
-                            {
-                                synchronizationContext.Post(
-                                    (o) =>
-                                    {
-                                        //if (linkedCts.Token.IsCancellationRequested) return;
-                                        var eo = o as TOTChangeEventArgs;
-                                        if (InitialTOT == default(DateTime))
-                                        {
-                                            InitialTOT = (eo.initialTOT == default(DateTime))? eo.TOT_JST: eo.initialTOT;
-                                        }
-                                        bytePerSec = eo.bytePerSec;
-                                        trackBar_Pos.Tag = 1;
-                                        trackBar_Pos.Maximum = (int)(downitem.contentProperties.size / eo.bytePerSec);
-                                        trackBar_Pos.Value = (int)(((SkipByte??0) + eo.Position) / eo.bytePerSec);
-                                        trackBar_Pos.Tag = 0;
-                                        label_stream.Text = string.Format(
-                                            "TOT:{0} pos {1} / {2} ({3} / {4})",
-                                            eo.TOT_JST.ToString(),
-                                            (eo.TOT_JST - InitialTOT).ToString(),
-                                            TimeSpan.FromSeconds(downitem.contentProperties.size.Value / eo.bytePerSec).ToString(),
-                                            (SkipByte ?? 0 + eo.Position).ToString("#,0"),
-                                            downitem.contentProperties.size.Value.ToString("#,0"));
-                                    }, evnt);
-                            };
-                            SeektoPos = TimeSpan.FromDays(100);
-                            await f.CopyToAsync(UDP, ConfigAPI.CopyBufferSize, linkedCts.Token);
-                        }
-                    }
-                    break;
-                }
-                catch (PlayEOF_CanceledException)
-                {
-                    break;
-                }
-                catch (SenderBreakCanceledException ex)
-                {
-                    bytePerSec = ex.bytePerSec;
-
-                    if (SkipByte != null)
-                        SkipByte += ex.WaitForByte;
-                    else
-                        SkipByte = ex.WaitForByte;
-
-                    if (InitialTOT == default(DateTime))
-                        InitialTOT = ex.InitialTOT;
-
-                    trackBar_Pos.Maximum = (int)(downitem.contentProperties.size / bytePerSec);
-
-                    if (SkipByte > downitem.contentProperties.size)
-                        break;
-                    continue;
-                }
-                catch (OperationCanceledException)
-                {
-                    if (internalToken.IsCancellationRequested)
-                    {
-                        if (SeektoPos < TimeSpan.FromDays(30))
-                        {
-                            SkipByte = (long)(SeektoPos.TotalSeconds * bytePerSec * 0.9);
-                            if (SkipByte > downitem.contentProperties.size)
-                                break;
-                            continue;
-                        }
-                        SeektoPos = TimeSpan.FromDays(100);
-                        nextcount--;
-                        break;
-                    }
-                    else if (externalToken.IsCancellationRequested)
-                    {
-                        throw;
-                    }
-                    break;
-                }
-                catch (Exception)
-                {
-                    throw;
-                }
-            }
-        }
-
-        [DllImport("User32.dll")]
-        public static extern int PostMessage(IntPtr hWnd, int uMsg, int wParam, int lParam);
-
-        const int WM_KEYDOWN = 0x100;
-        const int WM_KEYUP = 0x101;
-
-        private void PressKeyForOtherApp()
-        {
-            try
-            {
-                var mainWindowHandle = System.Diagnostics.Process.GetProcessesByName(Config.SendVK_Application)[0].MainWindowHandle;
-                PostMessage(mainWindowHandle, WM_KEYDOWN, (int)Config.SendVK, 0);
-                PostMessage(mainWindowHandle, WM_KEYUP, (int)Config.SendVK, 0);
-            }
-            catch { }
-        }
-
-        private async Task PlayTSFiles()
-        {
-            Config.Log.LogOut("Send UDP TS stream Start.");
-            toolStripStatusLabel1.Text = "unable to download.";
-            if (!initialized) return;
-            var select = listView1.SelectedItems;
-            if (select.Count == 0) return;
-
-            var selectItem = select.OfType<ListViewItem>().Select(x => (x.Tag as ItemInfo).info).Where(x => x.kind != "FOLDER");
-
-            int f_all = selectItem.Count();
-            if (f_all == 0) return;
-
-            int f_cur = 0;
-            try
-            {
-                nextcount = 0;
-                foreach (var downitem in selectItem)
-                {
-                    Config.Log.LogOut("Send UDP download : " + downitem.name);
-                    var download_str = (f_all > 1) ? string.Format("Download({0}/{1})...", ++f_cur, f_all) : "Download...";
-
-                    if (downitem.contentProperties.size > ConfigAPI.FilenameChangeTrickSize)
-                    {
-                        Config.Log.LogOut("Send UDP download : <BIG FILE> temporary filename change");
-                        Interlocked.Increment(ref CriticalCount);
-                        try
-                        {
-                            toolStripStatusLabel1.Text = "temporary filename change...";
-                            var tmpfile = await Drive.renameItem(downitem.id, ConfigAPI.temporaryFilename + downitem.id);
-                            try
-                            {
-                                await PlayOneTSFile(downitem, download_str);
-                            }
-                            finally
-                            {
-                                await Drive.renameItem(downitem.id, downitem.name);
-                            }
-                        }
-                        finally
-                        {
-                            Interlocked.Decrement(ref CriticalCount);
-                        }
-                    }
-                    else
-                    {
-                        await PlayOneTSFile(downitem, download_str);
-                    }
-
-                    Config.Log.LogOut("Send UDP download : done.");
-                    toolStripStatusLabel1.Text = "download done.";
-                    toolStripProgressBar1.Value = toolStripProgressBar1.Minimum;
-                }
-
-                toolStripProgressBar1.Style = ProgressBarStyle.Continuous;
-                toolStripProgressBar1.Value = toolStripProgressBar1.Minimum;
-                toolStripStatusLabel1.Text = "Download Items done.";
-                toolStripProgressBar1.Maximum = 100;
-                toolStripProgressBar1.Step = 10;
-            }
-            catch (OperationCanceledException)
-            {
-                if (!Config.IsClosing)
-                {
-                    toolStripProgressBar1.Style = ProgressBarStyle.Continuous;
-                    toolStripProgressBar1.Value = toolStripProgressBar1.Minimum;
-                    toolStripStatusLabel1.Text = "Operation Aborted.";
-                }
-            }
-            catch (Exception ex)
-            {
-                Config.Log.LogOut("Send UDP download : Error");
-                toolStripProgressBar1.Style = ProgressBarStyle.Continuous;
-                toolStripProgressBar1.Value = toolStripProgressBar1.Minimum;
-                toolStripStatusLabel1.Text = "Error detected.";
-                MessageBox.Show("sendUDP : ERROR\r\n" + ex.Message);
-            }
-            label_sendname.Text = "Send Filename";
-        }
-
-        private void textBox_Duration_Leave(object sender, EventArgs e)
-        {
-            if (textBox_Duration.Text == "")
-                SendDuration = default(TimeSpan);
-            else
-            {
-                try
-                {
-                    SendDuration = TimeSpan.FromSeconds(double.Parse(textBox_Duration.Text));
-                }
-                catch {
-                    try
-                    {
-                        SendDuration = TimeSpan.Parse(textBox_Duration.Text);
-                    }
-                    catch {
-                        SendDuration = default(TimeSpan);
-                    }
-                }
-            }
-            textBox_Duration.Text = (SendDuration == default(TimeSpan)) ? "" : SendDuration.ToString();
-        }
-
-        private void textBox_StartTime_Leave(object sender, EventArgs e)
-        {
-            if (radioButton_AbsTime.Checked)
-            {
-                SendStartDelay = default(TimeSpan);
-                if (textBox_StartTime.Text == "")
-                    SendStartTime = default(DateTime);
-                else
-                {
-                    try
-                    {
-                        SendStartTime = DateTime.Parse(textBox_StartTime.Text);
-                    }
-                    catch
-                    {
-                        SendStartTime = default(DateTime);
-                    }
-                }
-                textBox_StartTime.Text = (SendStartTime == default(DateTime)) ? "" : SendStartTime.ToString();
-            }
-            if (radioButton_DiffTime.Checked)
-            {
-                SendStartTime = default(DateTime);
-                if (textBox_StartTime.Text == "")
-                    SendStartDelay = default(TimeSpan);
-                else
-                {
-                    try
-                    {
-                        SendStartDelay = TimeSpan.FromSeconds(double.Parse(textBox_StartTime.Text));
-                    }
-                    catch
-                    {
-                        try
-                        {
-                            SendStartDelay = TimeSpan.Parse(textBox_StartTime.Text);
-                        }
-                        catch
-                        {
-                            SendStartDelay = default(TimeSpan);
-                        }
-                    }
-                }
-                textBox_StartTime.Text = (SendStartDelay == default(TimeSpan)) ? "" : SendStartDelay.ToString();
-            }
-        }
-
-        private void trackBar_Pos_ValueChanged(object sender, EventArgs e)
-        {
-            if (trackBar_Pos.Tag as int? == 1)
-            {
-                if (SeektoPos < TimeSpan.FromDays(30))
-                {
-                    trackBar_Pos.Tag = 1;
-                    trackBar_Pos.Value = (int)SeektoPos.TotalSeconds;
-                    trackBar_Pos.Tag = 0;
-                }
-            }
-            else
-            {
-                timer1.Enabled = false;
-                SeektoPos = TimeSpan.FromSeconds(trackBar_Pos.Value);
-                label_stream.Text = string.Format(
-                    "seeking to {0}",
-                    SeektoPos.ToString());
-                timer1.Enabled = true;
-            }
-        }
-
-        private void trackBar_Pos_MouseCaptureChanged(object sender, EventArgs e)
-        {
-            SeektoPos = TimeSpan.FromSeconds(trackBar_Pos.Value);
-            timer1.Enabled = false;
-            timer1.Enabled = true;
-        }
-
-        private void timer1_Tick(object sender, EventArgs e)
-        {
-            SeektoPos = TimeSpan.FromSeconds(trackBar_Pos.Value);
-            timer1.Enabled = false;
-            CancelForSeek();
-        }
-
-        private void button_next_Click(object sender, EventArgs e)
-        {
-            SeektoPos = TimeSpan.FromDays(100);
-            nextcount++;
-            CancelForSeek();
-        }
-
         private void textBox_KeyPress(object sender, KeyPressEventArgs e)
         {
             if (e.KeyChar == (char)Keys.Enter)
@@ -2386,6 +2006,619 @@ namespace TSviewACD
                 button_search.PerformClick();
             }
         }
+
+        ///////////////////////////////////////////////////////////////////////////////////////////////////////
+        ///
+        /// play a file with FFplay via pipe
+        ///
+        ///////////////////////////////////////////////////////////////////////////////////////////////////////
+
+        private double SeekFFplaytoPos = double.NaN;
+        CancellationTokenSource seekFFplay_ct_source = new CancellationTokenSource();
+
+        private int nextFFplaycount = 0;
+
+        private void CancelForSeekFFplay()
+        {
+            var t = seekFFplay_ct_source;
+            seekFFplay_ct_source = new CancellationTokenSource();
+            t.Cancel();
+        }
+
+        private async Task PlayOneFFplay(FileMetadata_Info downitem, string download_str)
+        {
+            long? SkipByte = null;
+
+            trackBar_FFplay_pos.Tag = 1;
+            trackBar_FFplay_pos.Minimum = 0;
+            trackBar_FFplay_pos.Maximum = 10000; //100.00 %
+            trackBar_FFplay_pos.Value = 0;
+            trackBar_FFplay_pos.Tag = 0;
+
+            while (true)
+            {
+                toolStripProgressBar1.Style = ProgressBarStyle.Continuous;
+                toolStripProgressBar1.Value = toolStripProgressBar1.Minimum;
+                toolStripStatusLabel1.Text = download_str + " " + downitem.name;
+                toolStripProgressBar1.Maximum = 10000;
+
+                var FFplayProcess = new FFplay_process(textBox_FFplay_command.Text);
+                try
+                {
+                    FFplayProcess.AddExitFunction(
+                        (src, evnt) =>
+                        {
+                            Drive.Cancel();
+                        });
+
+                    var internalToken = seekFFplay_ct_source.Token;
+                    var externalToken = Drive.ct;
+                    try
+                    {
+                        while (true)
+                        {
+                            using (CancellationTokenSource linkedCts =
+                                   CancellationTokenSource.CreateLinkedTokenSource(internalToken, externalToken))
+                            using (var ret = await Drive.downloadFile(downitem.id, SkipByte))
+                            using (var bufst = new BufferedStream(ret, ConfigAPI.CopyBufferSize))
+                            using (var f = new PositionStream(bufst, downitem.contentProperties.size.Value, SkipByte))
+                            {
+                                f.PosChangeEvent += (src, evnt) =>
+                                {
+                                    synchronizationContext.Post(
+                                        (o) =>
+                                        {
+                                            if (linkedCts.Token.IsCancellationRequested) return;
+                                            var eo = o as PositionChangeEventArgs;
+                                            toolStripStatusLabel1.Text = download_str + eo.Log + " " + downitem.name;
+                                            toolStripProgressBar1.Value = (int)((double)eo.Position / eo.Length * 10000);
+                                        }, evnt);
+                                };
+                                using (var FFplay = new FFplay_Stream(FFplayProcess))
+                                {
+                                    long WritePos = 0;
+                                    FFplay.WriteToFFplayEvent += (src, evnt) =>
+                                    {
+                                        WritePos = evnt.Position;
+                                        synchronizationContext.Post(
+                                            (o) =>
+                                            {
+                                                if (linkedCts.Token.IsCancellationRequested) return;
+                                                var eo = o as WriteToFFplayEventArgs;
+                                                trackBar_FFplay_pos.Tag = 1;
+                                                trackBar_FFplay_pos.Maximum = 10000;
+                                                trackBar_FFplay_pos.Value = (int)((double)eo.Position / downitem.contentProperties.size.Value * 10000);
+                                                trackBar_FFplay_pos.Tag = 0;
+                                                label_FFplay_stream.Text = string.Format(
+                                                    "pos {0} % ({1} / {2})",
+                                                    ((double)eo.Position / downitem.contentProperties.size.Value * 100).ToString("##0.00"),
+                                                    eo.Position.ToString("#,0"),
+                                                    downitem.contentProperties.size.Value.ToString("#,0"));
+                                            }, evnt);
+                                    };
+                                    label_FFplay_sendname.Text = downitem.name;
+                                    try
+                                    {
+                                        await f.CopyToAsync(FFplay, ConfigAPI.CopyBufferSize, linkedCts.Token);
+                                    }
+                                    catch (IOException)
+                                    {
+                                        SkipByte = WritePos + (SkipByte??0);
+                                        continue;
+                                    }
+                                    await FFplayProcess.Finish(linkedCts.Token);
+                                }
+                            }
+                            break;
+                        }
+                        break;
+                    }
+                    catch (IOException e)
+                    {
+                        break;
+                    }
+                    catch (ffplayEOF_CanceledException)
+                    {
+                        break;
+                    }
+                    catch (OperationCanceledException)
+                    {
+                        if (internalToken.IsCancellationRequested)
+                        {
+                            if (!double.IsNaN(SeekFFplaytoPos))
+                            {
+                                SeekFFplaytoPos = (SeekFFplaytoPos > 100) ? 100 : SeekFFplaytoPos;
+                                SeekFFplaytoPos = (SeekFFplaytoPos < 0) ? 0 : SeekFFplaytoPos;
+                                SkipByte = (long)(downitem.contentProperties.size * SeekFFplaytoPos / 100);
+                                continue;
+                            }
+                            SeekFFplaytoPos = double.NaN;
+                            nextFFplaycount--;
+                            break;
+                        }
+                        else if (externalToken.IsCancellationRequested)
+                        {
+                            throw;
+                        }
+                        break;
+                    }
+                    catch (Exception)
+                    {
+                        throw;
+                    }
+                }
+                finally
+                {
+                    FFplayProcess.Kill();
+                }
+            }
+        }
+
+        private async void button_FFplay_Click(object sender, EventArgs e)
+        {
+            Drive.Cancel();
+            await PlayFiles(PlayOneFFplay, "FFplay");
+        }
+
+        private async void playWithFFplayToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            Drive.Cancel();
+            await PlayFiles(PlayOneFFplay, "FFplay");
+        }
+
+        private void button_FFplay_stop_Click(object sender, EventArgs e)
+        {
+            Drive.Cancel();
+        }
+
+        private void trackBar_FFplay_pos_ValueChanged(object sender, EventArgs e)
+        {
+            if (trackBar_FFplay_pos.Tag as int? == 1)
+            {
+                if (!double.IsNaN(SeekFFplaytoPos))
+                {
+                    trackBar_FFplay_pos.Tag = 1;
+                    trackBar_FFplay_pos.Value = (int)(SeekFFplaytoPos * 100);
+                    trackBar_FFplay_pos.Tag = 0;
+                }
+            }
+            else
+            {
+                timer3.Enabled = false;
+                SeekFFplaytoPos = trackBar_FFplay_pos.Value / 100.0;
+                label_stream.Text = string.Format(
+                    "seeking to {0} %",
+                    SeekFFplaytoPos.ToString("##0.00"));
+                timer3.Enabled = true;
+            }
+        }
+
+        private void trackBar_FFplay_pos_MouseCaptureChanged(object sender, EventArgs e)
+        {
+            SeekFFplaytoPos = trackBar_FFplay_pos.Value / 100.0;
+            timer3.Enabled = false;
+            timer3.Enabled = true;
+        }
+
+        private void timer3_Tick(object sender, EventArgs e)
+        {
+            SeekFFplaytoPos = trackBar_FFplay_pos.Value / 100.0;
+            timer3.Enabled = false;
+            CancelForSeekFFplay();
+        }
+
+        private void button_FFplay_next_Click(object sender, EventArgs e)
+        {
+            SeekFFplaytoPos = double.NaN;
+            nextFFplaycount++;
+            CancelForSeekFFplay();
+        }
+
+        ////////////////////////////////////////////////////////////////////////
+        /// 
+        /// send a file with UDP
+        /// 
+        ////////////////////////////////////////////////////////////////////////
+
+        private async void button_Play_Click(object sender, EventArgs e)
+        {
+            Drive.Cancel();
+            await PlayFiles(PlayOneTSFile, "Send UDP");
+        }
+
+        private TimeSpan SendDuration;
+        private TimeSpan SendStartDelay;
+        private DateTime SendStartTime;
+
+        private TimeSpan SeekUDPtoPos = TimeSpan.FromDays(100);
+        CancellationTokenSource seekUDP_ct_source = new CancellationTokenSource();
+
+        private int nextUDPcount = 0;
+
+        private void CancelForSeekUDP()
+        {
+            var t = seekUDP_ct_source;
+            seekUDP_ct_source = new CancellationTokenSource();
+            t.Cancel();
+        }
+
+        private async Task PlayOneTSFile(FileMetadata_Info downitem, string download_str)
+        {
+            long bytePerSec = 0;
+            long? SkipByte = null;
+            DateTime InitialTOT = default(DateTime);
+
+            trackBar_Pos.Tag = 1;
+            trackBar_Pos.Minimum = 0;
+            trackBar_Pos.Maximum = (int)(downitem.contentProperties.size / (10 / 8 * 1024 * 1024));
+            trackBar_Pos.Value = 0;
+            trackBar_Pos.Tag = 0;
+
+            while (true)
+            {
+                PressKeyForOtherApp();
+
+                toolStripProgressBar1.Style = ProgressBarStyle.Continuous;
+                toolStripProgressBar1.Value = toolStripProgressBar1.Minimum;
+                toolStripStatusLabel1.Text = download_str + " " + downitem.name;
+                toolStripProgressBar1.Maximum = 10000;
+
+                var internalToken = seekUDP_ct_source.Token;
+                var externalToken = Drive.ct;
+                try
+                {
+                    using (CancellationTokenSource linkedCts =
+                           CancellationTokenSource.CreateLinkedTokenSource(internalToken, externalToken))
+                    using (var ret = await Drive.downloadFile(downitem.id, SkipByte))
+                    using (var bufst = new BufferedStream(ret, ConfigAPI.CopyBufferSize))
+                    using (var f = new PositionStream(bufst, downitem.contentProperties.size.Value, SkipByte))
+                    {
+                        f.PosChangeEvent += (src, evnt) =>
+                        {
+                            synchronizationContext.Post(
+                                (o) =>
+                                {
+                                    if (linkedCts.Token.IsCancellationRequested) return;
+                                    var eo = o as PositionChangeEventArgs;
+                                    toolStripStatusLabel1.Text = download_str + eo.Log + " " + downitem.name;
+                                    toolStripProgressBar1.Value = (int)((double)eo.Position / eo.Length * 10000);
+                                }, evnt);
+                        };
+                        using (var UDP = new UDP_TS_Stream(linkedCts.Token))
+                        {
+                            label_sendname.Text = downitem.name;
+                            if (SeekUDPtoPos < TimeSpan.FromDays(30))
+                            {
+                                if (SendDuration != default(TimeSpan))
+                                    UDP.SendDuration = SendDuration - SeekUDPtoPos;
+
+                                if (InitialTOT != default(DateTime))
+                                    UDP.SendStartTime = InitialTOT + SeekUDPtoPos;
+                                else
+                                    UDP.SendDelay = SeekUDPtoPos;
+                            }
+                            else
+                            {
+                                UDP.SendDuration = SendDuration;
+                                if (SkipByte == null)
+                                {
+                                    UDP.SendDelay = SendStartDelay;
+                                    UDP.SendStartTime = SendStartTime;
+                                }
+                                else
+                                {
+                                    if (SendStartTime != default(DateTime))
+                                        UDP.SendStartTime = SendStartTime;
+                                    else if (InitialTOT != default(DateTime))
+                                        UDP.SendStartTime = InitialTOT + SendStartDelay;
+                                }
+                            }
+                            UDP.TOTChangeHander += (src, evnt) =>
+                            {
+                                synchronizationContext.Post(
+                                    (o) =>
+                                    {
+                                        //if (linkedCts.Token.IsCancellationRequested) return;
+                                        var eo = o as TOTChangeEventArgs;
+                                        if (InitialTOT == default(DateTime))
+                                        {
+                                            InitialTOT = (eo.initialTOT == default(DateTime)) ? eo.TOT_JST : eo.initialTOT;
+                                        }
+                                        bytePerSec = eo.bytePerSec;
+                                        trackBar_Pos.Tag = 1;
+                                        trackBar_Pos.Maximum = (int)(downitem.contentProperties.size / eo.bytePerSec);
+                                        trackBar_Pos.Value = (int)(((SkipByte ?? 0) + eo.Position) / eo.bytePerSec);
+                                        trackBar_Pos.Tag = 0;
+                                        label_stream.Text = string.Format(
+                                            "TOT:{0} pos {1} / {2} ({3} / {4})",
+                                            eo.TOT_JST.ToString(),
+                                            (eo.TOT_JST - InitialTOT).ToString(),
+                                            TimeSpan.FromSeconds(downitem.contentProperties.size.Value / eo.bytePerSec).ToString(),
+                                            (SkipByte ?? 0 + eo.Position).ToString("#,0"),
+                                            downitem.contentProperties.size.Value.ToString("#,0"));
+                                    }, evnt);
+                            };
+                            SeekUDPtoPos = TimeSpan.FromDays(100);
+                            await f.CopyToAsync(UDP, ConfigAPI.CopyBufferSize, linkedCts.Token);
+                        }
+                    }
+                    break;
+                }
+                catch (PlayEOF_CanceledException)
+                {
+                    break;
+                }
+                catch (SenderBreakCanceledException ex)
+                {
+                    bytePerSec = ex.bytePerSec;
+
+                    if (SkipByte != null)
+                        SkipByte += ex.WaitForByte;
+                    else
+                        SkipByte = ex.WaitForByte;
+
+                    if (InitialTOT == default(DateTime))
+                        InitialTOT = ex.InitialTOT;
+
+                    trackBar_Pos.Maximum = (int)(downitem.contentProperties.size / bytePerSec);
+
+                    if (SkipByte > downitem.contentProperties.size)
+                        break;
+                    continue;
+                }
+                catch (OperationCanceledException)
+                {
+                    if (internalToken.IsCancellationRequested)
+                    {
+                        if (SeekUDPtoPos < TimeSpan.FromDays(30))
+                        {
+                            SkipByte = (long)(SeekUDPtoPos.TotalSeconds * bytePerSec * 0.9);
+                            if (SkipByte > downitem.contentProperties.size)
+                                break;
+                            continue;
+                        }
+                        SeekUDPtoPos = TimeSpan.FromDays(100);
+                        nextUDPcount--;
+                        break;
+                    }
+                    else if (externalToken.IsCancellationRequested)
+                    {
+                        throw;
+                    }
+                    break;
+                }
+                catch (Exception)
+                {
+                    throw;
+                }
+            }
+        }
+
+        [DllImport("User32.dll")]
+        public static extern int PostMessage(IntPtr hWnd, int uMsg, int wParam, int lParam);
+
+        const int WM_KEYDOWN = 0x100;
+        const int WM_KEYUP = 0x101;
+
+        private void PressKeyForOtherApp()
+        {
+            try
+            {
+                var mainWindowHandle = System.Diagnostics.Process.GetProcessesByName(Config.SendVK_Application)[0].MainWindowHandle;
+                PostMessage(mainWindowHandle, WM_KEYDOWN, (int)Config.SendVK, 0);
+                PostMessage(mainWindowHandle, WM_KEYUP, (int)Config.SendVK, 0);
+            }
+            catch { }
+        }
+
+
+        private void textBox_Duration_Leave(object sender, EventArgs e)
+        {
+            if (textBox_Duration.Text == "")
+                SendDuration = default(TimeSpan);
+            else
+            {
+                try
+                {
+                    SendDuration = TimeSpan.FromSeconds(double.Parse(textBox_Duration.Text));
+                }
+                catch
+                {
+                    try
+                    {
+                        SendDuration = TimeSpan.Parse(textBox_Duration.Text);
+                    }
+                    catch
+                    {
+                        SendDuration = default(TimeSpan);
+                    }
+                }
+            }
+            textBox_Duration.Text = (SendDuration == default(TimeSpan)) ? "" : SendDuration.ToString();
+        }
+
+        private void textBox_StartTime_Leave(object sender, EventArgs e)
+        {
+            if (radioButton_AbsTime.Checked)
+            {
+                SendStartDelay = default(TimeSpan);
+                if (textBox_StartTime.Text == "")
+                    SendStartTime = default(DateTime);
+                else
+                {
+                    try
+                    {
+                        SendStartTime = DateTime.Parse(textBox_StartTime.Text);
+                    }
+                    catch
+                    {
+                        SendStartTime = default(DateTime);
+                    }
+                }
+                textBox_StartTime.Text = (SendStartTime == default(DateTime)) ? "" : SendStartTime.ToString();
+            }
+            if (radioButton_DiffTime.Checked)
+            {
+                SendStartTime = default(DateTime);
+                if (textBox_StartTime.Text == "")
+                    SendStartDelay = default(TimeSpan);
+                else
+                {
+                    try
+                    {
+                        SendStartDelay = TimeSpan.FromSeconds(double.Parse(textBox_StartTime.Text));
+                    }
+                    catch
+                    {
+                        try
+                        {
+                            SendStartDelay = TimeSpan.Parse(textBox_StartTime.Text);
+                        }
+                        catch
+                        {
+                            SendStartDelay = default(TimeSpan);
+                        }
+                    }
+                }
+                textBox_StartTime.Text = (SendStartDelay == default(TimeSpan)) ? "" : SendStartDelay.ToString();
+            }
+        }
+
+        private void trackBar_Pos_ValueChanged(object sender, EventArgs e)
+        {
+            if (trackBar_Pos.Tag as int? == 1)
+            {
+                if (SeekUDPtoPos < TimeSpan.FromDays(30))
+                {
+                    trackBar_Pos.Tag = 1;
+                    trackBar_Pos.Value = (int)SeekUDPtoPos.TotalSeconds;
+                    trackBar_Pos.Tag = 0;
+                }
+            }
+            else
+            {
+                timer1.Enabled = false;
+                SeekUDPtoPos = TimeSpan.FromSeconds(trackBar_Pos.Value);
+                label_stream.Text = string.Format(
+                    "seeking to {0}",
+                    SeekUDPtoPos.ToString());
+                timer1.Enabled = true;
+            }
+        }
+
+        private void trackBar_Pos_MouseCaptureChanged(object sender, EventArgs e)
+        {
+            SeekUDPtoPos = TimeSpan.FromSeconds(trackBar_Pos.Value);
+            timer1.Enabled = false;
+            timer1.Enabled = true;
+        }
+
+        private void timer1_Tick(object sender, EventArgs e)
+        {
+            SeekUDPtoPos = TimeSpan.FromSeconds(trackBar_Pos.Value);
+            timer1.Enabled = false;
+            CancelForSeekUDP();
+        }
+
+        private void button_next_Click(object sender, EventArgs e)
+        {
+            SeekUDPtoPos = TimeSpan.FromDays(100);
+            nextUDPcount++;
+            CancelForSeekUDP();
+        }
+
+
+        ////////////////////////////////////////////////////////////////////////////////////////////////
+        /// 
+        /// play files with given method(SendUDP, FFplay)
+        /// 
+        ////////////////////////////////////////////////////////////////////////////////////////////////
+
+        private delegate Task PlayOneFileDelegate(FileMetadata_Info downitem, string download_str);
+
+        private async Task PlayFiles(PlayOneFileDelegate func, string LogPrefix)
+        {
+            Config.Log.LogOut(LogPrefix + " media files Start.");
+            toolStripStatusLabel1.Text = "unable to download.";
+            if (!initialized) return;
+            var select = listView1.SelectedItems;
+            if (select.Count == 0) return;
+
+            var selectItem = select.OfType<ListViewItem>().Select(x => (x.Tag as ItemInfo).info).Where(x => x.kind != "FOLDER");
+
+            int f_all = selectItem.Count();
+            if (f_all == 0) return;
+
+            int f_cur = 0;
+            try
+            {
+                nextUDPcount = 0;
+                foreach (var downitem in selectItem)
+                {
+                    Config.Log.LogOut(LogPrefix + " download : " + downitem.name);
+                    var download_str = (f_all > 1) ? string.Format("Download({0}/{1})...", ++f_cur, f_all) : "Download...";
+
+                    if (downitem.contentProperties.size > ConfigAPI.FilenameChangeTrickSize)
+                    {
+                        Config.Log.LogOut(LogPrefix + " download : <BIG FILE> temporary filename change");
+                        Interlocked.Increment(ref CriticalCount);
+                        try
+                        {
+                            toolStripStatusLabel1.Text = "temporary filename change...";
+                            var tmpfile = await Drive.renameItem(downitem.id, ConfigAPI.temporaryFilename + downitem.id);
+                            try
+                            {
+                                await func(downitem, download_str);
+                            }
+                            finally
+                            {
+                                await Drive.renameItem(downitem.id, downitem.name);
+                            }
+                        }
+                        finally
+                        {
+                            Interlocked.Decrement(ref CriticalCount);
+                        }
+                    }
+                    else
+                    {
+                        await func(downitem, download_str);
+                    }
+
+                    Config.Log.LogOut(LogPrefix + " download : done.");
+                    toolStripStatusLabel1.Text = "download done.";
+                    toolStripProgressBar1.Value = toolStripProgressBar1.Minimum;
+                }
+
+                toolStripProgressBar1.Style = ProgressBarStyle.Continuous;
+                toolStripProgressBar1.Value = toolStripProgressBar1.Minimum;
+                toolStripStatusLabel1.Text = "Download Items done.";
+                toolStripProgressBar1.Maximum = 100;
+                toolStripProgressBar1.Step = 10;
+            }
+            catch (OperationCanceledException)
+            {
+                if (!Config.IsClosing)
+                {
+                    toolStripProgressBar1.Style = ProgressBarStyle.Continuous;
+                    toolStripProgressBar1.Value = toolStripProgressBar1.Minimum;
+                    toolStripStatusLabel1.Text = "Operation Aborted.";
+                }
+            }
+            catch (Exception ex)
+            {
+                Config.Log.LogOut(LogPrefix + " download : Error");
+                toolStripProgressBar1.Style = ProgressBarStyle.Continuous;
+                toolStripProgressBar1.Value = toolStripProgressBar1.Minimum;
+                toolStripStatusLabel1.Text = "Error detected.";
+                MessageBox.Show(LogPrefix + " : ERROR\r\n" + ex.Message);
+            }
+            label_sendname.Text = "Send Filename";
+            label_FFplay_sendname.Text = "Play Filename";
+        }
+
+        /////////////////////////////////////////////////////////////////////////////////////////////////
+
     }
 
     public class ItemInfo

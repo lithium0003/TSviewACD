@@ -28,6 +28,7 @@ namespace TSviewACD
         public static string contentUrl = "";
         public static string metadataUrl = "";
         public static DateTime URL_time;
+        public static bool debug = false;
 
         private static byte[] _salt = Encoding.ASCII.GetBytes("TSviewACD");
         private const string password = ConfigAPI.token_save_password;
