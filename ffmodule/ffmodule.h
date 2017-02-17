@@ -150,8 +150,9 @@ namespace ffmodule {
 		const int buffersize = 4 * 1024 + FF_INPUT_BUFFER_PADDING_SIZE;
 		gcroot<System::IO::Stream^> stream;
 		std::shared_ptr<uint8_t> buffer;
+		gcroot<System::Threading::CancellationToken^> ct;
 	public:
-		_Stream(System::IO::Stream^ stream);
+		_Stream(System::IO::Stream^ stream, System::Threading::CancellationToken^ ct);
 		~_Stream();
 
 		uint8_t *getbuffer() {
@@ -207,6 +208,8 @@ namespace ffmodule {
 
 		bool SetScreenSize(int width, int height);
 		bool SetScreenSize(int width, int height, int srcwidth, int srcheight);
+		void SetPosition(int x, int y);
+		void GetPosition(int * x, int * y);
 		bool IsFinished(uint64_t t);
 		bool SetFullScreen(bool fullscreen);
 
@@ -304,6 +307,7 @@ namespace ffmodule {
 		int             video_height;
 		int             video_srcwidth;
 		int             video_srcheight;
+		AVRational      video_SAR;
 
 		bool            deinterlace;
 
@@ -369,6 +373,8 @@ namespace ffmodule {
 
 			int FunctionTogglePause(SDL_Event & evnt);
 
+			int FunctionResizeOriginal(SDL_Event & evnt);
+
 			int invoke(int(_FFplayer::_FFplayerFuncs::*test)(SDL_Event &evnt), SDL_Event &evnt) {
 				return (this->*test)(evnt);
 			}
@@ -393,6 +399,7 @@ namespace ffmodule {
 			FuncForwardChapter,
 			FuncRewindChapter,
 			FuncTogglePause,
+			FuncResizeOriginal,
 		} FFplayer_KeyCommand;
 
 	private:
@@ -413,6 +420,7 @@ namespace ffmodule {
 			{ FuncForwardChapter,	SDLK_PAGEUP },
 			{ FuncRewindChapter,	SDLK_PAGEDOWN },
 			{ FuncTogglePause,		SDLK_p },
+			{ FuncResizeOriginal,	SDLK_0 },
 		};
 
 		const std::map<FFplayer_KeyCommand, std::pair<int(_FFplayer::_FFplayerFuncs::*)(SDL_Event &evnt), int(_FFplayer::_FFplayerFuncs::*)(SDL_Event &evnt)>> keyfunctionlist = {
@@ -432,6 +440,7 @@ namespace ffmodule {
 			{ FuncForwardChapter,	{ &_FFplayer::_FFplayerFuncs::FunctionForwardChapter,	&_FFplayer::_FFplayerFuncs::VoidFunction } },
 			{ FuncRewindChapter,	{ &_FFplayer::_FFplayerFuncs::FunctionRewindChapter,	&_FFplayer::_FFplayerFuncs::VoidFunction } },
 			{ FuncTogglePause,		{ &_FFplayer::_FFplayerFuncs::FunctionTogglePause,		&_FFplayer::_FFplayerFuncs::VoidFunction } },
+			{ FuncResizeOriginal,	{ &_FFplayer::_FFplayerFuncs::FunctionResizeOriginal,	&_FFplayer::_FFplayerFuncs::VoidFunction } },
 		};
 	public:
 		std::multimap<FFplayer_KeyCommand, SDL_Keycode> KeyFunctions;
@@ -448,6 +457,11 @@ namespace ffmodule {
 		double          playtime;
 		double          startskip;
 		double          stopduration;
+		int             screenwidth;
+		int             screenheight;
+		int             screenxpos;
+		int             screenypos;
+		bool            screenauto;
 
 		bool GetFullscreen() 
 		{
@@ -484,6 +498,7 @@ namespace ffmodule {
 		bool Configure_VideoFilter(AVFilterContext ** filt_in, AVFilterContext ** filt_out, AVFrame * frame, AVFilterGraph * graph);
 		static int video_thread(void *arg);
 		static int subtitle_thread(void * arg);
+		bool SetScreenSize(int width, int height, int src_width, int src_height);
 		int stream_component_open(int stream_index);
 		void stream_component_close(int stream_index);
 		static int decode_thread(void *arg);
@@ -506,6 +521,7 @@ namespace ffmodule {
 		int Play(Stream^ input, const char *name);
 		void ToggleFullscreen();
 		void ToggleFullscreen(bool fullscreen);
+		void ResizeOriginal();
 		void refresh_loop_wait_event(SDL_Event * event);
 		void EventOnVolumeChange();
 		void EventOnSeek(double value, bool frac, bool pre);

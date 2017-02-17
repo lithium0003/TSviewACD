@@ -28,9 +28,9 @@ BOOL APIENTRY DllMain( HMODULE hModule,
 	{
 	case DLL_PROCESS_ATTACH:
 		av_init_packet(&flush_pkt);
-		av_packet_from_data(&flush_pkt, (uint8_t *)FLUSH_STR, strlen(FLUSH_STR));
+		av_packet_from_data(&flush_pkt, (uint8_t *)FLUSH_STR, (int)strlen(FLUSH_STR));
 		av_init_packet(&eof_pkt);
-		av_packet_from_data(&eof_pkt, (uint8_t *)EOF_STR, strlen(EOF_STR));
+		av_packet_from_data(&eof_pkt, (uint8_t *)EOF_STR, (int)strlen(EOF_STR));
 		PlayerCount = 0;
 		hPlayEvent = CreateEvent(NULL, TRUE, TRUE, _T("ffmodule_playstop"));
 		hLogMutex = CreateMutex(NULL, FALSE, _T("ffmodule_logMutex"));

@@ -36,6 +36,7 @@
             this.toolTip1 = new System.Windows.Forms.ToolTip(this.components);
             this.label3 = new System.Windows.Forms.Label();
             this.label4 = new System.Windows.Forms.Label();
+            this.label6 = new System.Windows.Forms.Label();
             this.groupBox_keybord = new System.Windows.Forms.GroupBox();
             this.listView1 = new System.Windows.Forms.ListView();
             this.columnHeader_Command = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
@@ -51,15 +52,17 @@
             this.textBox_fontpath = new System.Windows.Forms.TextBox();
             this.openFileDialog1 = new System.Windows.Forms.OpenFileDialog();
             this.groupBox_speed = new System.Windows.Forms.GroupBox();
-            this.label6 = new System.Windows.Forms.Label();
-            this.textBox_timeout = new System.Windows.Forms.TextBox();
             this.label7 = new System.Windows.Forms.Label();
+            this.textBox_timeout = new System.Windows.Forms.TextBox();
+            this.groupBox_Screen = new System.Windows.Forms.GroupBox();
+            this.checkBox_autosize = new System.Windows.Forms.CheckBox();
             this.groupBox_Mouse.SuspendLayout();
             this.groupBox_keybord.SuspendLayout();
             this.contextMenuStrip1.SuspendLayout();
             this.groupBox_font.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.numericUpDown_FontSize)).BeginInit();
             this.groupBox_speed.SuspendLayout();
+            this.groupBox_Screen.SuspendLayout();
             this.SuspendLayout();
             // 
             // button1
@@ -123,6 +126,16 @@
             this.label4.TabIndex = 1;
             this.label4.Text = "Font file path for display";
             this.toolTip1.SetToolTip(this.label4, "画面表示に用いるフォントのパス");
+            // 
+            // label6
+            // 
+            this.label6.AutoSize = true;
+            this.label6.Location = new System.Drawing.Point(6, 24);
+            this.label6.Name = "label6";
+            this.label6.Size = new System.Drawing.Size(142, 24);
+            this.label6.TabIndex = 0;
+            this.label6.Text = "Disconnect and retry when\r\nthe speed is under";
+            this.toolTip1.SetToolTip(this.label6, "転送速度が以下の値を下回った場合は切断して再接続する");
             // 
             // groupBox_keybord
             // 
@@ -275,24 +288,6 @@
             this.groupBox_speed.TabStop = false;
             this.groupBox_speed.Text = "Speed Control";
             // 
-            // label6
-            // 
-            this.label6.AutoSize = true;
-            this.label6.Location = new System.Drawing.Point(6, 24);
-            this.label6.Name = "label6";
-            this.label6.Size = new System.Drawing.Size(142, 24);
-            this.label6.TabIndex = 0;
-            this.label6.Text = "Disconnect and retry when\r\nthe speed is under";
-            this.toolTip1.SetToolTip(this.label6, "転送速度が以下の値を下回った場合は切断して再接続する");
-            // 
-            // textBox_timeout
-            // 
-            this.textBox_timeout.Location = new System.Drawing.Point(50, 51);
-            this.textBox_timeout.Name = "textBox_timeout";
-            this.textBox_timeout.Size = new System.Drawing.Size(56, 19);
-            this.textBox_timeout.TabIndex = 1;
-            this.textBox_timeout.TextChanged += new System.EventHandler(this.textBox_timeout_TextChanged);
-            // 
             // label7
             // 
             this.label7.AutoSize = true;
@@ -302,11 +297,42 @@
             this.label7.TabIndex = 2;
             this.label7.Text = "KiB/s";
             // 
+            // textBox_timeout
+            // 
+            this.textBox_timeout.Location = new System.Drawing.Point(50, 51);
+            this.textBox_timeout.Name = "textBox_timeout";
+            this.textBox_timeout.Size = new System.Drawing.Size(56, 19);
+            this.textBox_timeout.TabIndex = 1;
+            this.textBox_timeout.TextChanged += new System.EventHandler(this.textBox_timeout_TextChanged);
+            // 
+            // groupBox_Screen
+            // 
+            this.groupBox_Screen.Controls.Add(this.checkBox_autosize);
+            this.groupBox_Screen.Location = new System.Drawing.Point(239, 273);
+            this.groupBox_Screen.Name = "groupBox_Screen";
+            this.groupBox_Screen.Size = new System.Drawing.Size(154, 56);
+            this.groupBox_Screen.TabIndex = 5;
+            this.groupBox_Screen.TabStop = false;
+            this.groupBox_Screen.Text = "Screen";
+            // 
+            // checkBox_autosize
+            // 
+            this.checkBox_autosize.AutoSize = true;
+            this.checkBox_autosize.Location = new System.Drawing.Point(8, 18);
+            this.checkBox_autosize.Name = "checkBox_autosize";
+            this.checkBox_autosize.Size = new System.Drawing.Size(127, 28);
+            this.checkBox_autosize.TabIndex = 0;
+            this.checkBox_autosize.Text = "Auto resize window \r\n to fit video";
+            this.toolTip1.SetToolTip(this.checkBox_autosize, "動画の大きさに合わせて自動的にウインドウをリサイズします");
+            this.checkBox_autosize.UseVisualStyleBackColor = true;
+            this.checkBox_autosize.CheckedChanged += new System.EventHandler(this.checkBox_autosize_CheckedChanged);
+            // 
             // FormFFmoduleConfig
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 12F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(405, 435);
+            this.Controls.Add(this.groupBox_Screen);
             this.Controls.Add(this.groupBox_speed);
             this.Controls.Add(this.groupBox_font);
             this.Controls.Add(this.groupBox_keybord);
@@ -326,6 +352,8 @@
             ((System.ComponentModel.ISupportInitialize)(this.numericUpDown_FontSize)).EndInit();
             this.groupBox_speed.ResumeLayout(false);
             this.groupBox_speed.PerformLayout();
+            this.groupBox_Screen.ResumeLayout(false);
+            this.groupBox_Screen.PerformLayout();
             this.ResumeLayout(false);
 
         }
@@ -357,5 +385,7 @@
         private System.Windows.Forms.Label label7;
         private System.Windows.Forms.TextBox textBox_timeout;
         private System.Windows.Forms.Label label6;
+        private System.Windows.Forms.GroupBox groupBox_Screen;
+        private System.Windows.Forms.CheckBox checkBox_autosize;
     }
 }

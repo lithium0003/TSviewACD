@@ -23,6 +23,7 @@ namespace TSviewACD
             textBox_fontpath.Text = Config.FontFilepath;
             numericUpDown_FontSize.Value = Config.FontPtSize;
             textBox_timeout.Text = Config.FFmodule_TransferLimit.ToString();
+            checkBox_autosize.Checked = Config.FFmodule_AutoResize;
 
             foreach(var item in Config.FFmoduleKeybinds)
             {
@@ -111,6 +112,11 @@ namespace TSviewACD
                             listitem.Tag = ffmodule.FFplayerKeymapFunction.FuncTogglePause;
                             listitem.Text = "Toggle Pause";
                             listitem.ToolTipText = "一時停止を切り替えます";
+                            break;
+                        case ffmodule.FFplayerKeymapFunction.FuncResizeOriginal:
+                            listitem.Tag = ffmodule.FFplayerKeymapFunction.FuncResizeOriginal;
+                            listitem.Text = "Resize to Original";
+                            listitem.ToolTipText = "オリジナルのサイズにリサイズします";
                             break;
                         default:
                             continue;
@@ -229,6 +235,11 @@ namespace TSviewACD
         {
             double.TryParse(textBox_timeout.Text, out Config.FFmodule_TransferLimit);
             textBox_timeout.Text = Config.FFmodule_TransferLimit.ToString();
+        }
+
+        private void checkBox_autosize_CheckedChanged(object sender, EventArgs e)
+        {
+            Config.FFmodule_AutoResize = checkBox_autosize.Checked;
         }
     }
 }

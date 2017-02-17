@@ -62,7 +62,8 @@ namespace ffmodule {
 				SDL_WINDOWPOS_CENTERED,
 				width, height,
 				(fullscreen? SDL_WINDOW_FULLSCREEN_DESKTOP : 0) |
-				(show ? SDL_WINDOW_SHOWN: SDL_WINDOW_HIDDEN)
+				(show ? SDL_WINDOW_SHOWN: SDL_WINDOW_HIDDEN) |
+				SDL_WINDOW_RESIZABLE
 			), &SDL_DestroyWindow);
 			if (window.get() == NULL) {
 				return false;
@@ -100,6 +101,16 @@ namespace ffmodule {
 		}
 
 		return true;
+	}
+
+	void SDLScreen::SetPosition(int x, int y)
+	{
+		SDL_SetWindowPosition(window.get(), x, y);
+	}
+
+	void SDLScreen::GetPosition(int *x, int *y)
+	{
+		SDL_GetWindowPosition(window.get(), x, y);
 	}
 
 	bool SDLScreen::IsFinished(uint64_t t)
@@ -479,10 +490,11 @@ namespace ffmodule {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	_Stream::_Stream(System::IO::Stream^ stream) :
+	_Stream::_Stream(System::IO::Stream^ stream, System::Threading::CancellationToken^ ct) :
 		buffer(reinterpret_cast<uint8_t *>(av_malloc(buffersize)), [](uint8_t *ptr) { }) //don't free. may be free internal
 	{
 		this->stream = stream;
+		this->ct = ct;
 	}
 
 	_Stream::~_Stream() {
@@ -491,6 +503,7 @@ namespace ffmodule {
 	int _Stream::read_packet(void *opaque, uint8_t *buf, int buf_size) 
 	{
 		_Stream* me = (_Stream *)opaque;
+		if (me->ct->IsCancellationRequested) return -1;
 		array<Byte>^ byteArray = gcnew array<Byte>(buf_size);
 		if (byteArray == nullptr) return 0;
 		int ret = me->stream->Read(byteArray, 0, buf_size);
@@ -503,6 +516,7 @@ namespace ffmodule {
 	int64_t _Stream::seek(void *opaque, int64_t offset, int whence) 
 	{
 		_Stream* me = (_Stream *)opaque;
+		if (me->ct->IsCancellationRequested) return -1;
 		switch (whence)
 		{
 		case SEEK_SET:
@@ -1155,37 +1169,47 @@ namespace ffmodule {
 					av_frame_unref(&frame);
 					while (av_buffersink_get_frame(filt_out, &frame) >= 0) {
 
-						if (frame.width != is->video_srcwidth || frame.height != is->video_srcheight) {
-							if(video_ctx->width != is->video_width || video_ctx->height != is->video_height) {
-								double aspect_ratio = 0;
-								if (video_ctx->sample_aspect_ratio.num == 0) {
-									aspect_ratio = 0;
-								}
-								else {
-									aspect_ratio = av_q2d(video_ctx->sample_aspect_ratio) *
-										frame.width / frame.height;
-								}
-								if (aspect_ratio <= 0.0) {
-									aspect_ratio = (double)frame.width /
-										(double)frame.height;
-								}
-								is->video_height = video_ctx->height;
-								is->video_width = ((int)rint(is->video_height * aspect_ratio)) & ~1;
+						if (frame.width != is->video_srcwidth || frame.height != is->video_srcheight
+							|| frame.sample_aspect_ratio.den != is->video_SAR.den || frame.sample_aspect_ratio.num != is->video_SAR.num)
+						{
+							is->video_SAR = frame.sample_aspect_ratio;
+							double aspect_ratio = 0;
+							if (video_ctx->sample_aspect_ratio.num == 0) {
+								aspect_ratio = 0;
+							}
+							else {
+								aspect_ratio = av_q2d(video_ctx->sample_aspect_ratio) *
+									frame.width / frame.height;
+							}
+							if (aspect_ratio <= 0.0) {
+								aspect_ratio = (double)frame.width /
+									(double)frame.height;
+							}
+							is->video_height = video_ctx->height;
+							is->video_width = ((int)rint(is->video_height * aspect_ratio)) & ~1;
 
-								uint64_t t = av_gettime();
-								while (!is->screen->RequestSrcSize(is->video_width, is->video_height, t))
-									SDL_Delay(100);
-								SDL_Event evnt = { 0 };
-								evnt.type = SDL_WINDOWEVENT;
-								evnt.window.event = SDL_WINDOWEVENT_RESIZED;
-								evnt.window.windowID = is->screen->GetWindowID();
+							uint64_t t = av_gettime();
+							while (!is->screen->RequestSrcSize(is->video_width, is->video_height, t))
+								SDL_Delay(100);
+							SDL_Event evnt = { 0 };
+							evnt.type = SDL_WINDOWEVENT;
+							evnt.window.event = SDL_WINDOWEVENT_RESIZED;
+							evnt.window.windowID = is->screen->GetWindowID();
+							if (is->screenauto) {
 								evnt.window.data1 = is->video_width;
 								evnt.window.data2 = is->video_height;
-								SDL_PushEvent(&evnt);
-								while (!is->screen->IsFinished(t))
-									SDL_Delay(100);
-
 							}
+							else {
+								evnt.window.data1 = is->screenwidth;
+								evnt.window.data2 = is->screenheight;
+							}
+							SDL_PushEvent(&evnt);
+							while (!is->screen->IsFinished(t))
+								SDL_Delay(100);
+							if (!is->screenauto) {
+								is->screen->SetPosition(is->screenxpos, is->screenypos);
+							}
+
 							// initialize SWS context for software scaling
 							is->video_srcheight = frame.height;
 							is->video_srcwidth = frame.width;
@@ -1197,6 +1221,7 @@ namespace ffmodule {
 									SWS_BICUBLIN, NULL, NULL, NULL
 								), &sws_freeContext);
 						}
+
 						int64_t pts_t;
 						if ((pts_t = av_frame_get_best_effort_timestamp(&frame)) == AV_NOPTS_VALUE) {
 							//pts = 0;
@@ -1348,6 +1373,34 @@ namespace ffmodule {
 		return 0;
 	}
 
+	bool _FFplayer::SetScreenSize(int width, int height, int src_width, int src_height)
+	{
+		if (SDL_GetThreadID(NULL) != mainthread) {
+			uint64_t t = av_gettime();
+			while (!screen->RequestSrcSize(src_width, src_height, t) && !IsQuit())
+				SDL_Delay(100);
+			if (IsQuit()) return false;
+
+			SDL_Event evnt = { 0 };
+			evnt.type = SDL_WINDOWEVENT;
+			evnt.window.event = SDL_WINDOWEVENT_RESIZED;
+			evnt.window.windowID = screen->GetWindowID();
+			evnt.window.data1 = width;
+			evnt.window.data2 = height;
+			SDL_PushEvent(&evnt);
+
+			while (!screen->IsFinished(t) && !IsQuit())
+				SDL_Delay(100);
+			if (IsQuit()) return false;
+		}
+		else {
+			SDL_LockMutex(screen_mutex.get());
+			screen->SetScreenSize(width, height, src_width, src_height);
+			SDL_UnlockMutex(screen_mutex.get());
+		}
+		return true;
+	}
+
 	int _FFplayer::stream_component_open(int stream_index)
 	{
 		std::shared_ptr<AVCodecContext> codecCtx;
@@ -1456,6 +1509,7 @@ namespace ffmodule {
 			video_current_pts_time = av_gettime();
 			
 			{
+				video_SAR = video_ctx->sample_aspect_ratio;
 				double aspect_ratio = 0;
 				if (video_ctx->sample_aspect_ratio.num == 0) {
 					aspect_ratio = 0;
@@ -1471,27 +1525,15 @@ namespace ffmodule {
 				video_height = codecCtx->height;
 				video_width = ((int)rint(video_height * aspect_ratio)) & ~1;
 
-				if (SDL_GetThreadID(NULL) != mainthread) {
-					uint64_t t = av_gettime();
-					while (!screen->RequestSrcSize(video_width, video_height, t) && !IsQuit())
-						SDL_Delay(100);
-					SDL_Event evnt = { 0 };
-					evnt.type = SDL_WINDOWEVENT;
-					evnt.window.event = SDL_WINDOWEVENT_RESIZED;
-					evnt.window.windowID = screen->GetWindowID();
-					evnt.window.data1 = video_width;
-					evnt.window.data2 = video_height;
-					SDL_PushEvent(&evnt);
-					while (!screen->IsFinished(t) && !IsQuit())
-						SDL_Delay(100);
-
-					if (IsQuit()) return -1;
-				}
+				bool ret;
+				if(screenauto)
+					ret = SetScreenSize(video_width, video_height, video_width, video_height);
 				else {
-					SDL_LockMutex(screen_mutex.get());
-					screen->SetScreenSize(video_width, video_height, video_width, video_height);
-					SDL_UnlockMutex(screen_mutex.get());
+					ret = SetScreenSize(screenwidth, screenheight, video_width, video_height);
+					screen->SetPosition(screenxpos, screenypos);
 				}
+				if (!ret)
+					return -1;
 
 				// initialize SWS context for software scaling
 				sws_ctx = std::shared_ptr<SwsContext>(
@@ -1658,23 +1700,29 @@ namespace ffmodule {
 				is->audio_only = true;
 				is->display_on = true;
 
-				SDL_Event evnt = { 0 };
-				evnt.type = SDL_WINDOWEVENT;
-				evnt.window.event = SDL_WINDOWEVENT_RESIZED;
-				evnt.window.windowID = is->screen->GetWindowID();
-				evnt.window.data1 = 640;
-				evnt.window.data2 = 480;
-				SDL_PushEvent(&evnt);
+				bool ret1;
+				if (is->screenauto)
+					ret1 = is->SetScreenSize(640, 480, 0, 0);
+				else {
+					ret1 = is->SetScreenSize(is->screenwidth, is->screenheight, 0, 0);
+					is->screen->SetPosition(is->screenxpos, is->screenypos);
+				}
+				if (!ret1)
+					return -1;
 
 				void *mem;
 				int ret = is->getimagefunc(&mem);
 				if (ret > 0) {
 					std::shared_ptr<SDL_Surface> bmp = std::shared_ptr<SDL_Surface>(SDL_LoadBMP_RW(SDL_RWFromMem(mem, ret), 1), &SDL_FreeSurface);
-					evnt.window.data1 = bmp->w;
-					evnt.window.data2 = bmp->h;
-					SDL_PushEvent(&evnt);
+					if(is->screenauto)
+						ret1 = is->SetScreenSize(bmp->w, bmp->h, 0, 0);
+					else {
+						ret1 = is->SetScreenSize(is->screenwidth, is->screenheight, 0, 0);
+						is->screen->SetPosition(is->screenxpos, is->screenypos);
+					}
 					is->screen->CreateStaticTexture(bmp.get());
 					av_free(mem);
+					if (!ret1) return -1;
 				}
 			}
 			else {
@@ -2559,7 +2607,12 @@ namespace ffmodule {
 		
 		mainthread = SDL_GetThreadID(NULL);
 
-		inputstream = std::shared_ptr<_Stream>(new _Stream(input));
+		if(screenwidth == 0 || screenheight == 0)
+			screen->GetPosition(&screenxpos, &screenypos);
+		screenwidth = (screenwidth <= 0) ? 640 : screenwidth;
+		screenheight = (screenheight <= 0) ? 480 : screenheight;
+
+		inputstream = std::shared_ptr<_Stream>(new _Stream(input, ct));
 		if (name) {
 			av_strlcpy(this->filename, name, strlen(name) + 1);
 		}
@@ -2597,6 +2650,14 @@ namespace ffmodule {
 		screen->SetFullScreen(IsFullscreen);
 		SDL_UnlockMutex(screen_mutex.get());
 		Redraw();
+	}
+
+	void _FFplayer::ResizeOriginal()
+	{
+		SetScreenSize(video_width, video_height, video_width, video_height);
+		screenwidth = video_width;
+		screenheight = video_height;
+		screen->GetPosition(&screenxpos, &screenypos);
 	}
 
 	void _FFplayer::refresh_loop_wait_event(SDL_Event *event) {
@@ -2743,9 +2804,17 @@ namespace ffmodule {
 				SDL_LockMutex(parent->screen_mutex.get());
 				if(parent->IsFullscreen)
 					parent->screen->SetScreenSize();
-				else
+				else {
 					parent->screen->SetScreenSize(evnt.window.data1, evnt.window.data2);
+					parent->screenwidth = evnt.window.data1;
+					parent->screenheight = evnt.window.data2;
+					if(!parent->screenauto)
+						parent->screen->SetPosition(parent->screenxpos, parent->screenypos);
+				}
 				SDL_UnlockMutex(parent->screen_mutex.get());
+				break;
+			case SDL_WINDOWEVENT_MOVED:
+				parent->screen->GetPosition(&parent->screenxpos, &parent->screenypos);
 				break;
 			default:
 				break;
@@ -2885,6 +2954,12 @@ namespace ffmodule {
 		return 0;
 	}
 
+	int _FFplayer::_FFplayerFuncs::FunctionResizeOriginal(SDL_Event &evnt)
+	{
+		parent->ResizeOriginal();
+		return 0;
+	}
+
 
 	bool _FFplayer::EventLoop()
 	{
@@ -3000,6 +3075,7 @@ namespace ffmodule {
 		FuncForwardChapter,
 		FuncRewindChapter,
 		FuncTogglePause,
+		FuncResizeOriginal,
 	};
 
 	ref class FFplayer;
@@ -3171,6 +3247,50 @@ namespace ffmodule {
 			}
 		}
 
+		property bool ScreenAuto {
+			bool get() {
+				return this->player->screenauto;
+			}
+			void set(bool value) {
+				this->player->screenauto = value;
+			}
+		}
+
+		property int ScreenWidth {
+			int get() {
+				return this->player->screenwidth;
+			}
+			void set(int value) {
+				this->player->screenwidth = value;
+			}
+		}
+
+		property int ScreenHeight {
+			int get() {
+				return this->player->screenheight;
+			}
+			void set(int value) {
+				this->player->screenheight = value;
+			}
+		}
+
+		property int ScreenXPos {
+			int get() {
+				return this->player->screenxpos;
+			}
+			void set(int value) {
+				this->player->screenxpos = value;
+			}
+		}
+
+		property int ScreenYPos {
+			int get() {
+				return this->player->screenypos;
+			}
+			void set(int value) {
+				this->player->screenypos = value;
+			}
+		}
 
 	private:
 		_FFplayer* player;

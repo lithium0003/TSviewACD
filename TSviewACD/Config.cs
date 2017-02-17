@@ -48,16 +48,22 @@ namespace TSviewACD
             { ffmodule.FFplayerKeymapFunction.FuncForwardChapter,   new FFmoduleKeysClass{System.Windows.Forms.Keys.PageUp} },
             { ffmodule.FFplayerKeymapFunction.FuncRewindChapter,    new FFmoduleKeysClass{System.Windows.Forms.Keys.PageDown} },
             { ffmodule.FFplayerKeymapFunction.FuncTogglePause,      new FFmoduleKeysClass{System.Windows.Forms.Keys.P} },
+            { ffmodule.FFplayerKeymapFunction.FuncResizeOriginal,   new FFmoduleKeysClass{System.Windows.Forms.Keys.D0} },
         };
         public static string FontFilepath = "ipaexg.ttf";
         public static int FontPtSize = 48;
         public static double FFmodule_TransferLimit = 512;
+        public static bool FFmodule_AutoResize = true;
         public static bool debug = false;
         // temporary
         public static bool FFmodule_fullscreen = false;
         public static bool FFmodule_display = false;
         public static double FFmodule_volume = 50;
         public static bool FFmodule_mute = false;
+        public static int FFmodule_width = 0;
+        public static int FFmodule_hight = 0;
+        public static int FFmodule_x = 0;
+        public static int FFmodule_y = 0;
 
         private static byte[] _salt = Encoding.ASCII.GetBytes("TSviewACD");
         private const string password = ConfigAPI.token_save_password;
@@ -246,6 +252,8 @@ namespace TSviewACD
                         FontPtSize = data.FontPtSize;
                     if (data.FFmodule_TransferLimit != default(double))
                         FFmodule_TransferLimit = data.FFmodule_TransferLimit;
+                    if (data.FFmodule_AutoResize != default(bool))
+                        FFmodule_AutoResize = data.FFmodule_AutoResize;
                     contentUrl = data.contentUrl;
                     metadataUrl = data.metadataUrl;
                     if (data.URL_time < DateTime.Now)
@@ -286,6 +294,7 @@ namespace TSviewACD
                     FontPtSize = FontPtSize,
                     FontFilepath = FontFilepath,
                     FFmodule_TransferLimit = FFmodule_TransferLimit,
+                    FFmodule_AutoResize = FFmodule_AutoResize,
                 };
                 serializer.WriteObject(xmlw, data);
             }
@@ -337,6 +346,8 @@ namespace TSviewACD
         public int FontPtSize;
         [DataMember]
         public double FFmodule_TransferLimit;
+        [DataMember]
+        public bool FFmodule_AutoResize;
     }
 
     [CollectionDataContract

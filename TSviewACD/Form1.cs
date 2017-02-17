@@ -2688,6 +2688,11 @@ namespace TSviewACD
                     Player.FontSize = Config.FontPtSize;
                     Player.Volume = Config.FFmodule_volume;
                     Player.Mute = Config.FFmodule_mute;
+                    Player.ScreenWidth = Config.FFmodule_width;
+                    Player.ScreenHeight = Config.FFmodule_hight;
+                    Player.ScreenXPos = Config.FFmodule_x;
+                    Player.ScreenYPos = Config.FFmodule_y;
+                    Player.ScreenAuto = Config.FFmodule_AutoResize;
                     Player.SetKeyFunctions(Config.FFmoduleKeybinds.Cast<dynamic>().ToDictionary(entry => (ffmodule.FFplayerKeymapFunction)entry.Key, entry => ((FFmoduleKeysClass)entry.Value).Cast<Keys>().ToArray()));
                     ffmodule.FFplayer.SetLogger(logwriter);
                     await PlayFiles(PlayOneFFmpegPlayer, "FFmpeg", data: Player);
@@ -2699,6 +2704,10 @@ namespace TSviewACD
                     Config.FFmodule_display = Player.Display;
                     Config.FFmodule_mute = Player.Mute;
                     Config.FFmodule_volume = Player.Volume;
+                    Config.FFmodule_width = Player.ScreenWidth;
+                    Config.FFmodule_hight = Player.ScreenHeight;
+                    Config.FFmodule_x = Player.ScreenXPos;
+                    Config.FFmodule_y = Player.ScreenYPos;
                     ffplayer = null;
                 }
             }

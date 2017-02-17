@@ -166,7 +166,7 @@ copy $(TargetPath) $(SolutionDir)bin</Command>
       <SubSystem>Windows</SubSystem>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <GenerateDebugInformation>No</GenerateDebugInformation>
     </Link>
     <PostBuildEvent>
       <Command>mkdir $(SolutionDir)bin

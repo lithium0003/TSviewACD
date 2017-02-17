@@ -79,10 +79,12 @@ namespace TSviewACD
                 data.Rate = (double)(data.Position - Prev) / (DateTime.Now - PrevTime).TotalSeconds;
                 PrevTime = DateTime.Now;
                 Rate_mean = (Rate_mean + data.Rate) / 2;
+                var togo = Math.Round((data.Length - data.Position) / Rate_mean);
+                togo = (double.IsInfinity(togo)) ? 0 : togo;
                 data.Log = data.Position.ToString("#,0") + '/' + data.Length.ToString("#,0")
                             + string.Format("({0:0.00%}) ", (double)data.Position / data.Length)
                             + ConvertUnit(Rate_mean)
-                            + " [to go " + TimeSpan.FromSeconds(Math.Round((data.Length - data.Position) / Rate_mean)).ToString() + " ] ";
+                            + " [to go " + TimeSpan.FromSeconds(togo).ToString() + " ] ";
                 try
                 {
                     PosChangeEvent?.Invoke(this, data);
