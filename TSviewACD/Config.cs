@@ -61,6 +61,7 @@ namespace TSviewACD
         public static bool LockPassword = false;
         public static bool UseEncryption = false;
         public static bool UseFilenameEncryption = false;
+        public static string Language = "";
         public static bool debug = false;
         // temporary
         public static bool FFmodule_fullscreen = false;
@@ -288,6 +289,8 @@ namespace TSviewACD
                         UseEncryption = data.UseEncryption;
                     if (data.UseFilenameEncryption != default(bool))
                         UseFilenameEncryption = data.UseFilenameEncryption;
+                    if (data.Language != default(string))
+                        Language = data.Language;
                     contentUrl = data.contentUrl;
                     metadataUrl = data.metadataUrl;
                     if (data.URL_time < DateTime.Now)
@@ -335,6 +338,7 @@ namespace TSviewACD
                         LockPassword = LockPassword,
                         UseEncryption = UseEncryption,
                         UseFilenameEncryption = UseFilenameEncryption,
+                        Language = Language,
                     };
                     serializer.WriteObject(xmlw, data);
                 }
@@ -397,6 +401,8 @@ namespace TSviewACD
         public bool UseEncryption;
         [DataMember]
         public bool UseFilenameEncryption;
+        [DataMember]
+        public string Language;
     }
 
     [CollectionDataContract

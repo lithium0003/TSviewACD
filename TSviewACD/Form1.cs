@@ -306,7 +306,7 @@ namespace TSviewACD
                 }, 0);
             rootitem.Tag = root;
             rootitem.Name = (root.info.id == DriveData.AmazonDriveRootID) ? "/" : ".";
-            rootitem.ToolTipText = "このフォルダ自身";
+            rootitem.ToolTipText = Resource_text.CurrentFolder_str;
             ret.Add(rootitem);
 
             var up = (root.info.id == DriveData.AmazonDriveRootID) ? DriveData.AmazonDriveTree[root.info.id] : DriveData.AmazonDriveTree[root.info.parents[0]];
@@ -323,7 +323,7 @@ namespace TSviewACD
                 }, 0);
             upitem.Tag = up;
             upitem.Name = (up.info.id == DriveData.AmazonDriveRootID) ? "/" : "..";
-            upitem.ToolTipText = "ひとつ上のフォルダ";
+            upitem.ToolTipText = Resource_text.UpFolder_str;
             ret.Add(upitem);
 
             var childitem = root.children.Values.Select(x =>
@@ -483,6 +483,19 @@ namespace TSviewACD
             textBox_Password.Text = Config.DrivePassword;
             checkBox_crypt.Checked = Config.UseEncryption;
             checkBox_cryptfilename.Checked = Config.UseFilenameEncryption;
+            checkBox_LockPassword.Checked = Config.LockPassword;
+            switch (Config.Language)
+            {
+                case "en":
+                    englishToolStripMenuItem.Checked = true;
+                    break;
+                case "ja":
+                    japaneseToolStripMenuItem.Checked = true;
+                    break;
+                case "":
+                    defaultToolStripMenuItem.Checked = true;
+                    break;
+            }
             await Login();
         }
 
@@ -1062,7 +1075,7 @@ namespace TSviewACD
             toolStripStatusLabel1.Text = "unable to upload.";
             if (!initialized) return;
             toolStripStatusLabel1.Text = "Upload...";
-            openFileDialog1.Title = "Select Upload File(s)";
+            openFileDialog1.Title = Resource_text.SelectUploadFiles_str;
             if (openFileDialog1.ShowDialog() != DialogResult.OK)
             {
                 toolStripStatusLabel1.Text = "Canceled.";
@@ -1077,9 +1090,13 @@ namespace TSviewACD
                 ItemInfo target = null;
                 try
                 {
-                    var currect = listView1.Items.Find(".", false);
-                    if (currect.Length == 0) return;
-                    target = (currect[0].Tag as ItemInfo);
+                    var current = listView1.Items.Find(".", false);
+                    if (current.Length == 0)
+                    {
+                        current = listView1.Items.Find("/", false);
+                        if (current.Length == 0) return;
+                    }
+                    target = (current[0].Tag as ItemInfo);
                     parent_id = target.info.id;
                 }
                 catch { }
@@ -1105,7 +1122,7 @@ namespace TSviewACD
         public async Task DoTrashItem(IEnumerable<string> trushids)
         {
             if (trushids.Count() == 0) return;
-            if (MessageBox.Show("Do you want to trash items?", "Trash Items", MessageBoxButtons.OKCancel) != DialogResult.OK) return;
+            if (MessageBox.Show(Resource_text.TrashItems_str, "Trash Items", MessageBoxButtons.OKCancel) != DialogResult.OK) return;
 
             var task = CreateTask("TrashItem");
             var ct = task.cts.Token;
@@ -3016,6 +3033,7 @@ namespace TSviewACD
 
         private void checkBox_LockPassword_CheckedChanged(object sender, EventArgs e)
         {
+            Config.LockPassword = checkBox_LockPassword.Checked;
             textBox_Password.Enabled = !checkBox_LockPassword.Checked;
         }
 
@@ -3034,6 +3052,31 @@ namespace TSviewACD
             Config.UseFilenameEncryption = checkBox_cryptfilename.Checked;
             if (Config.UseFilenameEncryption)
                 checkBox_crypt.Checked = true;
+        }
+
+
+        private void defaultToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            defaultToolStripMenuItem.Checked = true;
+            englishToolStripMenuItem.Checked = false;
+            japaneseToolStripMenuItem.Checked = false;
+            Config.Language = "";
+        }
+
+        private void englishToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            englishToolStripMenuItem.Checked = true;
+            defaultToolStripMenuItem.Checked = false;
+            japaneseToolStripMenuItem.Checked = false;
+            Config.Language = "en";
+        }
+
+        private void japaneseToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            japaneseToolStripMenuItem.Checked = true;
+            defaultToolStripMenuItem.Checked = false;
+            englishToolStripMenuItem.Checked = false;
+            Config.Language = "ja";
         }
     }
 

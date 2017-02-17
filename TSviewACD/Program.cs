@@ -1,8 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Globalization;
 using System.Linq;
 using System.Runtime.InteropServices;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
@@ -29,6 +31,18 @@ namespace TSviewACD
             Application.SetCompatibleTextRenderingDefault(false);
             if (args.Length == 0)
             {
+                try
+                {
+                    if (!string.IsNullOrWhiteSpace(Config.Language))
+                    {
+                        Thread.CurrentThread.CurrentCulture = CultureInfo.CreateSpecificCulture(Config.Language);
+                        Thread.CurrentThread.CurrentUICulture = Thread.CurrentThread.CurrentCulture;
+                    }
+                }
+                catch
+                {
+                    Config.Language = "";
+                }
                 MainForm = new Form1();
                 Application.Run(MainForm);
                 return 0;

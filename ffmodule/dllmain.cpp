@@ -15,7 +15,7 @@ HANDLE hPlayEvent;
 unsigned int PlayerCount = 0;
 HANDLE hLogMutex;
 
-extern "C" void my_log_callback(void *ptr, int level, const char *fmt, va_list vargs);
+extern "C" extern void my_log_callback(void *ptr, int level, const char *fmt, va_list vargs);
 
 static const char *FLUSH_STR = "FLUSH";
 static const char *EOF_STR = "EOF";

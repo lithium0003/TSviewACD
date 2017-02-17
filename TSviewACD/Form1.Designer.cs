@@ -66,7 +66,6 @@
             this.tabPage_SendUDP = new System.Windows.Forms.TabPage();
             this.button_next = new System.Windows.Forms.Button();
             this.label_stream = new System.Windows.Forms.Label();
-            this.label6 = new System.Windows.Forms.Label();
             this.radioButton_DiffTime = new System.Windows.Forms.RadioButton();
             this.radioButton_AbsTime = new System.Windows.Forms.RadioButton();
             this.label7 = new System.Windows.Forms.Label();
@@ -80,6 +79,7 @@
             this.textBox_HostName = new System.Windows.Forms.TextBox();
             this.button_stop = new System.Windows.Forms.Button();
             this.button_Play = new System.Windows.Forms.Button();
+            this.label6 = new System.Windows.Forms.Label();
             this.tabPage_UDPConfig = new System.Windows.Forms.TabPage();
             this.label19 = new System.Windows.Forms.Label();
             this.textBox_SendLongOffset = new System.Windows.Forms.TextBox();
@@ -133,6 +133,11 @@
             this.toolStripMenuItem_Logout = new System.Windows.Forms.ToolStripMenuItem();
             this.toolStripMenuItem1 = new System.Windows.Forms.ToolStripSeparator();
             this.exitToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.languageToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.defaultToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.toolStripMenuItem4 = new System.Windows.Forms.ToolStripSeparator();
+            this.englishToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.japaneseToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.viewToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.largeIconToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.smallIconToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
@@ -197,26 +202,26 @@
             // 
             // splitContainer1
             // 
-            this.splitContainer1.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.splitContainer1.Location = new System.Drawing.Point(0, 0);
+            resources.ApplyResources(this.splitContainer1, "splitContainer1");
             this.splitContainer1.Name = "splitContainer1";
-            this.splitContainer1.Orientation = System.Windows.Forms.Orientation.Horizontal;
             // 
             // splitContainer1.Panel1
             // 
+            resources.ApplyResources(this.splitContainer1.Panel1, "splitContainer1.Panel1");
             this.splitContainer1.Panel1.Controls.Add(this.tabControl1);
             this.splitContainer1.Panel1.Controls.Add(this.menuStrip1);
+            this.toolTip1.SetToolTip(this.splitContainer1.Panel1, resources.GetString("splitContainer1.Panel1.ToolTip"));
             // 
             // splitContainer1.Panel2
             // 
+            resources.ApplyResources(this.splitContainer1.Panel2, "splitContainer1.Panel2");
             this.splitContainer1.Panel2.Controls.Add(this.splitContainer2);
-            this.splitContainer1.Size = new System.Drawing.Size(874, 679);
-            this.splitContainer1.SplitterDistance = 122;
-            this.splitContainer1.TabIndex = 0;
+            this.toolTip1.SetToolTip(this.splitContainer1.Panel2, resources.GetString("splitContainer1.Panel2.ToolTip"));
+            this.toolTip1.SetToolTip(this.splitContainer1, resources.GetString("splitContainer1.ToolTip"));
             // 
             // tabControl1
             // 
-            this.tabControl1.Alignment = System.Windows.Forms.TabAlignment.Bottom;
+            resources.ApplyResources(this.tabControl1, "tabControl1");
             this.tabControl1.Controls.Add(this.tabPage_Navigation);
             this.tabControl1.Controls.Add(this.tabPage_Find);
             this.tabControl1.Controls.Add(this.tabPage_Folder);
@@ -225,18 +230,15 @@
             this.tabControl1.Controls.Add(this.tabPage_FFmpeg);
             this.tabControl1.Controls.Add(this.tabPage_Bandwidth);
             this.tabControl1.Controls.Add(this.tabPage_Crypt);
-            this.tabControl1.Dock = System.Windows.Forms.DockStyle.Fill;
             this.tabControl1.HotTrack = true;
-            this.tabControl1.Location = new System.Drawing.Point(0, 24);
             this.tabControl1.Multiline = true;
             this.tabControl1.Name = "tabControl1";
             this.tabControl1.SelectedIndex = 0;
-            this.tabControl1.ShowToolTips = true;
-            this.tabControl1.Size = new System.Drawing.Size(874, 98);
-            this.tabControl1.TabIndex = 6;
+            this.toolTip1.SetToolTip(this.tabControl1, resources.GetString("tabControl1.ToolTip"));
             // 
             // tabPage_Navigation
             // 
+            resources.ApplyResources(this.tabPage_Navigation, "tabPage_Navigation");
             this.tabPage_Navigation.Controls.Add(this.button_breakone);
             this.tabPage_Navigation.Controls.Add(this.label23);
             this.tabPage_Navigation.Controls.Add(this.listView_TaskList);
@@ -247,131 +249,96 @@
             this.tabPage_Navigation.Controls.Add(this.button_breakall);
             this.tabPage_Navigation.Controls.Add(this.textBox_path);
             this.tabPage_Navigation.Controls.Add(this.button_reload);
-            this.tabPage_Navigation.Location = new System.Drawing.Point(4, 4);
             this.tabPage_Navigation.Name = "tabPage_Navigation";
-            this.tabPage_Navigation.Padding = new System.Windows.Forms.Padding(3);
-            this.tabPage_Navigation.Size = new System.Drawing.Size(866, 72);
-            this.tabPage_Navigation.TabIndex = 0;
-            this.tabPage_Navigation.Text = "Navigation";
-            this.tabPage_Navigation.ToolTipText = "表示するフォルダの移動や、ファイルのアップロードをします";
+            this.toolTip1.SetToolTip(this.tabPage_Navigation, resources.GetString("tabPage_Navigation.ToolTip"));
             this.tabPage_Navigation.UseVisualStyleBackColor = true;
             // 
             // button_breakone
             // 
-            this.button_breakone.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.button_breakone.Location = new System.Drawing.Point(649, 21);
+            resources.ApplyResources(this.button_breakone, "button_breakone");
             this.button_breakone.Name = "button_breakone";
-            this.button_breakone.Size = new System.Drawing.Size(75, 23);
-            this.button_breakone.TabIndex = 10;
-            this.button_breakone.Text = "Cancel";
-            this.toolTip1.SetToolTip(this.button_breakone, "選択した実行中のタスクをキャンセルします");
+            this.toolTip1.SetToolTip(this.button_breakone, resources.GetString("button_breakone.ToolTip"));
             this.button_breakone.UseVisualStyleBackColor = true;
             this.button_breakone.Click += new System.EventHandler(this.button_breakone_Click);
             // 
             // label23
             // 
-            this.label23.AutoSize = true;
-            this.label23.Location = new System.Drawing.Point(643, 6);
+            resources.ApplyResources(this.label23, "label23");
             this.label23.Name = "label23";
-            this.label23.Size = new System.Drawing.Size(81, 12);
-            this.label23.TabIndex = 9;
-            this.label23.Text = "Running Tasks";
+            this.toolTip1.SetToolTip(this.label23, resources.GetString("label23.ToolTip"));
             // 
             // listView_TaskList
             // 
+            resources.ApplyResources(this.listView_TaskList, "listView_TaskList");
             this.listView_TaskList.Columns.AddRange(new System.Windows.Forms.ColumnHeader[] {
             this.columnHeader1});
             this.listView_TaskList.HeaderStyle = System.Windows.Forms.ColumnHeaderStyle.None;
-            this.listView_TaskList.Location = new System.Drawing.Point(730, 3);
             this.listView_TaskList.Name = "listView_TaskList";
-            this.listView_TaskList.Size = new System.Drawing.Size(128, 66);
-            this.listView_TaskList.TabIndex = 8;
+            this.toolTip1.SetToolTip(this.listView_TaskList, resources.GetString("listView_TaskList.ToolTip"));
             this.listView_TaskList.UseCompatibleStateImageBehavior = false;
             this.listView_TaskList.View = System.Windows.Forms.View.Details;
             // 
+            // columnHeader1
+            // 
+            resources.ApplyResources(this.columnHeader1, "columnHeader1");
+            // 
             // checkBox_MD5
             // 
-            this.checkBox_MD5.AutoSize = true;
-            this.checkBox_MD5.Location = new System.Drawing.Point(104, 46);
+            resources.ApplyResources(this.checkBox_MD5, "checkBox_MD5");
             this.checkBox_MD5.Name = "checkBox_MD5";
-            this.checkBox_MD5.Size = new System.Drawing.Size(81, 16);
-            this.checkBox_MD5.TabIndex = 7;
-            this.checkBox_MD5.Text = "check MD5";
-            this.toolTip1.SetToolTip(this.checkBox_MD5, "重複のチェックにMD5ハッシュ値も使用します");
+            this.toolTip1.SetToolTip(this.checkBox_MD5, resources.GetString("checkBox_MD5.ToolTip"));
             this.checkBox_MD5.UseVisualStyleBackColor = true;
             // 
             // checkBox_upSkip
             // 
-            this.checkBox_upSkip.AutoSize = true;
+            resources.ApplyResources(this.checkBox_upSkip, "checkBox_upSkip");
             this.checkBox_upSkip.Checked = true;
             this.checkBox_upSkip.CheckState = System.Windows.Forms.CheckState.Checked;
-            this.checkBox_upSkip.Location = new System.Drawing.Point(87, 31);
             this.checkBox_upSkip.Name = "checkBox_upSkip";
-            this.checkBox_upSkip.Size = new System.Drawing.Size(162, 16);
-            this.checkBox_upSkip.TabIndex = 6;
-            this.checkBox_upSkip.Text = "Skip already uploaded files";
-            this.toolTip1.SetToolTip(this.checkBox_upSkip, "アップロード時にファイルの重複をチェックし、重複している場合はスキップします");
+            this.toolTip1.SetToolTip(this.checkBox_upSkip, resources.GetString("checkBox_upSkip.ToolTip"));
             this.checkBox_upSkip.UseVisualStyleBackColor = true;
             // 
             // button_upload
             // 
-            this.button_upload.Location = new System.Drawing.Point(6, 31);
+            resources.ApplyResources(this.button_upload, "button_upload");
             this.button_upload.Name = "button_upload";
-            this.button_upload.Size = new System.Drawing.Size(75, 23);
-            this.button_upload.TabIndex = 3;
-            this.button_upload.Text = "upload";
-            this.toolTip1.SetToolTip(this.button_upload, "カレントフォルダにファイルをアップロードします");
+            this.toolTip1.SetToolTip(this.button_upload, resources.GetString("button_upload.ToolTip"));
             this.button_upload.UseVisualStyleBackColor = true;
             this.button_upload.Click += new System.EventHandler(this.button_upload_Click);
             // 
             // button_Go
             // 
-            this.button_Go.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.button_Go.Location = new System.Drawing.Point(523, 6);
+            resources.ApplyResources(this.button_Go, "button_Go");
             this.button_Go.Name = "button_Go";
-            this.button_Go.Size = new System.Drawing.Size(32, 23);
-            this.button_Go.TabIndex = 2;
-            this.button_Go.Text = "->";
-            this.toolTip1.SetToolTip(this.button_Go, "指定したパスに移動します");
+            this.toolTip1.SetToolTip(this.button_Go, resources.GetString("button_Go.ToolTip"));
             this.button_Go.UseVisualStyleBackColor = true;
             this.button_Go.Click += new System.EventHandler(this.button_Go_Click);
             // 
             // button_breakall
             // 
-            this.button_breakall.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.button_breakall.Location = new System.Drawing.Point(649, 49);
+            resources.ApplyResources(this.button_breakall, "button_breakall");
             this.button_breakall.Name = "button_breakall";
-            this.button_breakall.Size = new System.Drawing.Size(75, 23);
-            this.button_breakall.TabIndex = 5;
-            this.button_breakall.Text = "Cancel All";
-            this.toolTip1.SetToolTip(this.button_breakall, "実行中のタスクすべてをキャンセルします");
+            this.toolTip1.SetToolTip(this.button_breakall, resources.GetString("button_breakall.ToolTip"));
             this.button_breakall.UseVisualStyleBackColor = true;
             this.button_breakall.Click += new System.EventHandler(this.button_breakall_Click);
             // 
             // textBox_path
             // 
-            this.textBox_path.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
-            | System.Windows.Forms.AnchorStyles.Right)));
-            this.textBox_path.Location = new System.Drawing.Point(6, 6);
+            resources.ApplyResources(this.textBox_path, "textBox_path");
             this.textBox_path.Name = "textBox_path";
-            this.textBox_path.Size = new System.Drawing.Size(511, 19);
-            this.textBox_path.TabIndex = 0;
-            this.toolTip1.SetToolTip(this.textBox_path, "現在のパスおよび移動したいパス");
+            this.toolTip1.SetToolTip(this.textBox_path, resources.GetString("textBox_path.ToolTip"));
             // 
             // button_reload
             // 
-            this.button_reload.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.button_reload.Location = new System.Drawing.Point(442, 31);
+            resources.ApplyResources(this.button_reload, "button_reload");
             this.button_reload.Name = "button_reload";
-            this.button_reload.Size = new System.Drawing.Size(75, 23);
-            this.button_reload.TabIndex = 4;
-            this.button_reload.Text = "Reload";
-            this.toolTip1.SetToolTip(this.button_reload, "表示をリロードします");
+            this.toolTip1.SetToolTip(this.button_reload, resources.GetString("button_reload.ToolTip"));
             this.button_reload.UseVisualStyleBackColor = true;
             this.button_reload.Click += new System.EventHandler(this.button_reload_Click);
             // 
             // tabPage_Find
             // 
+            resources.ApplyResources(this.tabPage_Find, "tabPage_Find");
             this.tabPage_Find.Controls.Add(this.comboBox_FindStr);
             this.tabPage_Find.Controls.Add(this.label2);
             this.tabPage_Find.Controls.Add(this.radioButton_modifiedDate);
@@ -385,227 +352,150 @@
             this.tabPage_Find.Controls.Add(this.checkBox_File);
             this.tabPage_Find.Controls.Add(this.checkBox_Folder);
             this.tabPage_Find.Controls.Add(this.button_search);
-            this.tabPage_Find.Location = new System.Drawing.Point(4, 4);
             this.tabPage_Find.Name = "tabPage_Find";
-            this.tabPage_Find.Padding = new System.Windows.Forms.Padding(3);
-            this.tabPage_Find.Size = new System.Drawing.Size(866, 72);
-            this.tabPage_Find.TabIndex = 1;
-            this.tabPage_Find.Text = "Find";
-            this.tabPage_Find.ToolTipText = "検索を行います";
+            this.toolTip1.SetToolTip(this.tabPage_Find, resources.GetString("tabPage_Find.ToolTip"));
             this.tabPage_Find.UseVisualStyleBackColor = true;
             // 
             // comboBox_FindStr
             // 
-            this.comboBox_FindStr.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
-            | System.Windows.Forms.AnchorStyles.Right)));
+            resources.ApplyResources(this.comboBox_FindStr, "comboBox_FindStr");
             this.comboBox_FindStr.AutoCompleteMode = System.Windows.Forms.AutoCompleteMode.Suggest;
             this.comboBox_FindStr.AutoCompleteSource = System.Windows.Forms.AutoCompleteSource.ListItems;
             this.comboBox_FindStr.FormattingEnabled = true;
-            this.comboBox_FindStr.Location = new System.Drawing.Point(8, 20);
             this.comboBox_FindStr.Name = "comboBox_FindStr";
-            this.comboBox_FindStr.Size = new System.Drawing.Size(424, 20);
             this.comboBox_FindStr.Sorted = true;
-            this.comboBox_FindStr.TabIndex = 13;
-            this.toolTip1.SetToolTip(this.comboBox_FindStr, "検索したい文字列を入れてください");
+            this.toolTip1.SetToolTip(this.comboBox_FindStr, resources.GetString("comboBox_FindStr.ToolTip"));
             this.comboBox_FindStr.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.comboBox_FindStr_KeyPress);
             // 
             // label2
             // 
-            this.label2.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.label2.AutoSize = true;
-            this.label2.Location = new System.Drawing.Point(553, 5);
+            resources.ApplyResources(this.label2, "label2");
             this.label2.Name = "label2";
-            this.label2.Size = new System.Drawing.Size(96, 12);
-            this.label2.TabIndex = 12;
-            this.label2.Text = "Find by DateTime";
-            this.toolTip1.SetToolTip(this.label2, "日時で条件を絞ります");
+            this.toolTip1.SetToolTip(this.label2, resources.GetString("label2.ToolTip"));
             // 
             // radioButton_modifiedDate
             // 
-            this.radioButton_modifiedDate.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.radioButton_modifiedDate.AutoSize = true;
-            this.radioButton_modifiedDate.Location = new System.Drawing.Point(770, 3);
+            resources.ApplyResources(this.radioButton_modifiedDate, "radioButton_modifiedDate");
             this.radioButton_modifiedDate.Name = "radioButton_modifiedDate";
-            this.radioButton_modifiedDate.Size = new System.Drawing.Size(90, 16);
-            this.radioButton_modifiedDate.TabIndex = 11;
-            this.radioButton_modifiedDate.Text = "modifiedDate";
-            this.toolTip1.SetToolTip(this.radioButton_modifiedDate, "更新日時");
+            this.toolTip1.SetToolTip(this.radioButton_modifiedDate, resources.GetString("radioButton_modifiedDate.ToolTip"));
             this.radioButton_modifiedDate.UseVisualStyleBackColor = true;
             // 
             // radioButton_createTime
             // 
-            this.radioButton_createTime.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.radioButton_createTime.AutoSize = true;
+            resources.ApplyResources(this.radioButton_createTime, "radioButton_createTime");
             this.radioButton_createTime.Checked = true;
-            this.radioButton_createTime.Location = new System.Drawing.Point(679, 3);
             this.radioButton_createTime.Name = "radioButton_createTime";
-            this.radioButton_createTime.Size = new System.Drawing.Size(85, 16);
-            this.radioButton_createTime.TabIndex = 10;
             this.radioButton_createTime.TabStop = true;
-            this.radioButton_createTime.Text = "createdDate";
-            this.toolTip1.SetToolTip(this.radioButton_createTime, "作成日時");
+            this.toolTip1.SetToolTip(this.radioButton_createTime, resources.GetString("radioButton_createTime.ToolTip"));
             this.radioButton_createTime.UseVisualStyleBackColor = true;
             // 
             // checkBox_dateTo
             // 
-            this.checkBox_dateTo.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.checkBox_dateTo.AutoSize = true;
-            this.checkBox_dateTo.Location = new System.Drawing.Point(555, 49);
+            resources.ApplyResources(this.checkBox_dateTo, "checkBox_dateTo");
             this.checkBox_dateTo.Name = "checkBox_dateTo";
-            this.checkBox_dateTo.Size = new System.Drawing.Size(37, 16);
-            this.checkBox_dateTo.TabIndex = 9;
-            this.checkBox_dateTo.Text = "To";
-            this.toolTip1.SetToolTip(this.checkBox_dateTo, "チェックを入れるとこの日時以前のアイテムを対象とします");
+            this.toolTip1.SetToolTip(this.checkBox_dateTo, resources.GetString("checkBox_dateTo.ToolTip"));
             this.checkBox_dateTo.UseVisualStyleBackColor = true;
             // 
             // checkBox_dateFrom
             // 
-            this.checkBox_dateFrom.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.checkBox_dateFrom.AutoSize = true;
-            this.checkBox_dateFrom.Location = new System.Drawing.Point(555, 29);
+            resources.ApplyResources(this.checkBox_dateFrom, "checkBox_dateFrom");
             this.checkBox_dateFrom.Name = "checkBox_dateFrom";
-            this.checkBox_dateFrom.Size = new System.Drawing.Size(50, 16);
-            this.checkBox_dateFrom.TabIndex = 8;
-            this.checkBox_dateFrom.Text = "From";
-            this.toolTip1.SetToolTip(this.checkBox_dateFrom, "チェックを入れるとこの日時以降のアイテムを対象とします");
+            this.toolTip1.SetToolTip(this.checkBox_dateFrom, resources.GetString("checkBox_dateFrom.ToolTip"));
             this.checkBox_dateFrom.UseVisualStyleBackColor = true;
             // 
             // dateTimePicker_to
             // 
-            this.dateTimePicker_to.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.dateTimePicker_to.CustomFormat = "yyyy年MM月dd日(dddd) hh時mm分ss秒";
+            resources.ApplyResources(this.dateTimePicker_to, "dateTimePicker_to");
             this.dateTimePicker_to.Format = System.Windows.Forms.DateTimePickerFormat.Custom;
-            this.dateTimePicker_to.ImeMode = System.Windows.Forms.ImeMode.Off;
-            this.dateTimePicker_to.Location = new System.Drawing.Point(611, 46);
             this.dateTimePicker_to.Name = "dateTimePicker_to";
-            this.dateTimePicker_to.Size = new System.Drawing.Size(247, 19);
-            this.dateTimePicker_to.TabIndex = 7;
+            this.toolTip1.SetToolTip(this.dateTimePicker_to, resources.GetString("dateTimePicker_to.ToolTip"));
             // 
             // dateTimePicker_from
             // 
-            this.dateTimePicker_from.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.dateTimePicker_from.CustomFormat = "yyyy年MM月dd日(dddd) hh時mm分ss秒";
+            resources.ApplyResources(this.dateTimePicker_from, "dateTimePicker_from");
             this.dateTimePicker_from.Format = System.Windows.Forms.DateTimePickerFormat.Custom;
-            this.dateTimePicker_from.ImeMode = System.Windows.Forms.ImeMode.Off;
-            this.dateTimePicker_from.Location = new System.Drawing.Point(611, 25);
             this.dateTimePicker_from.Name = "dateTimePicker_from";
-            this.dateTimePicker_from.Size = new System.Drawing.Size(247, 19);
-            this.dateTimePicker_from.TabIndex = 6;
+            this.toolTip1.SetToolTip(this.dateTimePicker_from, resources.GetString("dateTimePicker_from.ToolTip"));
             // 
             // checkBox_Regex
             // 
-            this.checkBox_Regex.AutoSize = true;
-            this.checkBox_Regex.Location = new System.Drawing.Point(18, 44);
+            resources.ApplyResources(this.checkBox_Regex, "checkBox_Regex");
             this.checkBox_Regex.Name = "checkBox_Regex";
-            this.checkBox_Regex.Size = new System.Drawing.Size(56, 16);
-            this.checkBox_Regex.TabIndex = 5;
-            this.checkBox_Regex.Text = "Regex";
-            this.toolTip1.SetToolTip(this.checkBox_Regex, "チェックを入れると正規表現で検索します。\r\nチェックなしだと部分一致検索を行います。");
+            this.toolTip1.SetToolTip(this.checkBox_Regex, resources.GetString("checkBox_Regex.ToolTip"));
             this.checkBox_Regex.UseVisualStyleBackColor = true;
             // 
             // label1
             // 
-            this.label1.AutoSize = true;
-            this.label1.Location = new System.Drawing.Point(4, 5);
+            resources.ApplyResources(this.label1, "label1");
             this.label1.Name = "label1";
-            this.label1.Size = new System.Drawing.Size(51, 12);
-            this.label1.TabIndex = 4;
-            this.label1.Text = "Find text";
+            this.toolTip1.SetToolTip(this.label1, resources.GetString("label1.ToolTip"));
             // 
             // checkBox_File
             // 
-            this.checkBox_File.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.checkBox_File.AutoSize = true;
-            this.checkBox_File.Location = new System.Drawing.Point(451, 21);
+            resources.ApplyResources(this.checkBox_File, "checkBox_File");
             this.checkBox_File.Name = "checkBox_File";
-            this.checkBox_File.Size = new System.Drawing.Size(43, 16);
-            this.checkBox_File.TabIndex = 3;
-            this.checkBox_File.Text = "File";
-            this.toolTip1.SetToolTip(this.checkBox_File, "ファイルを検索対象とします");
+            this.toolTip1.SetToolTip(this.checkBox_File, resources.GetString("checkBox_File.ToolTip"));
             this.checkBox_File.UseVisualStyleBackColor = true;
             // 
             // checkBox_Folder
             // 
-            this.checkBox_Folder.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.checkBox_Folder.AutoSize = true;
-            this.checkBox_Folder.Location = new System.Drawing.Point(451, 3);
+            resources.ApplyResources(this.checkBox_Folder, "checkBox_Folder");
             this.checkBox_Folder.Name = "checkBox_Folder";
-            this.checkBox_Folder.Size = new System.Drawing.Size(56, 16);
-            this.checkBox_Folder.TabIndex = 2;
-            this.checkBox_Folder.Text = "Folder";
-            this.toolTip1.SetToolTip(this.checkBox_Folder, "フォルダを検索対象とします");
+            this.toolTip1.SetToolTip(this.checkBox_Folder, resources.GetString("checkBox_Folder.ToolTip"));
             this.checkBox_Folder.UseVisualStyleBackColor = true;
             // 
             // button_search
             // 
-            this.button_search.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.button_search.Location = new System.Drawing.Point(451, 37);
+            resources.ApplyResources(this.button_search, "button_search");
             this.button_search.Name = "button_search";
-            this.button_search.Size = new System.Drawing.Size(75, 23);
-            this.button_search.TabIndex = 1;
-            this.button_search.Text = "Search";
-            this.toolTip1.SetToolTip(this.button_search, "検索を開始します");
+            this.toolTip1.SetToolTip(this.button_search, resources.GetString("button_search.ToolTip"));
             this.button_search.UseVisualStyleBackColor = true;
             this.button_search.Click += new System.EventHandler(this.button_search_Click);
             // 
             // tabPage_Folder
             // 
+            resources.ApplyResources(this.tabPage_Folder, "tabPage_Folder");
             this.tabPage_Folder.Controls.Add(this.button_LocalRemoteMatch);
             this.tabPage_Folder.Controls.Add(this.textBox_newName);
             this.tabPage_Folder.Controls.Add(this.label3);
             this.tabPage_Folder.Controls.Add(this.button_mkdir);
-            this.tabPage_Folder.Location = new System.Drawing.Point(4, 4);
             this.tabPage_Folder.Name = "tabPage_Folder";
-            this.tabPage_Folder.Size = new System.Drawing.Size(866, 72);
-            this.tabPage_Folder.TabIndex = 2;
-            this.tabPage_Folder.Text = "Folder";
-            this.tabPage_Folder.ToolTipText = "フォルダの作成と、ローカルファイルとの一致チェックを行います";
+            this.toolTip1.SetToolTip(this.tabPage_Folder, resources.GetString("tabPage_Folder.ToolTip"));
             this.tabPage_Folder.UseVisualStyleBackColor = true;
             // 
             // button_LocalRemoteMatch
             // 
-            this.button_LocalRemoteMatch.Location = new System.Drawing.Point(753, 24);
+            resources.ApplyResources(this.button_LocalRemoteMatch, "button_LocalRemoteMatch");
             this.button_LocalRemoteMatch.Name = "button_LocalRemoteMatch";
-            this.button_LocalRemoteMatch.Size = new System.Drawing.Size(75, 23);
-            this.button_LocalRemoteMatch.TabIndex = 3;
-            this.button_LocalRemoteMatch.Text = "Check File";
-            this.toolTip1.SetToolTip(this.button_LocalRemoteMatch, "ローカルのファイルと、リモートのファイルが一致しているかを調べます");
+            this.toolTip1.SetToolTip(this.button_LocalRemoteMatch, resources.GetString("button_LocalRemoteMatch.ToolTip"));
             this.button_LocalRemoteMatch.UseVisualStyleBackColor = true;
             this.button_LocalRemoteMatch.Click += new System.EventHandler(this.button_LocalRemoteMatch_Click);
             // 
             // textBox_newName
             // 
-            this.textBox_newName.Location = new System.Drawing.Point(13, 26);
+            resources.ApplyResources(this.textBox_newName, "textBox_newName");
             this.textBox_newName.Name = "textBox_newName";
-            this.textBox_newName.Size = new System.Drawing.Size(188, 19);
-            this.textBox_newName.TabIndex = 2;
-            this.toolTip1.SetToolTip(this.textBox_newName, "カレントフォルダに指定した名前のフォルダを作成します");
+            this.toolTip1.SetToolTip(this.textBox_newName, resources.GetString("textBox_newName.ToolTip"));
             // 
             // label3
             // 
-            this.label3.AutoSize = true;
-            this.label3.Location = new System.Drawing.Point(11, 11);
+            resources.ApplyResources(this.label3, "label3");
             this.label3.Name = "label3";
-            this.label3.Size = new System.Drawing.Size(64, 12);
-            this.label3.TabIndex = 1;
-            this.label3.Text = " New Name";
+            this.toolTip1.SetToolTip(this.label3, resources.GetString("label3.ToolTip"));
             // 
             // button_mkdir
             // 
-            this.button_mkdir.Location = new System.Drawing.Point(207, 22);
+            resources.ApplyResources(this.button_mkdir, "button_mkdir");
             this.button_mkdir.Name = "button_mkdir";
-            this.button_mkdir.Size = new System.Drawing.Size(75, 23);
-            this.button_mkdir.TabIndex = 0;
-            this.button_mkdir.Text = "makeDir";
-            this.toolTip1.SetToolTip(this.button_mkdir, "カレントフォルダに指定した名前のフォルダを作成します");
+            this.toolTip1.SetToolTip(this.button_mkdir, resources.GetString("button_mkdir.ToolTip"));
             this.button_mkdir.UseVisualStyleBackColor = true;
             this.button_mkdir.Click += new System.EventHandler(this.button_mkdir_Click);
             // 
             // tabPage_SendUDP
             // 
+            resources.ApplyResources(this.tabPage_SendUDP, "tabPage_SendUDP");
             this.tabPage_SendUDP.Controls.Add(this.button_next);
             this.tabPage_SendUDP.Controls.Add(this.label_stream);
-            this.tabPage_SendUDP.Controls.Add(this.label6);
             this.tabPage_SendUDP.Controls.Add(this.radioButton_DiffTime);
             this.tabPage_SendUDP.Controls.Add(this.radioButton_AbsTime);
             this.tabPage_SendUDP.Controls.Add(this.label7);
@@ -619,185 +509,135 @@
             this.tabPage_SendUDP.Controls.Add(this.textBox_HostName);
             this.tabPage_SendUDP.Controls.Add(this.button_stop);
             this.tabPage_SendUDP.Controls.Add(this.button_Play);
-            this.tabPage_SendUDP.Location = new System.Drawing.Point(4, 4);
+            this.tabPage_SendUDP.Controls.Add(this.label6);
             this.tabPage_SendUDP.Name = "tabPage_SendUDP";
-            this.tabPage_SendUDP.Size = new System.Drawing.Size(866, 72);
-            this.tabPage_SendUDP.TabIndex = 3;
-            this.tabPage_SendUDP.Text = "Send UDP";
-            this.tabPage_SendUDP.ToolTipText = "選択したファイルをUDPで送信します";
+            this.toolTip1.SetToolTip(this.tabPage_SendUDP, resources.GetString("tabPage_SendUDP.ToolTip"));
             this.tabPage_SendUDP.UseVisualStyleBackColor = true;
             // 
             // button_next
             // 
-            this.button_next.Location = new System.Drawing.Point(810, -1);
+            resources.ApplyResources(this.button_next, "button_next");
             this.button_next.Name = "button_next";
-            this.button_next.Size = new System.Drawing.Size(48, 23);
-            this.button_next.TabIndex = 9;
-            this.button_next.Text = "Next >";
-            this.toolTip1.SetToolTip(this.button_next, "複数選択時、次のファイルに移ります");
+            this.toolTip1.SetToolTip(this.button_next, resources.GetString("button_next.ToolTip"));
             this.button_next.UseVisualStyleBackColor = true;
             this.button_next.Click += new System.EventHandler(this.button_next_Click);
             // 
             // label_stream
             // 
-            this.label_stream.AutoSize = true;
-            this.label_stream.Location = new System.Drawing.Point(317, 57);
+            resources.ApplyResources(this.label_stream, "label_stream");
             this.label_stream.Name = "label_stream";
-            this.label_stream.Size = new System.Drawing.Size(0, 12);
-            this.label_stream.TabIndex = 13;
-            // 
-            // label6
-            // 
-            this.label6.AutoSize = true;
-            this.label6.Location = new System.Drawing.Point(157, 23);
-            this.label6.Name = "label6";
-            this.label6.Size = new System.Drawing.Size(30, 12);
-            this.label6.TabIndex = 7;
-            this.label6.Text = "Start";
+            this.toolTip1.SetToolTip(this.label_stream, resources.GetString("label_stream.ToolTip"));
             // 
             // radioButton_DiffTime
             // 
-            this.radioButton_DiffTime.AutoSize = true;
+            resources.ApplyResources(this.radioButton_DiffTime, "radioButton_DiffTime");
             this.radioButton_DiffTime.Checked = true;
-            this.radioButton_DiffTime.Location = new System.Drawing.Point(118, 21);
             this.radioButton_DiffTime.Name = "radioButton_DiffTime";
-            this.radioButton_DiffTime.Size = new System.Drawing.Size(42, 16);
-            this.radioButton_DiffTime.TabIndex = 7;
             this.radioButton_DiffTime.TabStop = true;
-            this.radioButton_DiffTime.Text = "Diff";
-            this.toolTip1.SetToolTip(this.radioButton_DiffTime, "送信を開始するファイル先頭からのオフセット時間を指定します");
+            this.toolTip1.SetToolTip(this.radioButton_DiffTime, resources.GetString("radioButton_DiffTime.ToolTip"));
             this.radioButton_DiffTime.UseVisualStyleBackColor = true;
             // 
             // radioButton_AbsTime
             // 
-            this.radioButton_AbsTime.AutoSize = true;
-            this.radioButton_AbsTime.Location = new System.Drawing.Point(118, 6);
+            resources.ApplyResources(this.radioButton_AbsTime, "radioButton_AbsTime");
             this.radioButton_AbsTime.Name = "radioButton_AbsTime";
-            this.radioButton_AbsTime.Size = new System.Drawing.Size(69, 16);
-            this.radioButton_AbsTime.TabIndex = 6;
-            this.radioButton_AbsTime.Text = "Abs time";
-            this.toolTip1.SetToolTip(this.radioButton_AbsTime, "送信を開始する絶対日時を指定します");
+            this.toolTip1.SetToolTip(this.radioButton_AbsTime, resources.GetString("radioButton_AbsTime.ToolTip"));
             this.radioButton_AbsTime.UseVisualStyleBackColor = true;
             // 
             // label7
             // 
-            this.label7.AutoSize = true;
-            this.label7.Location = new System.Drawing.Point(136, 44);
+            resources.ApplyResources(this.label7, "label7");
             this.label7.Name = "label7";
-            this.label7.Size = new System.Drawing.Size(48, 12);
-            this.label7.TabIndex = 9;
-            this.label7.Text = "Duration";
+            this.toolTip1.SetToolTip(this.label7, resources.GetString("label7.ToolTip"));
             // 
             // textBox_Duration
             // 
-            this.textBox_Duration.ImeMode = System.Windows.Forms.ImeMode.Off;
-            this.textBox_Duration.Location = new System.Drawing.Point(190, 41);
+            resources.ApplyResources(this.textBox_Duration, "textBox_Duration");
             this.textBox_Duration.Name = "textBox_Duration";
-            this.textBox_Duration.Size = new System.Drawing.Size(69, 19);
-            this.textBox_Duration.TabIndex = 3;
-            this.toolTip1.SetToolTip(this.textBox_Duration, "送信を続ける長さを指定します。\r\n空白の場合は、ファイルをすべて送信します。");
+            this.toolTip1.SetToolTip(this.textBox_Duration, resources.GetString("textBox_Duration.ToolTip"));
             this.textBox_Duration.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.textBox_KeyPress);
             this.textBox_Duration.Leave += new System.EventHandler(this.textBox_Duration_Leave);
             // 
             // textBox_StartTime
             // 
-            this.textBox_StartTime.ImeMode = System.Windows.Forms.ImeMode.Off;
-            this.textBox_StartTime.Location = new System.Drawing.Point(190, 16);
+            resources.ApplyResources(this.textBox_StartTime, "textBox_StartTime");
             this.textBox_StartTime.Name = "textBox_StartTime";
-            this.textBox_StartTime.Size = new System.Drawing.Size(126, 19);
-            this.textBox_StartTime.TabIndex = 2;
-            this.toolTip1.SetToolTip(this.textBox_StartTime, "時間を指定します。空白の場合は直ちに送信を開始します。\r\nオフセット指定の場合は秒数またはHH:MM、HH:MM:SS\r\nといった形式を指定できます。\r\n絶対日時" +
-        "指定の場合は、一般的な日時指定が許容されます。");
+            this.toolTip1.SetToolTip(this.textBox_StartTime, resources.GetString("textBox_StartTime.ToolTip"));
             this.textBox_StartTime.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.textBox_KeyPress);
             this.textBox_StartTime.Leave += new System.EventHandler(this.textBox_StartTime_Leave);
             // 
             // trackBar_Pos
             // 
+            resources.ApplyResources(this.trackBar_Pos, "trackBar_Pos");
             this.trackBar_Pos.LargeChange = 30;
-            this.trackBar_Pos.Location = new System.Drawing.Point(319, 24);
             this.trackBar_Pos.Maximum = 3600;
             this.trackBar_Pos.Name = "trackBar_Pos";
-            this.trackBar_Pos.Size = new System.Drawing.Size(539, 45);
-            this.trackBar_Pos.TabIndex = 8;
             this.trackBar_Pos.TickFrequency = 300;
-            this.toolTip1.SetToolTip(this.trackBar_Pos, "送信しているストリームの位置をだいたいで表示します。\r\nシークも可能ですが、精度がよくないので当てにしないでください。");
+            this.toolTip1.SetToolTip(this.trackBar_Pos, resources.GetString("trackBar_Pos.ToolTip"));
             this.trackBar_Pos.ValueChanged += new System.EventHandler(this.trackBar_Pos_ValueChanged);
             this.trackBar_Pos.MouseCaptureChanged += new System.EventHandler(this.trackBar_Pos_MouseCaptureChanged);
             // 
             // label_sendname
             // 
-            this.label_sendname.AutoSize = true;
-            this.label_sendname.Location = new System.Drawing.Point(203, 0);
+            resources.ApplyResources(this.label_sendname, "label_sendname");
             this.label_sendname.Name = "label_sendname";
-            this.label_sendname.Size = new System.Drawing.Size(80, 12);
-            this.label_sendname.TabIndex = 4;
-            this.label_sendname.Text = "Send Filename";
+            this.toolTip1.SetToolTip(this.label_sendname, resources.GetString("label_sendname.ToolTip"));
             // 
             // label5
             // 
-            this.label5.AutoSize = true;
-            this.label5.Location = new System.Drawing.Point(5, 41);
+            resources.ApplyResources(this.label5, "label5");
             this.label5.Name = "label5";
-            this.label5.Size = new System.Drawing.Size(27, 12);
-            this.label5.TabIndex = 3;
-            this.label5.Text = "post";
+            this.toolTip1.SetToolTip(this.label5, resources.GetString("label5.ToolTip"));
             // 
             // textBox_Port
             // 
-            this.textBox_Port.ImeMode = System.Windows.Forms.ImeMode.Off;
-            this.textBox_Port.Location = new System.Drawing.Point(38, 38);
+            resources.ApplyResources(this.textBox_Port, "textBox_Port");
             this.textBox_Port.Name = "textBox_Port";
-            this.textBox_Port.Size = new System.Drawing.Size(38, 19);
-            this.textBox_Port.TabIndex = 1;
-            this.toolTip1.SetToolTip(this.textBox_Port, "送信対象ポート");
+            this.toolTip1.SetToolTip(this.textBox_Port, resources.GetString("textBox_Port.ToolTip"));
             this.textBox_Port.TextChanged += new System.EventHandler(this.textBox_Port_TextChanged);
             this.textBox_Port.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.textBox_KeyPress);
             // 
             // label4
             // 
-            this.label4.AutoSize = true;
-            this.label4.Location = new System.Drawing.Point(5, 16);
+            resources.ApplyResources(this.label4, "label4");
             this.label4.Name = "label4";
-            this.label4.Size = new System.Drawing.Size(27, 12);
-            this.label4.TabIndex = 1;
-            this.label4.Text = "host";
+            this.toolTip1.SetToolTip(this.label4, resources.GetString("label4.ToolTip"));
             // 
             // textBox_HostName
             // 
-            this.textBox_HostName.ImeMode = System.Windows.Forms.ImeMode.Off;
-            this.textBox_HostName.Location = new System.Drawing.Point(36, 13);
+            resources.ApplyResources(this.textBox_HostName, "textBox_HostName");
             this.textBox_HostName.Name = "textBox_HostName";
-            this.textBox_HostName.Size = new System.Drawing.Size(60, 19);
-            this.textBox_HostName.TabIndex = 0;
-            this.toolTip1.SetToolTip(this.textBox_HostName, "送信対象ホスト名");
+            this.toolTip1.SetToolTip(this.textBox_HostName, resources.GetString("textBox_HostName.ToolTip"));
             this.textBox_HostName.TextChanged += new System.EventHandler(this.textBox_HostName_TextChanged);
             this.textBox_HostName.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.textBox_KeyPress);
             // 
             // button_stop
             // 
+            resources.ApplyResources(this.button_stop, "button_stop");
             this.button_stop.Image = global::TSviewACD.Properties.Resources.stop;
-            this.button_stop.Location = new System.Drawing.Point(292, 37);
             this.button_stop.Name = "button_stop";
-            this.button_stop.Size = new System.Drawing.Size(24, 23);
-            this.button_stop.TabIndex = 5;
-            this.toolTip1.SetToolTip(this.button_stop, "ストップ");
+            this.toolTip1.SetToolTip(this.button_stop, resources.GetString("button_stop.ToolTip"));
             this.button_stop.UseVisualStyleBackColor = true;
             this.button_stop.Click += new System.EventHandler(this.button_Playbreak_Click);
             // 
             // button_Play
             // 
-            this.button_Play.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Center;
+            resources.ApplyResources(this.button_Play, "button_Play");
             this.button_Play.Image = global::TSviewACD.Properties.Resources.play;
-            this.button_Play.Location = new System.Drawing.Point(265, 37);
             this.button_Play.Name = "button_Play";
-            this.button_Play.Size = new System.Drawing.Size(24, 23);
-            this.button_Play.TabIndex = 4;
-            this.toolTip1.SetToolTip(this.button_Play, "送信開始");
+            this.toolTip1.SetToolTip(this.button_Play, resources.GetString("button_Play.ToolTip"));
             this.button_Play.UseVisualStyleBackColor = true;
             this.button_Play.Click += new System.EventHandler(this.button_Play_Click);
             // 
+            // label6
+            // 
+            resources.ApplyResources(this.label6, "label6");
+            this.label6.Name = "label6";
+            this.toolTip1.SetToolTip(this.label6, resources.GetString("label6.ToolTip"));
+            // 
             // tabPage_UDPConfig
             // 
+            resources.ApplyResources(this.tabPage_UDPConfig, "tabPage_UDPConfig");
             this.tabPage_UDPConfig.Controls.Add(this.label19);
             this.tabPage_UDPConfig.Controls.Add(this.textBox_SendLongOffset);
             this.tabPage_UDPConfig.Controls.Add(this.label20);
@@ -818,205 +658,142 @@
             this.tabPage_UDPConfig.Controls.Add(this.label9);
             this.tabPage_UDPConfig.Controls.Add(this.textBox_SendPacketNum);
             this.tabPage_UDPConfig.Controls.Add(this.label8);
-            this.tabPage_UDPConfig.Location = new System.Drawing.Point(4, 4);
             this.tabPage_UDPConfig.Name = "tabPage_UDPConfig";
-            this.tabPage_UDPConfig.Size = new System.Drawing.Size(866, 72);
-            this.tabPage_UDPConfig.TabIndex = 4;
-            this.tabPage_UDPConfig.Text = "UDP Config";
-            this.tabPage_UDPConfig.ToolTipText = "UDPで送信する際の詳細なパラメータを設定します";
+            this.toolTip1.SetToolTip(this.tabPage_UDPConfig, resources.GetString("tabPage_UDPConfig.ToolTip"));
             this.tabPage_UDPConfig.UseVisualStyleBackColor = true;
             // 
             // label19
             // 
-            this.label19.AutoSize = true;
-            this.label19.Location = new System.Drawing.Point(234, 51);
+            resources.ApplyResources(this.label19, "label19");
             this.label19.Name = "label19";
-            this.label19.Size = new System.Drawing.Size(20, 12);
-            this.label19.TabIndex = 19;
-            this.label19.Text = "ms";
+            this.toolTip1.SetToolTip(this.label19, resources.GetString("label19.ToolTip"));
             // 
             // textBox_SendLongOffset
             // 
-            this.textBox_SendLongOffset.ImeMode = System.Windows.Forms.ImeMode.Off;
-            this.textBox_SendLongOffset.Location = new System.Drawing.Point(183, 48);
+            resources.ApplyResources(this.textBox_SendLongOffset, "textBox_SendLongOffset");
             this.textBox_SendLongOffset.Name = "textBox_SendLongOffset";
-            this.textBox_SendLongOffset.Size = new System.Drawing.Size(45, 19);
-            this.textBox_SendLongOffset.TabIndex = 18;
-            this.toolTip1.SetToolTip(this.textBox_SendLongOffset, "送信開始からの時間と、ストリームとの時間を合わせる際に、先行して送る時間を設定します");
+            this.toolTip1.SetToolTip(this.textBox_SendLongOffset, resources.GetString("textBox_SendLongOffset.ToolTip"));
             this.textBox_SendLongOffset.TextChanged += new System.EventHandler(this.textBox_SendLongOffset_TextChanged);
             // 
             // label20
             // 
-            this.label20.AutoSize = true;
-            this.label20.Location = new System.Drawing.Point(17, 51);
+            resources.ApplyResources(this.label20, "label20");
             this.label20.Name = "label20";
-            this.label20.Size = new System.Drawing.Size(166, 12);
-            this.label20.TabIndex = 17;
-            this.label20.Text = "Long term bitrate control offset";
+            this.toolTip1.SetToolTip(this.label20, resources.GetString("label20.ToolTip"));
             // 
             // textBox_keySendApp
             // 
-            this.textBox_keySendApp.Location = new System.Drawing.Point(609, 48);
+            resources.ApplyResources(this.textBox_keySendApp, "textBox_keySendApp");
             this.textBox_keySendApp.Name = "textBox_keySendApp";
-            this.textBox_keySendApp.Size = new System.Drawing.Size(100, 19);
-            this.textBox_keySendApp.TabIndex = 16;
-            this.toolTip1.SetToolTip(this.textBox_keySendApp, "キーを送信するプロセス名を指定します");
+            this.toolTip1.SetToolTip(this.textBox_keySendApp, resources.GetString("textBox_keySendApp.ToolTip"));
             this.textBox_keySendApp.TextChanged += new System.EventHandler(this.textBox_keySendApp_TextChanged);
             // 
             // label18
             // 
-            this.label18.AutoSize = true;
-            this.label18.Location = new System.Drawing.Point(508, 51);
+            resources.ApplyResources(this.label18, "label18");
             this.label18.Name = "label18";
-            this.label18.Size = new System.Drawing.Size(95, 12);
-            this.label18.TabIndex = 15;
-            this.label18.Text = "Application Name";
+            this.toolTip1.SetToolTip(this.label18, resources.GetString("label18.ToolTip"));
             // 
             // label17
             // 
-            this.label17.AutoSize = true;
-            this.label17.Location = new System.Drawing.Point(505, 29);
+            resources.ApplyResources(this.label17, "label17");
             this.label17.Name = "label17";
-            this.label17.Size = new System.Drawing.Size(23, 12);
-            this.label17.TabIndex = 14;
-            this.label17.Text = "key";
+            this.toolTip1.SetToolTip(this.label17, resources.GetString("label17.ToolTip"));
             // 
             // textBox_VK
             // 
             this.textBox_VK.AcceptsReturn = true;
             this.textBox_VK.AcceptsTab = true;
-            this.textBox_VK.Location = new System.Drawing.Point(534, 26);
+            resources.ApplyResources(this.textBox_VK, "textBox_VK");
             this.textBox_VK.Name = "textBox_VK";
-            this.textBox_VK.Size = new System.Drawing.Size(100, 19);
-            this.textBox_VK.TabIndex = 13;
-            this.textBox_VK.Text = "(Press Any KEY)";
-            this.toolTip1.SetToolTip(this.textBox_VK, "ここで何かキーを押してください");
+            this.toolTip1.SetToolTip(this.textBox_VK, resources.GetString("textBox_VK.ToolTip"));
             this.textBox_VK.KeyDown += new System.Windows.Forms.KeyEventHandler(this.textBox_VK_KeyDown);
             // 
             // label16
             // 
-            this.label16.AutoSize = true;
-            this.label16.Location = new System.Drawing.Point(482, 11);
+            resources.ApplyResources(this.label16, "label16");
             this.label16.Name = "label16";
-            this.label16.Size = new System.Drawing.Size(282, 12);
-            this.label16.TabIndex = 12;
-            this.label16.Text = "Send a key to other Application when stream changed";
-            this.toolTip1.SetToolTip(this.label16, "送信開始時やシーク後に、他のソフトにキーを送りバッファのクリアなどに使用します");
+            this.toolTip1.SetToolTip(this.label16, resources.GetString("label16.ToolTip"));
             // 
             // label15
             // 
-            this.label15.AutoSize = true;
-            this.label15.Location = new System.Drawing.Point(413, 50);
+            resources.ApplyResources(this.label15, "label15");
             this.label15.Name = "label15";
-            this.label15.Size = new System.Drawing.Size(45, 12);
-            this.label15.TabIndex = 11;
-            this.label15.Text = "average";
+            this.toolTip1.SetToolTip(this.label15, resources.GetString("label15.ToolTip"));
             // 
             // textBox_SendRatebyTOTCount
             // 
-            this.textBox_SendRatebyTOTCount.ImeMode = System.Windows.Forms.ImeMode.Off;
-            this.textBox_SendRatebyTOTCount.Location = new System.Drawing.Point(361, 47);
+            resources.ApplyResources(this.textBox_SendRatebyTOTCount, "textBox_SendRatebyTOTCount");
             this.textBox_SendRatebyTOTCount.Name = "textBox_SendRatebyTOTCount";
-            this.textBox_SendRatebyTOTCount.Size = new System.Drawing.Size(46, 19);
-            this.textBox_SendRatebyTOTCount.TabIndex = 10;
-            this.toolTip1.SetToolTip(this.textBox_SendRatebyTOTCount, "ファイルのビットレートの推定に、TOTフレームいくつ分を使用するか指定します");
+            this.toolTip1.SetToolTip(this.textBox_SendRatebyTOTCount, resources.GetString("textBox_SendRatebyTOTCount.ToolTip"));
             this.textBox_SendRatebyTOTCount.TextChanged += new System.EventHandler(this.textBox_SendRatebyTOTCount_TextChanged);
             // 
             // label14
             // 
-            this.label14.AutoSize = true;
-            this.label14.Location = new System.Drawing.Point(280, 50);
+            resources.ApplyResources(this.label14, "label14");
             this.label14.Name = "label14";
-            this.label14.Size = new System.Drawing.Size(75, 12);
-            this.label14.TabIndex = 9;
-            this.label14.Text = "TOT(=5sec) *";
+            this.toolTip1.SetToolTip(this.label14, resources.GetString("label14.ToolTip"));
             // 
             // label13
             // 
-            this.label13.AutoSize = true;
-            this.label13.Location = new System.Drawing.Point(392, 28);
+            resources.ApplyResources(this.label13, "label13");
             this.label13.Name = "label13";
-            this.label13.Size = new System.Drawing.Size(77, 12);
-            this.label13.TabIndex = 8;
-            this.label13.Text = "times average";
+            this.toolTip1.SetToolTip(this.label13, resources.GetString("label13.ToolTip"));
             // 
             // textBox_SendRatebySendCount
             // 
-            this.textBox_SendRatebySendCount.ImeMode = System.Windows.Forms.ImeMode.Off;
-            this.textBox_SendRatebySendCount.Location = new System.Drawing.Point(338, 25);
+            resources.ApplyResources(this.textBox_SendRatebySendCount, "textBox_SendRatebySendCount");
             this.textBox_SendRatebySendCount.Name = "textBox_SendRatebySendCount";
-            this.textBox_SendRatebySendCount.Size = new System.Drawing.Size(48, 19);
-            this.textBox_SendRatebySendCount.TabIndex = 7;
-            this.toolTip1.SetToolTip(this.textBox_SendRatebySendCount, "送信ビットレートの計算を、送信何回分の平均とするかを指定します");
+            this.toolTip1.SetToolTip(this.textBox_SendRatebySendCount, resources.GetString("textBox_SendRatebySendCount.ToolTip"));
             this.textBox_SendRatebySendCount.TextChanged += new System.EventHandler(this.textBox_SendRatebySendCount_TextChanged);
             // 
             // label12
             // 
-            this.label12.AutoSize = true;
-            this.label12.Location = new System.Drawing.Point(280, 28);
+            resources.ApplyResources(this.label12, "label12");
             this.label12.Name = "label12";
-            this.label12.Size = new System.Drawing.Size(52, 12);
-            this.label12.TabIndex = 6;
-            this.label12.Text = "UDPsend";
+            this.toolTip1.SetToolTip(this.label12, resources.GetString("label12.ToolTip"));
             // 
             // label11
             // 
-            this.label11.AutoSize = true;
-            this.label11.Location = new System.Drawing.Point(248, 11);
+            resources.ApplyResources(this.label11, "label11");
             this.label11.Name = "label11";
-            this.label11.Size = new System.Drawing.Size(115, 12);
-            this.label11.TabIndex = 5;
-            this.label11.Text = "Bitrate calculation by";
+            this.toolTip1.SetToolTip(this.label11, resources.GetString("label11.ToolTip"));
             // 
             // label10
             // 
-            this.label10.AutoSize = true;
-            this.label10.Location = new System.Drawing.Point(183, 29);
+            resources.ApplyResources(this.label10, "label10");
             this.label10.Name = "label10";
-            this.label10.Size = new System.Drawing.Size(20, 12);
-            this.label10.TabIndex = 4;
-            this.label10.Text = "ms";
+            this.toolTip1.SetToolTip(this.label10, resources.GetString("label10.ToolTip"));
             // 
             // textBox_SendDelay
             // 
-            this.textBox_SendDelay.ImeMode = System.Windows.Forms.ImeMode.Off;
-            this.textBox_SendDelay.Location = new System.Drawing.Point(132, 26);
+            resources.ApplyResources(this.textBox_SendDelay, "textBox_SendDelay");
             this.textBox_SendDelay.Name = "textBox_SendDelay";
-            this.textBox_SendDelay.Size = new System.Drawing.Size(45, 19);
-            this.textBox_SendDelay.TabIndex = 3;
-            this.toolTip1.SetToolTip(this.textBox_SendDelay, "送信するごとに、余分にウエイトを入れて時間を調整します");
+            this.toolTip1.SetToolTip(this.textBox_SendDelay, resources.GetString("textBox_SendDelay.ToolTip"));
             this.textBox_SendDelay.TextChanged += new System.EventHandler(this.textBox_SendDelay_TextChanged);
             // 
             // label9
             // 
-            this.label9.AutoSize = true;
-            this.label9.Location = new System.Drawing.Point(17, 29);
+            resources.ApplyResources(this.label9, "label9");
             this.label9.Name = "label9";
-            this.label9.Size = new System.Drawing.Size(109, 12);
-            this.label9.TabIndex = 2;
-            this.label9.Text = "UDP send delay add";
+            this.toolTip1.SetToolTip(this.label9, resources.GetString("label9.ToolTip"));
             // 
             // textBox_SendPacketNum
             // 
-            this.textBox_SendPacketNum.ImeMode = System.Windows.Forms.ImeMode.Off;
-            this.textBox_SendPacketNum.Location = new System.Drawing.Point(183, 8);
+            resources.ApplyResources(this.textBox_SendPacketNum, "textBox_SendPacketNum");
             this.textBox_SendPacketNum.Name = "textBox_SendPacketNum";
-            this.textBox_SendPacketNum.Size = new System.Drawing.Size(37, 19);
-            this.textBox_SendPacketNum.TabIndex = 1;
-            this.toolTip1.SetToolTip(this.textBox_SendPacketNum, "一度に送信するパケットサイズ");
+            this.toolTip1.SetToolTip(this.textBox_SendPacketNum, resources.GetString("textBox_SendPacketNum.ToolTip"));
             this.textBox_SendPacketNum.TextChanged += new System.EventHandler(this.textBox_SendPacketNum_TextChanged);
             // 
             // label8
             // 
-            this.label8.AutoSize = true;
-            this.label8.Location = new System.Drawing.Point(17, 11);
+            resources.ApplyResources(this.label8, "label8");
             this.label8.Name = "label8";
-            this.label8.Size = new System.Drawing.Size(160, 12);
-            this.label8.TabIndex = 0;
-            this.label8.Text = "UDP send packet size = 188 *";
+            this.toolTip1.SetToolTip(this.label8, resources.GetString("label8.ToolTip"));
             // 
             // tabPage_FFmpeg
             // 
+            resources.ApplyResources(this.tabPage_FFmpeg, "tabPage_FFmpeg");
             this.tabPage_FFmpeg.Controls.Add(this.label26);
             this.tabPage_FFmpeg.Controls.Add(this.button_FFmoduleConfig);
             this.tabPage_FFmpeg.Controls.Add(this.label24);
@@ -1029,346 +806,306 @@
             this.tabPage_FFmpeg.Controls.Add(this.label_FFplay_sendname);
             this.tabPage_FFmpeg.Controls.Add(this.button_FFplay_stop);
             this.tabPage_FFmpeg.Controls.Add(this.button_FFplay);
-            this.tabPage_FFmpeg.Location = new System.Drawing.Point(4, 4);
             this.tabPage_FFmpeg.Name = "tabPage_FFmpeg";
-            this.tabPage_FFmpeg.Padding = new System.Windows.Forms.Padding(3);
-            this.tabPage_FFmpeg.Size = new System.Drawing.Size(866, 72);
-            this.tabPage_FFmpeg.TabIndex = 5;
-            this.tabPage_FFmpeg.Text = "FFmpeg";
-            this.tabPage_FFmpeg.ToolTipText = "選択したファイルを、FFmpegを使って再生します";
+            this.toolTip1.SetToolTip(this.tabPage_FFmpeg, resources.GetString("tabPage_FFmpeg.ToolTip"));
             this.tabPage_FFmpeg.UseVisualStyleBackColor = true;
             // 
             // label26
             // 
-            this.label26.AutoSize = true;
-            this.label26.Location = new System.Drawing.Point(8, 7);
+            resources.ApplyResources(this.label26, "label26");
             this.label26.Name = "label26";
-            this.label26.Size = new System.Drawing.Size(92, 24);
-            this.label26.TabIndex = 22;
-            this.label26.Text = "Key bindings for \r\nPlayer window";
-            this.toolTip1.SetToolTip(this.label26, "FFmpegを用いたプレーヤーの画面でのキー操作を変更します");
+            this.toolTip1.SetToolTip(this.label26, resources.GetString("label26.ToolTip"));
             // 
             // button_FFmoduleConfig
             // 
-            this.button_FFmoduleConfig.Location = new System.Drawing.Point(10, 32);
+            resources.ApplyResources(this.button_FFmoduleConfig, "button_FFmoduleConfig");
             this.button_FFmoduleConfig.Name = "button_FFmoduleConfig";
-            this.button_FFmoduleConfig.Size = new System.Drawing.Size(75, 23);
-            this.button_FFmoduleConfig.TabIndex = 1;
-            this.button_FFmoduleConfig.Text = "Config";
-            this.toolTip1.SetToolTip(this.button_FFmoduleConfig, "FFmpegを用いたプレーヤーの画面でのキー操作を変更します");
+            this.toolTip1.SetToolTip(this.button_FFmoduleConfig, resources.GetString("button_FFmoduleConfig.ToolTip"));
             this.button_FFmoduleConfig.UseVisualStyleBackColor = true;
             this.button_FFmoduleConfig.Click += new System.EventHandler(this.buttonFFmpegmoduleConfig_Click);
             // 
             // label24
             // 
-            this.label24.AutoSize = true;
-            this.label24.Location = new System.Drawing.Point(159, 14);
+            resources.ApplyResources(this.label24, "label24");
             this.label24.Name = "label24";
-            this.label24.Size = new System.Drawing.Size(30, 12);
-            this.label24.TabIndex = 20;
-            this.label24.Text = "Start";
+            this.toolTip1.SetToolTip(this.label24, resources.GetString("label24.ToolTip"));
             // 
             // label25
             // 
-            this.label25.AutoSize = true;
-            this.label25.Location = new System.Drawing.Point(138, 35);
+            resources.ApplyResources(this.label25, "label25");
             this.label25.Name = "label25";
-            this.label25.Size = new System.Drawing.Size(48, 12);
-            this.label25.TabIndex = 21;
-            this.label25.Text = "Duration";
+            this.toolTip1.SetToolTip(this.label25, resources.GetString("label25.ToolTip"));
             // 
             // textBox_FFplayDuration
             // 
-            this.textBox_FFplayDuration.ImeMode = System.Windows.Forms.ImeMode.Off;
-            this.textBox_FFplayDuration.Location = new System.Drawing.Point(192, 32);
+            resources.ApplyResources(this.textBox_FFplayDuration, "textBox_FFplayDuration");
             this.textBox_FFplayDuration.Name = "textBox_FFplayDuration";
-            this.textBox_FFplayDuration.Size = new System.Drawing.Size(69, 19);
-            this.textBox_FFplayDuration.TabIndex = 19;
-            this.toolTip1.SetToolTip(this.textBox_FFplayDuration, "再生する長さを指定します。\r\n空白の場合は、ファイルをすべて送信します。");
+            this.toolTip1.SetToolTip(this.textBox_FFplayDuration, resources.GetString("textBox_FFplayDuration.ToolTip"));
             this.textBox_FFplayDuration.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.textBox_KeyPress);
             this.textBox_FFplayDuration.Leave += new System.EventHandler(this.textBox_FFplayDuration_Leave);
             // 
             // textBox_FFplayStart
             // 
-            this.textBox_FFplayStart.ImeMode = System.Windows.Forms.ImeMode.Off;
-            this.textBox_FFplayStart.Location = new System.Drawing.Point(192, 7);
+            resources.ApplyResources(this.textBox_FFplayStart, "textBox_FFplayStart");
             this.textBox_FFplayStart.Name = "textBox_FFplayStart";
-            this.textBox_FFplayStart.Size = new System.Drawing.Size(69, 19);
-            this.textBox_FFplayStart.TabIndex = 18;
-            this.toolTip1.SetToolTip(this.textBox_FFplayStart, "先頭スキップする時間を指定します。空白の場合は頭から再生を開始します。\r\n秒数またはHH:MM、HH:MM:SSといった形式を指定できます。");
+            this.toolTip1.SetToolTip(this.textBox_FFplayStart, resources.GetString("textBox_FFplayStart.ToolTip"));
             this.textBox_FFplayStart.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.textBox_KeyPress);
             this.textBox_FFplayStart.Leave += new System.EventHandler(this.textBox_FFplayStart_Leave);
             // 
             // label_FFplay_stream
             // 
-            this.label_FFplay_stream.AutoSize = true;
-            this.label_FFplay_stream.Location = new System.Drawing.Point(335, 54);
+            resources.ApplyResources(this.label_FFplay_stream, "label_FFplay_stream");
             this.label_FFplay_stream.Name = "label_FFplay_stream";
-            this.label_FFplay_stream.Size = new System.Drawing.Size(0, 12);
-            this.label_FFplay_stream.TabIndex = 17;
+            this.toolTip1.SetToolTip(this.label_FFplay_stream, resources.GetString("label_FFplay_stream.ToolTip"));
             // 
             // button_FFplay_next
             // 
-            this.button_FFplay_next.Location = new System.Drawing.Point(818, 0);
+            resources.ApplyResources(this.button_FFplay_next, "button_FFplay_next");
             this.button_FFplay_next.Name = "button_FFplay_next";
-            this.button_FFplay_next.Size = new System.Drawing.Size(48, 20);
-            this.button_FFplay_next.TabIndex = 15;
-            this.button_FFplay_next.Text = "Next >";
-            this.toolTip1.SetToolTip(this.button_FFplay_next, "複数選択時、次のファイルに移ります");
+            this.toolTip1.SetToolTip(this.button_FFplay_next, resources.GetString("button_FFplay_next.ToolTip"));
             this.button_FFplay_next.UseVisualStyleBackColor = true;
             this.button_FFplay_next.Click += new System.EventHandler(this.button_FFplay_next_Click);
             // 
             // trackBar_FFplay_pos
             // 
+            resources.ApplyResources(this.trackBar_FFplay_pos, "trackBar_FFplay_pos");
             this.trackBar_FFplay_pos.LargeChange = 500;
-            this.trackBar_FFplay_pos.Location = new System.Drawing.Point(324, 22);
             this.trackBar_FFplay_pos.Maximum = 10000;
             this.trackBar_FFplay_pos.Name = "trackBar_FFplay_pos";
-            this.trackBar_FFplay_pos.Size = new System.Drawing.Size(539, 45);
-            this.trackBar_FFplay_pos.TabIndex = 14;
             this.trackBar_FFplay_pos.TickFrequency = 500;
-            this.toolTip1.SetToolTip(this.trackBar_FFplay_pos, "再生しているファイルの再生位置を示します。位置を操作することによりシークも可能です。\r\n正確な操作には、ウインドウからキーボードコマンドで入力してください。");
+            this.toolTip1.SetToolTip(this.trackBar_FFplay_pos, resources.GetString("trackBar_FFplay_pos.ToolTip"));
             this.trackBar_FFplay_pos.ValueChanged += new System.EventHandler(this.trackBar_FFplay_pos_ValueChanged);
             this.trackBar_FFplay_pos.MouseCaptureChanged += new System.EventHandler(this.trackBar_FFplay_pos_MouseCaptureChanged);
             // 
             // label_FFplay_sendname
             // 
-            this.label_FFplay_sendname.AutoSize = true;
-            this.label_FFplay_sendname.Location = new System.Drawing.Point(267, 7);
+            resources.ApplyResources(this.label_FFplay_sendname, "label_FFplay_sendname");
             this.label_FFplay_sendname.Name = "label_FFplay_sendname";
-            this.label_FFplay_sendname.Size = new System.Drawing.Size(77, 12);
-            this.label_FFplay_sendname.TabIndex = 11;
-            this.label_FFplay_sendname.Text = "Play Filename";
+            this.toolTip1.SetToolTip(this.label_FFplay_sendname, resources.GetString("label_FFplay_sendname.ToolTip"));
             // 
             // button_FFplay_stop
             // 
+            resources.ApplyResources(this.button_FFplay_stop, "button_FFplay_stop");
             this.button_FFplay_stop.Image = global::TSviewACD.Properties.Resources.stop;
-            this.button_FFplay_stop.Location = new System.Drawing.Point(294, 30);
             this.button_FFplay_stop.Name = "button_FFplay_stop";
-            this.button_FFplay_stop.Size = new System.Drawing.Size(24, 23);
-            this.button_FFplay_stop.TabIndex = 13;
-            this.toolTip1.SetToolTip(this.button_FFplay_stop, "FFplayストップ");
+            this.toolTip1.SetToolTip(this.button_FFplay_stop, resources.GetString("button_FFplay_stop.ToolTip"));
             this.button_FFplay_stop.UseVisualStyleBackColor = true;
             this.button_FFplay_stop.Click += new System.EventHandler(this.button_Playbreak_Click);
             // 
             // button_FFplay
             // 
-            this.button_FFplay.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Center;
+            resources.ApplyResources(this.button_FFplay, "button_FFplay");
             this.button_FFplay.Image = global::TSviewACD.Properties.Resources.play;
-            this.button_FFplay.Location = new System.Drawing.Point(267, 30);
             this.button_FFplay.Name = "button_FFplay";
-            this.button_FFplay.Size = new System.Drawing.Size(24, 23);
-            this.button_FFplay.TabIndex = 12;
-            this.toolTip1.SetToolTip(this.button_FFplay, "FFplay再生開始");
+            this.toolTip1.SetToolTip(this.button_FFplay, resources.GetString("button_FFplay.ToolTip"));
             this.button_FFplay.UseVisualStyleBackColor = true;
             this.button_FFplay.Click += new System.EventHandler(this.button_FFplay_Click);
             // 
             // tabPage_Bandwidth
             // 
+            resources.ApplyResources(this.tabPage_Bandwidth, "tabPage_Bandwidth");
             this.tabPage_Bandwidth.Controls.Add(this.comboBox_DownloadLimitUnit);
             this.tabPage_Bandwidth.Controls.Add(this.comboBox_UploadLimitUnit);
             this.tabPage_Bandwidth.Controls.Add(this.textBox_DownloadBandwidthLimit);
             this.tabPage_Bandwidth.Controls.Add(this.textBox_UploadBandwidthLimit);
             this.tabPage_Bandwidth.Controls.Add(this.label22);
             this.tabPage_Bandwidth.Controls.Add(this.label21);
-            this.tabPage_Bandwidth.Location = new System.Drawing.Point(4, 4);
             this.tabPage_Bandwidth.Name = "tabPage_Bandwidth";
-            this.tabPage_Bandwidth.Size = new System.Drawing.Size(866, 72);
-            this.tabPage_Bandwidth.TabIndex = 6;
-            this.tabPage_Bandwidth.Text = "Bandwidth";
-            this.tabPage_Bandwidth.ToolTipText = "転送の帯域を制限します";
+            this.toolTip1.SetToolTip(this.tabPage_Bandwidth, resources.GetString("tabPage_Bandwidth.ToolTip"));
             this.tabPage_Bandwidth.UseVisualStyleBackColor = true;
             // 
             // comboBox_DownloadLimitUnit
             // 
+            resources.ApplyResources(this.comboBox_DownloadLimitUnit, "comboBox_DownloadLimitUnit");
             this.comboBox_DownloadLimitUnit.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
             this.comboBox_DownloadLimitUnit.FormattingEnabled = true;
             this.comboBox_DownloadLimitUnit.Items.AddRange(new object[] {
-            "Infinity",
-            "GiB/s",
-            "MiB/s",
-            "KiB/s",
-            "Byte/s",
-            "KB/s",
-            "MB/s",
-            "GB/s"});
-            this.comboBox_DownloadLimitUnit.Location = new System.Drawing.Point(275, 39);
+            resources.GetString("comboBox_DownloadLimitUnit.Items"),
+            resources.GetString("comboBox_DownloadLimitUnit.Items1"),
+            resources.GetString("comboBox_DownloadLimitUnit.Items2"),
+            resources.GetString("comboBox_DownloadLimitUnit.Items3"),
+            resources.GetString("comboBox_DownloadLimitUnit.Items4"),
+            resources.GetString("comboBox_DownloadLimitUnit.Items5"),
+            resources.GetString("comboBox_DownloadLimitUnit.Items6"),
+            resources.GetString("comboBox_DownloadLimitUnit.Items7")});
             this.comboBox_DownloadLimitUnit.Name = "comboBox_DownloadLimitUnit";
-            this.comboBox_DownloadLimitUnit.Size = new System.Drawing.Size(74, 20);
-            this.comboBox_DownloadLimitUnit.TabIndex = 5;
+            this.toolTip1.SetToolTip(this.comboBox_DownloadLimitUnit, resources.GetString("comboBox_DownloadLimitUnit.ToolTip"));
             this.comboBox_DownloadLimitUnit.SelectedIndexChanged += new System.EventHandler(this.comboBox_DownloadLimitUnit_SelectedIndexChanged);
             // 
             // comboBox_UploadLimitUnit
             // 
+            resources.ApplyResources(this.comboBox_UploadLimitUnit, "comboBox_UploadLimitUnit");
             this.comboBox_UploadLimitUnit.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
             this.comboBox_UploadLimitUnit.FormattingEnabled = true;
             this.comboBox_UploadLimitUnit.Items.AddRange(new object[] {
-            "Infinity",
-            "GiB/s",
-            "MiB/s",
-            "KiB/s",
-            "Byte/s",
-            "KB/s",
-            "MB/s",
-            "GB/s"});
-            this.comboBox_UploadLimitUnit.Location = new System.Drawing.Point(275, 7);
+            resources.GetString("comboBox_UploadLimitUnit.Items"),
+            resources.GetString("comboBox_UploadLimitUnit.Items1"),
+            resources.GetString("comboBox_UploadLimitUnit.Items2"),
+            resources.GetString("comboBox_UploadLimitUnit.Items3"),
+            resources.GetString("comboBox_UploadLimitUnit.Items4"),
+            resources.GetString("comboBox_UploadLimitUnit.Items5"),
+            resources.GetString("comboBox_UploadLimitUnit.Items6"),
+            resources.GetString("comboBox_UploadLimitUnit.Items7")});
             this.comboBox_UploadLimitUnit.Name = "comboBox_UploadLimitUnit";
-            this.comboBox_UploadLimitUnit.Size = new System.Drawing.Size(74, 20);
-            this.comboBox_UploadLimitUnit.TabIndex = 4;
+            this.toolTip1.SetToolTip(this.comboBox_UploadLimitUnit, resources.GetString("comboBox_UploadLimitUnit.ToolTip"));
             this.comboBox_UploadLimitUnit.SelectedIndexChanged += new System.EventHandler(this.comboBox_UploadLimitUnit_SelectedIndexChanged);
             // 
             // textBox_DownloadBandwidthLimit
             // 
-            this.textBox_DownloadBandwidthLimit.ImeMode = System.Windows.Forms.ImeMode.Disable;
-            this.textBox_DownloadBandwidthLimit.Location = new System.Drawing.Point(157, 39);
+            resources.ApplyResources(this.textBox_DownloadBandwidthLimit, "textBox_DownloadBandwidthLimit");
             this.textBox_DownloadBandwidthLimit.Name = "textBox_DownloadBandwidthLimit";
-            this.textBox_DownloadBandwidthLimit.Size = new System.Drawing.Size(100, 19);
-            this.textBox_DownloadBandwidthLimit.TabIndex = 3;
+            this.toolTip1.SetToolTip(this.textBox_DownloadBandwidthLimit, resources.GetString("textBox_DownloadBandwidthLimit.ToolTip"));
             this.textBox_DownloadBandwidthLimit.TextChanged += new System.EventHandler(this.textBox_DownloadBandwidthLimit_TextChanged);
             // 
             // textBox_UploadBandwidthLimit
             // 
-            this.textBox_UploadBandwidthLimit.ImeMode = System.Windows.Forms.ImeMode.Disable;
-            this.textBox_UploadBandwidthLimit.Location = new System.Drawing.Point(157, 8);
+            resources.ApplyResources(this.textBox_UploadBandwidthLimit, "textBox_UploadBandwidthLimit");
             this.textBox_UploadBandwidthLimit.Name = "textBox_UploadBandwidthLimit";
-            this.textBox_UploadBandwidthLimit.Size = new System.Drawing.Size(100, 19);
-            this.textBox_UploadBandwidthLimit.TabIndex = 2;
+            this.toolTip1.SetToolTip(this.textBox_UploadBandwidthLimit, resources.GetString("textBox_UploadBandwidthLimit.ToolTip"));
             this.textBox_UploadBandwidthLimit.TextChanged += new System.EventHandler(this.textBox_UploadBandwidhtLimit_TextChanged);
             // 
             // label22
             // 
-            this.label22.AutoSize = true;
-            this.label22.Location = new System.Drawing.Point(8, 42);
+            resources.ApplyResources(this.label22, "label22");
             this.label22.Name = "label22";
-            this.label22.Size = new System.Drawing.Size(140, 12);
-            this.label22.TabIndex = 1;
-            this.label22.Text = "Download Bandwidth Limit";
+            this.toolTip1.SetToolTip(this.label22, resources.GetString("label22.ToolTip"));
             // 
             // label21
             // 
-            this.label21.AutoSize = true;
-            this.label21.Location = new System.Drawing.Point(8, 11);
+            resources.ApplyResources(this.label21, "label21");
             this.label21.Name = "label21";
-            this.label21.Size = new System.Drawing.Size(126, 12);
-            this.label21.TabIndex = 0;
-            this.label21.Text = "Upload Bandwidth Limit";
+            this.toolTip1.SetToolTip(this.label21, resources.GetString("label21.ToolTip"));
             // 
             // tabPage_Crypt
             // 
+            resources.ApplyResources(this.tabPage_Crypt, "tabPage_Crypt");
             this.tabPage_Crypt.Controls.Add(this.checkBox_LockPassword);
             this.tabPage_Crypt.Controls.Add(this.label27);
             this.tabPage_Crypt.Controls.Add(this.textBox_Password);
             this.tabPage_Crypt.Controls.Add(this.checkBox_cryptfilename);
             this.tabPage_Crypt.Controls.Add(this.checkBox_crypt);
-            this.tabPage_Crypt.Location = new System.Drawing.Point(4, 4);
             this.tabPage_Crypt.Name = "tabPage_Crypt";
-            this.tabPage_Crypt.Size = new System.Drawing.Size(866, 72);
-            this.tabPage_Crypt.TabIndex = 7;
-            this.tabPage_Crypt.Text = "Crypt";
+            this.toolTip1.SetToolTip(this.tabPage_Crypt, resources.GetString("tabPage_Crypt.ToolTip"));
             this.tabPage_Crypt.UseVisualStyleBackColor = true;
             // 
             // checkBox_LockPassword
             // 
-            this.checkBox_LockPassword.AutoSize = true;
-            this.checkBox_LockPassword.Location = new System.Drawing.Point(259, 17);
+            resources.ApplyResources(this.checkBox_LockPassword, "checkBox_LockPassword");
             this.checkBox_LockPassword.Name = "checkBox_LockPassword";
-            this.checkBox_LockPassword.Size = new System.Drawing.Size(101, 16);
-            this.checkBox_LockPassword.TabIndex = 4;
-            this.checkBox_LockPassword.Text = "Lock Password";
+            this.toolTip1.SetToolTip(this.checkBox_LockPassword, resources.GetString("checkBox_LockPassword.ToolTip"));
             this.checkBox_LockPassword.UseVisualStyleBackColor = true;
             this.checkBox_LockPassword.CheckedChanged += new System.EventHandler(this.checkBox_LockPassword_CheckedChanged);
             // 
             // label27
             // 
-            this.label27.AutoSize = true;
-            this.label27.Location = new System.Drawing.Point(181, 21);
+            resources.ApplyResources(this.label27, "label27");
             this.label27.Name = "label27";
-            this.label27.Size = new System.Drawing.Size(54, 12);
-            this.label27.TabIndex = 3;
-            this.label27.Text = "Password";
+            this.toolTip1.SetToolTip(this.label27, resources.GetString("label27.ToolTip"));
             // 
             // textBox_Password
             // 
-            this.textBox_Password.Location = new System.Drawing.Point(183, 36);
+            resources.ApplyResources(this.textBox_Password, "textBox_Password");
             this.textBox_Password.Name = "textBox_Password";
-            this.textBox_Password.Size = new System.Drawing.Size(177, 19);
-            this.textBox_Password.TabIndex = 2;
+            this.toolTip1.SetToolTip(this.textBox_Password, resources.GetString("textBox_Password.ToolTip"));
             this.textBox_Password.TextChanged += new System.EventHandler(this.textBox_Password_TextChanged);
             // 
             // checkBox_cryptfilename
             // 
-            this.checkBox_cryptfilename.AutoSize = true;
-            this.checkBox_cryptfilename.Location = new System.Drawing.Point(48, 36);
+            resources.ApplyResources(this.checkBox_cryptfilename, "checkBox_cryptfilename");
             this.checkBox_cryptfilename.Name = "checkBox_cryptfilename";
-            this.checkBox_cryptfilename.Size = new System.Drawing.Size(113, 16);
-            this.checkBox_cryptfilename.TabIndex = 1;
-            this.checkBox_cryptfilename.Text = "Encrypt Filename";
+            this.toolTip1.SetToolTip(this.checkBox_cryptfilename, resources.GetString("checkBox_cryptfilename.ToolTip"));
             this.checkBox_cryptfilename.UseVisualStyleBackColor = true;
             this.checkBox_cryptfilename.CheckedChanged += new System.EventHandler(this.checkBox_cryptfilename_CheckedChanged);
             // 
             // checkBox_crypt
             // 
-            this.checkBox_crypt.AutoSize = true;
-            this.checkBox_crypt.Location = new System.Drawing.Point(18, 13);
+            resources.ApplyResources(this.checkBox_crypt, "checkBox_crypt");
             this.checkBox_crypt.Name = "checkBox_crypt";
-            this.checkBox_crypt.Size = new System.Drawing.Size(102, 16);
-            this.checkBox_crypt.TabIndex = 0;
-            this.checkBox_crypt.Text = "Use Encryption";
+            this.toolTip1.SetToolTip(this.checkBox_crypt, resources.GetString("checkBox_crypt.ToolTip"));
             this.checkBox_crypt.UseVisualStyleBackColor = true;
             this.checkBox_crypt.CheckedChanged += new System.EventHandler(this.checkBox_crypt_CheckedChanged);
             // 
             // menuStrip1
             // 
+            resources.ApplyResources(this.menuStrip1, "menuStrip1");
             this.menuStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.fileToolStripMenuItem,
+            this.languageToolStripMenuItem,
             this.viewToolStripMenuItem,
             this.logToolStripMenuItem,
             this.helpToolStripMenuItem});
-            this.menuStrip1.Location = new System.Drawing.Point(0, 0);
             this.menuStrip1.Name = "menuStrip1";
-            this.menuStrip1.Size = new System.Drawing.Size(874, 24);
-            this.menuStrip1.TabIndex = 1;
-            this.menuStrip1.Text = "menuStrip1";
+            this.toolTip1.SetToolTip(this.menuStrip1, resources.GetString("menuStrip1.ToolTip"));
             // 
             // fileToolStripMenuItem
             // 
+            resources.ApplyResources(this.fileToolStripMenuItem, "fileToolStripMenuItem");
             this.fileToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.loginToolStripMenuItem,
             this.toolStripMenuItem_Logout,
             this.toolStripMenuItem1,
             this.exitToolStripMenuItem});
             this.fileToolStripMenuItem.Name = "fileToolStripMenuItem";
-            this.fileToolStripMenuItem.Size = new System.Drawing.Size(37, 20);
-            this.fileToolStripMenuItem.Text = "&File";
             // 
             // loginToolStripMenuItem
             // 
+            resources.ApplyResources(this.loginToolStripMenuItem, "loginToolStripMenuItem");
             this.loginToolStripMenuItem.Name = "loginToolStripMenuItem";
-            this.loginToolStripMenuItem.Size = new System.Drawing.Size(112, 22);
-            this.loginToolStripMenuItem.Text = "&Login";
             this.loginToolStripMenuItem.Click += new System.EventHandler(this.loginToolStripMenuItem_Click);
             // 
             // toolStripMenuItem_Logout
             // 
+            resources.ApplyResources(this.toolStripMenuItem_Logout, "toolStripMenuItem_Logout");
             this.toolStripMenuItem_Logout.Name = "toolStripMenuItem_Logout";
-            this.toolStripMenuItem_Logout.Size = new System.Drawing.Size(112, 22);
-            this.toolStripMenuItem_Logout.Text = "Log&out";
             this.toolStripMenuItem_Logout.Click += new System.EventHandler(this.toolStripMenuItem_Logout_Click);
             // 
             // toolStripMenuItem1
             // 
+            resources.ApplyResources(this.toolStripMenuItem1, "toolStripMenuItem1");
             this.toolStripMenuItem1.Name = "toolStripMenuItem1";
-            this.toolStripMenuItem1.Size = new System.Drawing.Size(109, 6);
             // 
             // exitToolStripMenuItem
             // 
+            resources.ApplyResources(this.exitToolStripMenuItem, "exitToolStripMenuItem");
             this.exitToolStripMenuItem.Name = "exitToolStripMenuItem";
-            this.exitToolStripMenuItem.Size = new System.Drawing.Size(112, 22);
-            this.exitToolStripMenuItem.Text = "&Exit";
             this.exitToolStripMenuItem.Click += new System.EventHandler(this.exitToolStripMenuItem_Click);
+            // 
+            // languageToolStripMenuItem
+            // 
+            resources.ApplyResources(this.languageToolStripMenuItem, "languageToolStripMenuItem");
+            this.languageToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.defaultToolStripMenuItem,
+            this.toolStripMenuItem4,
+            this.englishToolStripMenuItem,
+            this.japaneseToolStripMenuItem});
+            this.languageToolStripMenuItem.Name = "languageToolStripMenuItem";
+            // 
+            // defaultToolStripMenuItem
+            // 
+            resources.ApplyResources(this.defaultToolStripMenuItem, "defaultToolStripMenuItem");
+            this.defaultToolStripMenuItem.Name = "defaultToolStripMenuItem";
+            this.defaultToolStripMenuItem.Click += new System.EventHandler(this.defaultToolStripMenuItem_Click);
+            // 
+            // toolStripMenuItem4
+            // 
+            resources.ApplyResources(this.toolStripMenuItem4, "toolStripMenuItem4");
+            this.toolStripMenuItem4.Name = "toolStripMenuItem4";
+            // 
+            // englishToolStripMenuItem
+            // 
+            resources.ApplyResources(this.englishToolStripMenuItem, "englishToolStripMenuItem");
+            this.englishToolStripMenuItem.Name = "englishToolStripMenuItem";
+            this.englishToolStripMenuItem.Click += new System.EventHandler(this.englishToolStripMenuItem_Click);
+            // 
+            // japaneseToolStripMenuItem
+            // 
+            resources.ApplyResources(this.japaneseToolStripMenuItem, "japaneseToolStripMenuItem");
+            this.japaneseToolStripMenuItem.Name = "japaneseToolStripMenuItem";
+            this.japaneseToolStripMenuItem.Click += new System.EventHandler(this.japaneseToolStripMenuItem_Click);
             // 
             // viewToolStripMenuItem
             // 
+            resources.ApplyResources(this.viewToolStripMenuItem, "viewToolStripMenuItem");
             this.viewToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.largeIconToolStripMenuItem,
             this.smallIconToolStripMenuItem,
@@ -1376,124 +1113,110 @@
             this.tileToolStripMenuItem,
             this.detailToolStripMenuItem});
             this.viewToolStripMenuItem.Name = "viewToolStripMenuItem";
-            this.viewToolStripMenuItem.Size = new System.Drawing.Size(44, 20);
-            this.viewToolStripMenuItem.Text = "&View";
             // 
             // largeIconToolStripMenuItem
             // 
+            resources.ApplyResources(this.largeIconToolStripMenuItem, "largeIconToolStripMenuItem");
             this.largeIconToolStripMenuItem.Name = "largeIconToolStripMenuItem";
-            this.largeIconToolStripMenuItem.Size = new System.Drawing.Size(126, 22);
-            this.largeIconToolStripMenuItem.Text = "&LargeIcon";
             this.largeIconToolStripMenuItem.Click += new System.EventHandler(this.largeIconToolStripMenuItem_Click);
             // 
             // smallIconToolStripMenuItem
             // 
+            resources.ApplyResources(this.smallIconToolStripMenuItem, "smallIconToolStripMenuItem");
             this.smallIconToolStripMenuItem.Name = "smallIconToolStripMenuItem";
-            this.smallIconToolStripMenuItem.Size = new System.Drawing.Size(126, 22);
-            this.smallIconToolStripMenuItem.Text = "&SmallIcon";
             this.smallIconToolStripMenuItem.Click += new System.EventHandler(this.smallIconToolStripMenuItem_Click);
             // 
             // listToolStripMenuItem
             // 
+            resources.ApplyResources(this.listToolStripMenuItem, "listToolStripMenuItem");
             this.listToolStripMenuItem.Name = "listToolStripMenuItem";
-            this.listToolStripMenuItem.Size = new System.Drawing.Size(126, 22);
-            this.listToolStripMenuItem.Text = "L&ist";
             this.listToolStripMenuItem.Click += new System.EventHandler(this.listToolStripMenuItem_Click);
             // 
             // tileToolStripMenuItem
             // 
+            resources.ApplyResources(this.tileToolStripMenuItem, "tileToolStripMenuItem");
             this.tileToolStripMenuItem.Name = "tileToolStripMenuItem";
-            this.tileToolStripMenuItem.Size = new System.Drawing.Size(126, 22);
-            this.tileToolStripMenuItem.Text = "&Tile";
             this.tileToolStripMenuItem.Click += new System.EventHandler(this.tileToolStripMenuItem_Click);
             // 
             // detailToolStripMenuItem
             // 
+            resources.ApplyResources(this.detailToolStripMenuItem, "detailToolStripMenuItem");
             this.detailToolStripMenuItem.Checked = true;
             this.detailToolStripMenuItem.CheckState = System.Windows.Forms.CheckState.Checked;
             this.detailToolStripMenuItem.Name = "detailToolStripMenuItem";
-            this.detailToolStripMenuItem.Size = new System.Drawing.Size(126, 22);
-            this.detailToolStripMenuItem.Text = "&Details";
             this.detailToolStripMenuItem.Click += new System.EventHandler(this.detailToolStripMenuItem_Click);
             // 
             // logToolStripMenuItem
             // 
+            resources.ApplyResources(this.logToolStripMenuItem, "logToolStripMenuItem");
             this.logToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.logWindowToolStripMenuItem,
             this.logToFileToolStripMenuItem,
             this.toolStripMenuItem5,
             this.amazonDriveHistoryToolStripMenuItem});
             this.logToolStripMenuItem.Name = "logToolStripMenuItem";
-            this.logToolStripMenuItem.Size = new System.Drawing.Size(39, 20);
-            this.logToolStripMenuItem.Text = "&Log";
             // 
             // logWindowToolStripMenuItem
             // 
+            resources.ApplyResources(this.logWindowToolStripMenuItem, "logWindowToolStripMenuItem");
             this.logWindowToolStripMenuItem.Name = "logWindowToolStripMenuItem";
-            this.logWindowToolStripMenuItem.Size = new System.Drawing.Size(188, 22);
-            this.logWindowToolStripMenuItem.Text = "Log &Window";
             this.logWindowToolStripMenuItem.Click += new System.EventHandler(this.logToolStripMenuItem_Click);
             // 
             // logToFileToolStripMenuItem
             // 
+            resources.ApplyResources(this.logToFileToolStripMenuItem, "logToFileToolStripMenuItem");
             this.logToFileToolStripMenuItem.Name = "logToFileToolStripMenuItem";
-            this.logToFileToolStripMenuItem.Size = new System.Drawing.Size(188, 22);
-            this.logToFileToolStripMenuItem.Text = "Log to &File";
             this.logToFileToolStripMenuItem.Click += new System.EventHandler(this.logToFileToolStripMenuItem_Click);
             // 
             // toolStripMenuItem5
             // 
+            resources.ApplyResources(this.toolStripMenuItem5, "toolStripMenuItem5");
             this.toolStripMenuItem5.Name = "toolStripMenuItem5";
-            this.toolStripMenuItem5.Size = new System.Drawing.Size(185, 6);
             // 
             // amazonDriveHistoryToolStripMenuItem
             // 
+            resources.ApplyResources(this.amazonDriveHistoryToolStripMenuItem, "amazonDriveHistoryToolStripMenuItem");
             this.amazonDriveHistoryToolStripMenuItem.Name = "amazonDriveHistoryToolStripMenuItem";
-            this.amazonDriveHistoryToolStripMenuItem.Size = new System.Drawing.Size(188, 22);
-            this.amazonDriveHistoryToolStripMenuItem.Text = "&Amazon Drive History";
             this.amazonDriveHistoryToolStripMenuItem.Click += new System.EventHandler(this.amazonDriveHistoryToolStripMenuItem_Click);
             // 
             // helpToolStripMenuItem
             // 
+            resources.ApplyResources(this.helpToolStripMenuItem, "helpToolStripMenuItem");
             this.helpToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.aboutToolStripMenuItem});
             this.helpToolStripMenuItem.Name = "helpToolStripMenuItem";
-            this.helpToolStripMenuItem.Size = new System.Drawing.Size(44, 20);
-            this.helpToolStripMenuItem.Text = "&Help";
             // 
             // aboutToolStripMenuItem
             // 
+            resources.ApplyResources(this.aboutToolStripMenuItem, "aboutToolStripMenuItem");
             this.aboutToolStripMenuItem.Name = "aboutToolStripMenuItem";
-            this.aboutToolStripMenuItem.Size = new System.Drawing.Size(107, 22);
-            this.aboutToolStripMenuItem.Text = "&About";
             this.aboutToolStripMenuItem.Click += new System.EventHandler(this.aboutToolStripMenuItem_Click);
             // 
             // splitContainer2
             // 
-            this.splitContainer2.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.splitContainer2.Location = new System.Drawing.Point(0, 0);
+            resources.ApplyResources(this.splitContainer2, "splitContainer2");
             this.splitContainer2.Name = "splitContainer2";
             // 
             // splitContainer2.Panel1
             // 
+            resources.ApplyResources(this.splitContainer2.Panel1, "splitContainer2.Panel1");
             this.splitContainer2.Panel1.Controls.Add(this.treeView1);
+            this.toolTip1.SetToolTip(this.splitContainer2.Panel1, resources.GetString("splitContainer2.Panel1.ToolTip"));
             // 
             // splitContainer2.Panel2
             // 
+            resources.ApplyResources(this.splitContainer2.Panel2, "splitContainer2.Panel2");
             this.splitContainer2.Panel2.Controls.Add(this.listView1);
-            this.splitContainer2.Size = new System.Drawing.Size(874, 553);
-            this.splitContainer2.SplitterDistance = 174;
-            this.splitContainer2.TabIndex = 0;
+            this.toolTip1.SetToolTip(this.splitContainer2.Panel2, resources.GetString("splitContainer2.Panel2.ToolTip"));
+            this.toolTip1.SetToolTip(this.splitContainer2, resources.GetString("splitContainer2.ToolTip"));
             // 
             // treeView1
             // 
+            resources.ApplyResources(this.treeView1, "treeView1");
             this.treeView1.AllowDrop = true;
-            this.treeView1.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.treeView1.Location = new System.Drawing.Point(0, 0);
             this.treeView1.Name = "treeView1";
             this.treeView1.PathSeparator = "/";
-            this.treeView1.Size = new System.Drawing.Size(174, 553);
-            this.treeView1.TabIndex = 0;
+            this.toolTip1.SetToolTip(this.treeView1, resources.GetString("treeView1.ToolTip"));
             this.treeView1.BeforeExpand += new System.Windows.Forms.TreeViewCancelEventHandler(this.treeView1_BeforeExpand);
             this.treeView1.AfterSelect += new System.Windows.Forms.TreeViewEventHandler(this.treeView1_AfterSelect);
             this.treeView1.DragDrop += new System.Windows.Forms.DragEventHandler(this.treeView1_DragDrop);
@@ -1501,15 +1224,13 @@
             // 
             // listView1
             // 
+            resources.ApplyResources(this.listView1, "listView1");
             this.listView1.AllowDrop = true;
             this.listView1.ContextMenuStrip = this.contextMenuStrip1;
-            this.listView1.Dock = System.Windows.Forms.DockStyle.Fill;
             this.listView1.FullRowSelect = true;
-            this.listView1.Location = new System.Drawing.Point(0, 0);
             this.listView1.Name = "listView1";
             this.listView1.ShowItemToolTips = true;
-            this.listView1.Size = new System.Drawing.Size(696, 553);
-            this.listView1.TabIndex = 0;
+            this.toolTip1.SetToolTip(this.listView1, resources.GetString("listView1.ToolTip"));
             this.listView1.UseCompatibleStateImageBehavior = false;
             this.listView1.View = System.Windows.Forms.View.Details;
             this.listView1.ColumnClick += new System.Windows.Forms.ColumnClickEventHandler(this.listView1_ColumnClick);
@@ -1522,6 +1243,7 @@
             // 
             // contextMenuStrip1
             // 
+            resources.ApplyResources(this.contextMenuStrip1, "contextMenuStrip1");
             this.contextMenuStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.downloadItemToolStripMenuItem,
             this.sendUDPToolStripMenuItem,
@@ -1531,101 +1253,100 @@
             this.toolStripMenuItem2,
             this.trashItemToolStripMenuItem});
             this.contextMenuStrip1.Name = "contextMenuStrip1";
-            this.contextMenuStrip1.Size = new System.Drawing.Size(167, 126);
+            this.toolTip1.SetToolTip(this.contextMenuStrip1, resources.GetString("contextMenuStrip1.ToolTip"));
             // 
             // downloadItemToolStripMenuItem
             // 
+            resources.ApplyResources(this.downloadItemToolStripMenuItem, "downloadItemToolStripMenuItem");
             this.downloadItemToolStripMenuItem.Name = "downloadItemToolStripMenuItem";
-            this.downloadItemToolStripMenuItem.Size = new System.Drawing.Size(166, 22);
-            this.downloadItemToolStripMenuItem.Text = "&Download Item";
             this.downloadItemToolStripMenuItem.Click += new System.EventHandler(this.downloadItemToolStripMenuItem_Click);
             // 
             // sendUDPToolStripMenuItem
             // 
+            resources.ApplyResources(this.sendUDPToolStripMenuItem, "sendUDPToolStripMenuItem");
             this.sendUDPToolStripMenuItem.Name = "sendUDPToolStripMenuItem";
-            this.sendUDPToolStripMenuItem.Size = new System.Drawing.Size(166, 22);
-            this.sendUDPToolStripMenuItem.Text = "&Send UDP";
             this.sendUDPToolStripMenuItem.Click += new System.EventHandler(this.sendUDPToolStripMenuItem_Click);
             // 
             // playWithFFplayToolStripMenuItem
             // 
+            resources.ApplyResources(this.playWithFFplayToolStripMenuItem, "playWithFFplayToolStripMenuItem");
             this.playWithFFplayToolStripMenuItem.Name = "playWithFFplayToolStripMenuItem";
-            this.playWithFFplayToolStripMenuItem.Size = new System.Drawing.Size(166, 22);
-            this.playWithFFplayToolStripMenuItem.Text = "&Play with FFmpeg";
             this.playWithFFplayToolStripMenuItem.Click += new System.EventHandler(this.playWithFFplayToolStripMenuItem_Click);
             // 
             // toolStripMenuItem3
             // 
+            resources.ApplyResources(this.toolStripMenuItem3, "toolStripMenuItem3");
             this.toolStripMenuItem3.Name = "toolStripMenuItem3";
-            this.toolStripMenuItem3.Size = new System.Drawing.Size(163, 6);
             // 
             // renameToolStripMenuItem
             // 
+            resources.ApplyResources(this.renameToolStripMenuItem, "renameToolStripMenuItem");
             this.renameToolStripMenuItem.Name = "renameToolStripMenuItem";
-            this.renameToolStripMenuItem.Size = new System.Drawing.Size(166, 22);
-            this.renameToolStripMenuItem.Text = "&Rename";
             this.renameToolStripMenuItem.Click += new System.EventHandler(this.renameToolStripMenuItem_Click);
             // 
             // toolStripMenuItem2
             // 
+            resources.ApplyResources(this.toolStripMenuItem2, "toolStripMenuItem2");
             this.toolStripMenuItem2.Name = "toolStripMenuItem2";
-            this.toolStripMenuItem2.Size = new System.Drawing.Size(163, 6);
             // 
             // trashItemToolStripMenuItem
             // 
+            resources.ApplyResources(this.trashItemToolStripMenuItem, "trashItemToolStripMenuItem");
             this.trashItemToolStripMenuItem.Name = "trashItemToolStripMenuItem";
-            this.trashItemToolStripMenuItem.ShortcutKeys = System.Windows.Forms.Keys.Delete;
-            this.trashItemToolStripMenuItem.Size = new System.Drawing.Size(166, 22);
-            this.trashItemToolStripMenuItem.Text = "Trash Item";
             this.trashItemToolStripMenuItem.Click += new System.EventHandler(this.trashItemToolStripMenuItem_Click);
             // 
             // statusStrip1
             // 
+            resources.ApplyResources(this.statusStrip1, "statusStrip1");
             this.statusStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.toolStripProgressBar1,
             this.toolStripStatusLabel1});
-            this.statusStrip1.Location = new System.Drawing.Point(0, 679);
             this.statusStrip1.Name = "statusStrip1";
-            this.statusStrip1.Size = new System.Drawing.Size(874, 22);
-            this.statusStrip1.TabIndex = 2;
-            this.statusStrip1.Text = "statusStrip1";
+            this.toolTip1.SetToolTip(this.statusStrip1, resources.GetString("statusStrip1.ToolTip"));
             // 
             // toolStripProgressBar1
             // 
+            resources.ApplyResources(this.toolStripProgressBar1, "toolStripProgressBar1");
             this.toolStripProgressBar1.Name = "toolStripProgressBar1";
-            this.toolStripProgressBar1.Size = new System.Drawing.Size(100, 16);
             this.toolStripProgressBar1.Style = System.Windows.Forms.ProgressBarStyle.Continuous;
             // 
             // toolStripStatusLabel1
             // 
+            resources.ApplyResources(this.toolStripStatusLabel1, "toolStripStatusLabel1");
             this.toolStripStatusLabel1.Name = "toolStripStatusLabel1";
-            this.toolStripStatusLabel1.Size = new System.Drawing.Size(757, 17);
             this.toolStripStatusLabel1.Spring = true;
-            this.toolStripStatusLabel1.Text = "toolStripStatusLabel1";
-            this.toolStripStatusLabel1.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
             // 
             // imageList_icon
             // 
             this.imageList_icon.ColorDepth = System.Windows.Forms.ColorDepth.Depth32Bit;
-            this.imageList_icon.ImageSize = new System.Drawing.Size(16, 16);
+            resources.ApplyResources(this.imageList_icon, "imageList_icon");
             this.imageList_icon.TransparentColor = System.Drawing.Color.Transparent;
             // 
             // imageList_small
             // 
             this.imageList_small.ColorDepth = System.Windows.Forms.ColorDepth.Depth32Bit;
-            this.imageList_small.ImageSize = new System.Drawing.Size(16, 16);
+            resources.ApplyResources(this.imageList_small, "imageList_small");
             this.imageList_small.TransparentColor = System.Drawing.Color.Transparent;
             // 
             // imageList_Large
             // 
             this.imageList_Large.ColorDepth = System.Windows.Forms.ColorDepth.Depth32Bit;
-            this.imageList_Large.ImageSize = new System.Drawing.Size(48, 48);
+            resources.ApplyResources(this.imageList_Large, "imageList_Large");
             this.imageList_Large.TransparentColor = System.Drawing.Color.Transparent;
             // 
             // openFileDialog1
             // 
             this.openFileDialog1.FileName = "openFileDialog1";
+            resources.ApplyResources(this.openFileDialog1, "openFileDialog1");
             this.openFileDialog1.Multiselect = true;
+            // 
+            // saveFileDialog1
+            // 
+            resources.ApplyResources(this.saveFileDialog1, "saveFileDialog1");
+            // 
+            // folderBrowserDialog1
+            // 
+            resources.ApplyResources(this.folderBrowserDialog1, "folderBrowserDialog1");
             // 
             // timer1
             // 
@@ -1649,16 +1370,14 @@
             // 
             // Form1
             // 
+            resources.ApplyResources(this, "$this");
             this.AllowDrop = true;
-            this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 12F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(874, 701);
             this.Controls.Add(this.splitContainer1);
             this.Controls.Add(this.statusStrip1);
-            this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
             this.MainMenuStrip = this.menuStrip1;
             this.Name = "Form1";
-            this.Text = "TS viewer for Amazon Cloud Drive";
+            this.toolTip1.SetToolTip(this, resources.GetString("$this.ToolTip"));
             this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.Form1_FormClosing);
             this.Load += new System.EventHandler(this.Form1_Load);
             this.splitContainer1.Panel1.ResumeLayout(false);
@@ -1766,7 +1485,6 @@
         private System.Windows.Forms.CheckBox checkBox_MD5;
         private System.Windows.Forms.ToolStripMenuItem logToolStripMenuItem;
         private System.Windows.Forms.Button button_Play;
-        private System.Windows.Forms.Label label6;
         private System.Windows.Forms.RadioButton radioButton_DiffTime;
         private System.Windows.Forms.RadioButton radioButton_AbsTime;
         private System.Windows.Forms.Label label7;
@@ -1842,6 +1560,12 @@
         private System.Windows.Forms.TextBox textBox_Password;
         private System.Windows.Forms.CheckBox checkBox_cryptfilename;
         private System.Windows.Forms.CheckBox checkBox_crypt;
+        private System.Windows.Forms.Label label6;
+        private System.Windows.Forms.ToolStripMenuItem languageToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem defaultToolStripMenuItem;
+        private System.Windows.Forms.ToolStripSeparator toolStripMenuItem4;
+        private System.Windows.Forms.ToolStripMenuItem englishToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem japaneseToolStripMenuItem;
     }
 }
 

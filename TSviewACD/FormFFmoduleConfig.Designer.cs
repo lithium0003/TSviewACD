@@ -29,6 +29,7 @@
         private void InitializeComponent()
         {
             this.components = new System.ComponentModel.Container();
+            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(FormFFmoduleConfig));
             this.button1 = new System.Windows.Forms.Button();
             this.groupBox_Mouse = new System.Windows.Forms.GroupBox();
             this.label2 = new System.Windows.Forms.Label();
@@ -36,6 +37,7 @@
             this.toolTip1 = new System.Windows.Forms.ToolTip(this.components);
             this.label3 = new System.Windows.Forms.Label();
             this.label4 = new System.Windows.Forms.Label();
+            this.textBox_keyenter = new System.Windows.Forms.TextBox();
             this.label6 = new System.Windows.Forms.Label();
             this.checkBox_autosize = new System.Windows.Forms.CheckBox();
             this.groupBox_keybord = new System.Windows.Forms.GroupBox();
@@ -45,17 +47,16 @@
             this.contextMenuStrip1 = new System.Windows.Forms.ContextMenuStrip(this.components);
             this.deleteKeyToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.addAnotherKeyToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.textBox_keyenter = new System.Windows.Forms.TextBox();
             this.groupBox_font = new System.Windows.Forms.GroupBox();
             this.numericUpDown_FontSize = new System.Windows.Forms.NumericUpDown();
             this.label5 = new System.Windows.Forms.Label();
             this.button2 = new System.Windows.Forms.Button();
             this.textBox_fontpath = new System.Windows.Forms.TextBox();
-            this.openFileDialog1 = new System.Windows.Forms.OpenFileDialog();
             this.groupBox_speed = new System.Windows.Forms.GroupBox();
             this.label7 = new System.Windows.Forms.Label();
             this.textBox_timeout = new System.Windows.Forms.TextBox();
             this.groupBox_Screen = new System.Windows.Forms.GroupBox();
+            this.openFileDialog1 = new System.Windows.Forms.OpenFileDialog();
             this.groupBox_Mouse.SuspendLayout();
             this.groupBox_keybord.SuspendLayout();
             this.contextMenuStrip1.SuspendLayout();
@@ -68,84 +69,58 @@
             // button1
             // 
             this.button1.DialogResult = System.Windows.Forms.DialogResult.OK;
-            this.button1.Location = new System.Drawing.Point(310, 400);
+            resources.ApplyResources(this.button1, "button1");
             this.button1.Name = "button1";
-            this.button1.Size = new System.Drawing.Size(75, 23);
-            this.button1.TabIndex = 0;
-            this.button1.Text = "OK";
             this.button1.UseVisualStyleBackColor = true;
             // 
             // groupBox_Mouse
             // 
             this.groupBox_Mouse.Controls.Add(this.label2);
             this.groupBox_Mouse.Controls.Add(this.label1);
-            this.groupBox_Mouse.Location = new System.Drawing.Point(12, 12);
+            resources.ApplyResources(this.groupBox_Mouse, "groupBox_Mouse");
             this.groupBox_Mouse.Name = "groupBox_Mouse";
-            this.groupBox_Mouse.Size = new System.Drawing.Size(221, 99);
-            this.groupBox_Mouse.TabIndex = 1;
             this.groupBox_Mouse.TabStop = false;
-            this.groupBox_Mouse.Text = "Mouse";
             // 
             // label2
             // 
-            this.label2.AutoSize = true;
-            this.label2.Location = new System.Drawing.Point(21, 49);
+            resources.ApplyResources(this.label2, "label2");
             this.label2.Name = "label2";
-            this.label2.Size = new System.Drawing.Size(191, 36);
-            this.label2.TabIndex = 1;
-            this.label2.Text = "Right Button:\r\n  drag && click->Seek file to the time\r\n  in ratio X position of w" +
-    "indow width";
-            this.toolTip1.SetToolTip(this.label2, "右クリックおよび右ボタンを押しながらの移動\r\n　ウインドウの幅をファイルの長さと見なし、x座標の割合の\r\n　場所の時間にシークします。");
             // 
             // label1
             // 
-            this.label1.AutoSize = true;
-            this.label1.Location = new System.Drawing.Point(21, 15);
+            resources.ApplyResources(this.label1, "label1");
             this.label1.Name = "label1";
-            this.label1.Size = new System.Drawing.Size(177, 24);
-            this.label1.TabIndex = 0;
-            this.label1.Text = "Left Button:\r\n  double click->Toggle Fullscreen";
-            this.toolTip1.SetToolTip(this.label1, "マウス左ダブルクリック\r\n　全画面表示を切り替えます");
             // 
             // label3
             // 
-            this.label3.AutoSize = true;
-            this.label3.Location = new System.Drawing.Point(16, 21);
+            resources.ApplyResources(this.label3, "label3");
             this.label3.Name = "label3";
-            this.label3.Size = new System.Drawing.Size(126, 24);
-            this.label3.TabIndex = 2;
-            this.label3.Text = "Select command and \r\npress key in textbox ->";
-            this.toolTip1.SetToolTip(this.label3, "以下のコマンドを選択し、右のテキストボックスで\r\n任意のキーを押してキーバインドを設定してください");
+            this.toolTip1.SetToolTip(this.label3, resources.GetString("label3.ToolTip"));
             // 
             // label4
             // 
-            this.label4.AutoSize = true;
-            this.label4.Location = new System.Drawing.Point(11, 27);
+            resources.ApplyResources(this.label4, "label4");
             this.label4.Name = "label4";
-            this.label4.Size = new System.Drawing.Size(132, 12);
-            this.label4.TabIndex = 1;
-            this.label4.Text = "Font file path for display";
-            this.toolTip1.SetToolTip(this.label4, "画面表示に用いるフォントのパス");
+            this.toolTip1.SetToolTip(this.label4, resources.GetString("label4.ToolTip"));
+            // 
+            // textBox_keyenter
+            // 
+            this.textBox_keyenter.AcceptsReturn = true;
+            this.textBox_keyenter.AcceptsTab = true;
+            resources.ApplyResources(this.textBox_keyenter, "textBox_keyenter");
+            this.textBox_keyenter.Name = "textBox_keyenter";
+            this.toolTip1.SetToolTip(this.textBox_keyenter, resources.GetString("textBox_keyenter.ToolTip"));
+            this.textBox_keyenter.KeyDown += new System.Windows.Forms.KeyEventHandler(this.textBox_keyenter_KeyDown);
             // 
             // label6
             // 
-            this.label6.AutoSize = true;
-            this.label6.Location = new System.Drawing.Point(6, 24);
+            resources.ApplyResources(this.label6, "label6");
             this.label6.Name = "label6";
-            this.label6.Size = new System.Drawing.Size(142, 24);
-            this.label6.TabIndex = 0;
-            this.label6.Text = "Disconnect and retry when\r\nthe speed is under";
-            this.toolTip1.SetToolTip(this.label6, "転送速度が以下の値を下回った場合は切断して再接続する");
             // 
             // checkBox_autosize
             // 
-            this.checkBox_autosize.AutoSize = true;
-            this.checkBox_autosize.Location = new System.Drawing.Point(8, 18);
+            resources.ApplyResources(this.checkBox_autosize, "checkBox_autosize");
             this.checkBox_autosize.Name = "checkBox_autosize";
-            this.checkBox_autosize.Size = new System.Drawing.Size(127, 28);
-            this.checkBox_autosize.TabIndex = 0;
-            this.checkBox_autosize.Text = "Auto resize window \r\n to fit video";
-            this.toolTip1.SetToolTip(this.checkBox_autosize, "動画の大きさに合わせて自動的にウインドウをリサイズします");
             this.checkBox_autosize.UseVisualStyleBackColor = true;
             this.checkBox_autosize.CheckedChanged += new System.EventHandler(this.checkBox_autosize_CheckedChanged);
             // 
@@ -154,12 +129,9 @@
             this.groupBox_keybord.Controls.Add(this.label3);
             this.groupBox_keybord.Controls.Add(this.listView1);
             this.groupBox_keybord.Controls.Add(this.textBox_keyenter);
-            this.groupBox_keybord.Location = new System.Drawing.Point(12, 117);
+            resources.ApplyResources(this.groupBox_keybord, "groupBox_keybord");
             this.groupBox_keybord.Name = "groupBox_keybord";
-            this.groupBox_keybord.Size = new System.Drawing.Size(221, 277);
-            this.groupBox_keybord.TabIndex = 2;
             this.groupBox_keybord.TabStop = false;
-            this.groupBox_keybord.Text = "Keyboard";
             // 
             // listView1
             // 
@@ -170,11 +142,9 @@
             this.listView1.FullRowSelect = true;
             this.listView1.GridLines = true;
             this.listView1.HideSelection = false;
-            this.listView1.Location = new System.Drawing.Point(9, 51);
+            resources.ApplyResources(this.listView1, "listView1");
             this.listView1.Name = "listView1";
             this.listView1.ShowItemToolTips = true;
-            this.listView1.Size = new System.Drawing.Size(206, 226);
-            this.listView1.TabIndex = 1;
             this.listView1.UseCompatibleStateImageBehavior = false;
             this.listView1.View = System.Windows.Forms.View.Details;
             this.listView1.SelectedIndexChanged += new System.EventHandler(this.listView1_SelectedIndexChanged);
@@ -182,13 +152,11 @@
             // 
             // columnHeader_Command
             // 
-            this.columnHeader_Command.Text = "Command";
-            this.columnHeader_Command.Width = 120;
+            resources.ApplyResources(this.columnHeader_Command, "columnHeader_Command");
             // 
             // columnHeader_KeyBind
             // 
-            this.columnHeader_KeyBind.Text = "Keybind";
-            this.columnHeader_KeyBind.Width = 70;
+            resources.ApplyResources(this.columnHeader_KeyBind, "columnHeader_KeyBind");
             // 
             // contextMenuStrip1
             // 
@@ -196,34 +164,19 @@
             this.deleteKeyToolStripMenuItem,
             this.addAnotherKeyToolStripMenuItem});
             this.contextMenuStrip1.Name = "contextMenuStrip1";
-            this.contextMenuStrip1.Size = new System.Drawing.Size(184, 48);
+            resources.ApplyResources(this.contextMenuStrip1, "contextMenuStrip1");
             // 
             // deleteKeyToolStripMenuItem
             // 
             this.deleteKeyToolStripMenuItem.Name = "deleteKeyToolStripMenuItem";
-            this.deleteKeyToolStripMenuItem.ShortcutKeys = System.Windows.Forms.Keys.Delete;
-            this.deleteKeyToolStripMenuItem.Size = new System.Drawing.Size(183, 22);
-            this.deleteKeyToolStripMenuItem.Text = "Delete key";
+            resources.ApplyResources(this.deleteKeyToolStripMenuItem, "deleteKeyToolStripMenuItem");
             this.deleteKeyToolStripMenuItem.Click += new System.EventHandler(this.deleteKeyToolStripMenuItem_Click);
             // 
             // addAnotherKeyToolStripMenuItem
             // 
             this.addAnotherKeyToolStripMenuItem.Name = "addAnotherKeyToolStripMenuItem";
-            this.addAnotherKeyToolStripMenuItem.ShortcutKeys = System.Windows.Forms.Keys.Insert;
-            this.addAnotherKeyToolStripMenuItem.Size = new System.Drawing.Size(183, 22);
-            this.addAnotherKeyToolStripMenuItem.Text = "Add another key";
+            resources.ApplyResources(this.addAnotherKeyToolStripMenuItem, "addAnotherKeyToolStripMenuItem");
             this.addAnotherKeyToolStripMenuItem.Click += new System.EventHandler(this.addAnotherKeyToolStripMenuItem_Click);
-            // 
-            // textBox_keyenter
-            // 
-            this.textBox_keyenter.AcceptsReturn = true;
-            this.textBox_keyenter.AcceptsTab = true;
-            this.textBox_keyenter.Location = new System.Drawing.Point(148, 26);
-            this.textBox_keyenter.Multiline = true;
-            this.textBox_keyenter.Name = "textBox_keyenter";
-            this.textBox_keyenter.Size = new System.Drawing.Size(64, 19);
-            this.textBox_keyenter.TabIndex = 0;
-            this.textBox_keyenter.KeyDown += new System.Windows.Forms.KeyEventHandler(this.textBox_keyenter_KeyDown);
             // 
             // groupBox_font
             // 
@@ -232,24 +185,19 @@
             this.groupBox_font.Controls.Add(this.button2);
             this.groupBox_font.Controls.Add(this.label4);
             this.groupBox_font.Controls.Add(this.textBox_fontpath);
-            this.groupBox_font.Location = new System.Drawing.Point(239, 12);
+            resources.ApplyResources(this.groupBox_font, "groupBox_font");
             this.groupBox_font.Name = "groupBox_font";
-            this.groupBox_font.Size = new System.Drawing.Size(154, 150);
-            this.groupBox_font.TabIndex = 3;
             this.groupBox_font.TabStop = false;
-            this.groupBox_font.Text = "font";
             // 
             // numericUpDown_FontSize
             // 
-            this.numericUpDown_FontSize.Location = new System.Drawing.Point(72, 115);
+            resources.ApplyResources(this.numericUpDown_FontSize, "numericUpDown_FontSize");
             this.numericUpDown_FontSize.Maximum = new decimal(new int[] {
             1000,
             0,
             0,
             0});
             this.numericUpDown_FontSize.Name = "numericUpDown_FontSize";
-            this.numericUpDown_FontSize.Size = new System.Drawing.Size(74, 19);
-            this.numericUpDown_FontSize.TabIndex = 4;
             this.numericUpDown_FontSize.Value = new decimal(new int[] {
             12,
             0,
@@ -259,89 +207,65 @@
             // 
             // label5
             // 
-            this.label5.AutoSize = true;
-            this.label5.Location = new System.Drawing.Point(11, 105);
+            resources.ApplyResources(this.label5, "label5");
             this.label5.Name = "label5";
-            this.label5.Size = new System.Drawing.Size(53, 12);
-            this.label5.TabIndex = 3;
-            this.label5.Text = "Font Size";
             // 
             // button2
             // 
-            this.button2.Location = new System.Drawing.Point(73, 74);
+            resources.ApplyResources(this.button2, "button2");
             this.button2.Name = "button2";
-            this.button2.Size = new System.Drawing.Size(75, 23);
-            this.button2.TabIndex = 2;
-            this.button2.Text = "select";
             this.button2.UseVisualStyleBackColor = true;
             this.button2.Click += new System.EventHandler(this.button2_Click);
             // 
             // textBox_fontpath
             // 
-            this.textBox_fontpath.ImeMode = System.Windows.Forms.ImeMode.Off;
-            this.textBox_fontpath.Location = new System.Drawing.Point(13, 49);
+            resources.ApplyResources(this.textBox_fontpath, "textBox_fontpath");
             this.textBox_fontpath.Name = "textBox_fontpath";
-            this.textBox_fontpath.Size = new System.Drawing.Size(135, 19);
-            this.textBox_fontpath.TabIndex = 0;
             this.textBox_fontpath.TextChanged += new System.EventHandler(this.textBox_fontpath_TextChanged);
-            // 
-            // openFileDialog1
-            // 
-            this.openFileDialog1.FileName = "openFileDialog1";
             // 
             // groupBox_speed
             // 
             this.groupBox_speed.Controls.Add(this.label7);
             this.groupBox_speed.Controls.Add(this.textBox_timeout);
             this.groupBox_speed.Controls.Add(this.label6);
-            this.groupBox_speed.Location = new System.Drawing.Point(239, 168);
+            resources.ApplyResources(this.groupBox_speed, "groupBox_speed");
             this.groupBox_speed.Name = "groupBox_speed";
-            this.groupBox_speed.Size = new System.Drawing.Size(154, 99);
-            this.groupBox_speed.TabIndex = 4;
             this.groupBox_speed.TabStop = false;
-            this.groupBox_speed.Text = "Speed Control";
             // 
             // label7
             // 
-            this.label7.AutoSize = true;
-            this.label7.Location = new System.Drawing.Point(114, 57);
+            resources.ApplyResources(this.label7, "label7");
             this.label7.Name = "label7";
-            this.label7.Size = new System.Drawing.Size(35, 12);
-            this.label7.TabIndex = 2;
-            this.label7.Text = "KiB/s";
             // 
             // textBox_timeout
             // 
-            this.textBox_timeout.ImeMode = System.Windows.Forms.ImeMode.Off;
-            this.textBox_timeout.Location = new System.Drawing.Point(50, 51);
+            resources.ApplyResources(this.textBox_timeout, "textBox_timeout");
             this.textBox_timeout.Name = "textBox_timeout";
-            this.textBox_timeout.Size = new System.Drawing.Size(56, 19);
-            this.textBox_timeout.TabIndex = 1;
             this.textBox_timeout.TextChanged += new System.EventHandler(this.textBox_timeout_TextChanged);
             // 
             // groupBox_Screen
             // 
             this.groupBox_Screen.Controls.Add(this.checkBox_autosize);
-            this.groupBox_Screen.Location = new System.Drawing.Point(239, 273);
+            resources.ApplyResources(this.groupBox_Screen, "groupBox_Screen");
             this.groupBox_Screen.Name = "groupBox_Screen";
-            this.groupBox_Screen.Size = new System.Drawing.Size(154, 56);
-            this.groupBox_Screen.TabIndex = 5;
             this.groupBox_Screen.TabStop = false;
-            this.groupBox_Screen.Text = "Screen";
+            // 
+            // openFileDialog1
+            // 
+            this.openFileDialog1.FileName = "openFileDialog1";
             // 
             // FormFFmoduleConfig
             // 
-            this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 12F);
+            resources.ApplyResources(this, "$this");
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(405, 435);
             this.Controls.Add(this.groupBox_Screen);
             this.Controls.Add(this.groupBox_speed);
             this.Controls.Add(this.groupBox_font);
             this.Controls.Add(this.groupBox_keybord);
             this.Controls.Add(this.groupBox_Mouse);
             this.Controls.Add(this.button1);
+            this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedDialog;
             this.Name = "FormFFmoduleConfig";
-            this.Text = "Config";
             this.FormClosed += new System.Windows.Forms.FormClosedEventHandler(this.FormFFmoduleConfig_FormClosed);
             this.Load += new System.EventHandler(this.FormFFmoduleConfig_Load);
             this.groupBox_Mouse.ResumeLayout(false);

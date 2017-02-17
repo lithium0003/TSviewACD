@@ -35,103 +35,103 @@ namespace TSviewACD
                     {
                         case ffmodule.FFplayerKeymapFunction.FuncPlayExit:
                             listitem.Tag = ffmodule.FFplayerKeymapFunction.FuncPlayExit;
-                            listitem.Text = "Exit";
-                            listitem.ToolTipText = "再生を終了しウインドウを閉じます";
+                            listitem.Text = Resource_text.FuncPlayExit_str;
+                            listitem.ToolTipText = Resource_text.FuncPlayExit_tip_str;
                             break;
                         case ffmodule.FFplayerKeymapFunction.FuncSeekMinus10sec:
                             listitem.Tag = ffmodule.FFplayerKeymapFunction.FuncSeekMinus10sec;
-                            listitem.Text = "Rewind 10sec";
-                            listitem.ToolTipText = "10秒 戻します";
+                            listitem.Text = Resource_text.FuncSeekMinus10sec_str;
+                            listitem.ToolTipText = Resource_text.FuncSeekMinus10sec_tip_str;
                             break;
                         case ffmodule.FFplayerKeymapFunction.FuncSeekMinus60sec:
                             listitem.Tag = ffmodule.FFplayerKeymapFunction.FuncSeekMinus60sec;
-                            listitem.Text = "Rewind 60sec";
-                            listitem.ToolTipText = "60秒 戻します";
+                            listitem.Text = Resource_text.FuncSeekMinus60sec_str;
+                            listitem.ToolTipText = Resource_text.FuncSeekMinus60sec_tip_str;
                             break;
                         case ffmodule.FFplayerKeymapFunction.FuncSeekPlus10sec:
                             listitem.Tag = ffmodule.FFplayerKeymapFunction.FuncSeekPlus10sec;
-                            listitem.Text = "Forward 10sec";
-                            listitem.ToolTipText = "10秒 進めます";
+                            listitem.Text = Resource_text.FuncSeekPlus10sec_str;
+                            listitem.ToolTipText = Resource_text.FuncSeekPlus10sec_tip_str;
                             break;
                         case ffmodule.FFplayerKeymapFunction.FuncSeekPlus60sec:
                             listitem.Tag = ffmodule.FFplayerKeymapFunction.FuncSeekPlus60sec;
-                            listitem.Text = "Forward 60sec";
-                            listitem.ToolTipText = "60秒 進めます";
+                            listitem.Text = Resource_text.FuncSeekPlus60sec_str;
+                            listitem.ToolTipText = Resource_text.FuncSeekPlus60sec_tip_str;
                             break;
                         case ffmodule.FFplayerKeymapFunction.FuncToggleFullscreen:
                             listitem.Tag = ffmodule.FFplayerKeymapFunction.FuncToggleFullscreen;
-                            listitem.Text = "Toggle Fullscreen";
-                            listitem.ToolTipText = "全画面表示とウインドウ表示を切り替えます";
+                            listitem.Text = Resource_text.FuncToggleFullscreen_str;
+                            listitem.ToolTipText = Resource_text.FuncToggleFullscreen_str;
                             break;
                         case ffmodule.FFplayerKeymapFunction.FuncVolumeDown:
                             listitem.Tag = ffmodule.FFplayerKeymapFunction.FuncVolumeDown;
-                            listitem.Text = "Volude Down";
-                            listitem.ToolTipText = "音量を下げます";
+                            listitem.Text = Resource_text.FuncVolumeDown_str;
+                            listitem.ToolTipText = Resource_text.FuncVolumeDown_tip_str;
                             break;
                         case ffmodule.FFplayerKeymapFunction.FuncVolumeUp:
                             listitem.Tag = ffmodule.FFplayerKeymapFunction.FuncVolumeUp;
-                            listitem.Text = "Volude Up";
-                            listitem.ToolTipText = "音量を上げます";
+                            listitem.Text = Resource_text.FuncVolumeUp_str;
+                            listitem.ToolTipText = Resource_text.FuncVolumeUp_tip_str;
                             break;
                         case ffmodule.FFplayerKeymapFunction.FuncToggleDisplay:
                             listitem.Tag = ffmodule.FFplayerKeymapFunction.FuncToggleDisplay;
-                            listitem.Text = "Toggle Display";
-                            listitem.ToolTipText = "画面に時間表示を出します";
+                            listitem.Text = Resource_text.FuncToggleDisplay_str;
+                            listitem.ToolTipText = Resource_text.FuncToggleDisplay_tip_str;
                             break;
                         case ffmodule.FFplayerKeymapFunction.FuncToggleMute:
                             listitem.Tag = ffmodule.FFplayerKeymapFunction.FuncToggleMute;
-                            listitem.Text = "Mute";
-                            listitem.ToolTipText = "音声のミュートを切り替えます";
+                            listitem.Text = Resource_text.FuncToggleMute_str;
+                            listitem.ToolTipText = Resource_text.FuncToggleMute_tip_str;
                             break;
                         case ffmodule.FFplayerKeymapFunction.FuncCycleChannel:
                             listitem.Tag = ffmodule.FFplayerKeymapFunction.FuncCycleChannel;
-                            listitem.Text = "Cycle Channel";
-                            listitem.ToolTipText = "動画および関連づけられた音声と字幕を切り替えます";
+                            listitem.Text = Resource_text.FuncCycleChannel_str;
+                            listitem.ToolTipText = Resource_text.FuncCycleChannel_tip_str;
                             break;
                         case ffmodule.FFplayerKeymapFunction.FuncCycleAudio:
                             listitem.Tag = ffmodule.FFplayerKeymapFunction.FuncCycleAudio;
-                            listitem.Text = "Cycle Audio";
-                            listitem.ToolTipText = "音声を切り替えます";
+                            listitem.Text = Resource_text.FuncCycleAudio_str;
+                            listitem.ToolTipText = Resource_text.FuncCycleAudio_tip_str;
                             break;
                         case ffmodule.FFplayerKeymapFunction.FuncCycleSubtitle:
                             listitem.Tag = ffmodule.FFplayerKeymapFunction.FuncCycleSubtitle;
-                            listitem.Text = "Cycle Subtitle";
-                            listitem.ToolTipText = "字幕を切り替えます";
+                            listitem.Text = Resource_text.FuncCycleSubtitle_str;
+                            listitem.ToolTipText = Resource_text.FuncCycleSubtitle_tip_str;
                             break;
                         case ffmodule.FFplayerKeymapFunction.FuncForwardChapter:
                             listitem.Tag = ffmodule.FFplayerKeymapFunction.FuncForwardChapter;
-                            listitem.Text = "Seek Forward Chapter";
-                            listitem.ToolTipText = "チャプターを進めます";
+                            listitem.Text = Resource_text.FuncForwardChapter_str;
+                            listitem.ToolTipText = Resource_text.FuncForwardChapter_tip_str;
                             break;
                         case ffmodule.FFplayerKeymapFunction.FuncRewindChapter:
                             listitem.Tag = ffmodule.FFplayerKeymapFunction.FuncRewindChapter;
-                            listitem.Text = "Seek Rewind Chapter";
-                            listitem.ToolTipText = "チャプターを戻します";
+                            listitem.Text = Resource_text.FuncRewindChapter_str;
+                            listitem.ToolTipText = Resource_text.FuncRewindChapter_tip_str;
                             break;
                         case ffmodule.FFplayerKeymapFunction.FuncTogglePause:
                             listitem.Tag = ffmodule.FFplayerKeymapFunction.FuncTogglePause;
-                            listitem.Text = "Toggle Pause";
-                            listitem.ToolTipText = "一時停止を切り替えます";
+                            listitem.Text = Resource_text.FuncTogglePause_str;
+                            listitem.ToolTipText = Resource_text.FuncTogglePause_tip_str;
                             break;
                         case ffmodule.FFplayerKeymapFunction.FuncResizeOriginal:
                             listitem.Tag = ffmodule.FFplayerKeymapFunction.FuncResizeOriginal;
-                            listitem.Text = "Resize to Original";
-                            listitem.ToolTipText = "オリジナルのサイズにリサイズします";
+                            listitem.Text = Resource_text.FuncResizeOriginal_str;
+                            listitem.ToolTipText = Resource_text.FuncResizeOriginal_tip_str;
                             break;
                         case ffmodule.FFplayerKeymapFunction.FuncSrcVolumeUp:
                             listitem.Tag = ffmodule.FFplayerKeymapFunction.FuncSrcVolumeUp;
-                            listitem.Text = "SrcVolume Up";
-                            listitem.ToolTipText = "FFmpegのオーディオフィルタで音量を上げます";
+                            listitem.Text = Resource_text.FuncSrcVolumeUp_str;
+                            listitem.ToolTipText = Resource_text.FuncSrcVolumeUp_tip_str;
                             break;
                         case ffmodule.FFplayerKeymapFunction.FuncSrcVolumeDown:
                             listitem.Tag = ffmodule.FFplayerKeymapFunction.FuncSrcVolumeDown;
-                            listitem.Text = "SrcVolume Down";
-                            listitem.ToolTipText = "FFmpegのオーディオフィルタで音量を下げます";
+                            listitem.Text = Resource_text.FuncSrcVolumeDown_str;
+                            listitem.ToolTipText = Resource_text.FuncSrcVolumeDown_tip_str;
                             break;
                         case ffmodule.FFplayerKeymapFunction.FuncSrcAutoVolume:
                             listitem.Tag = ffmodule.FFplayerKeymapFunction.FuncSrcAutoVolume;
-                            listitem.Text = "Dynamic Audio Normalizer";
-                            listitem.ToolTipText = "FFmpegのdynaudnormフィルタにより、音量を自動調整します";
+                            listitem.Text = Resource_text.FuncSrcAutoVolume_str;
+                            listitem.ToolTipText = Resource_text.FuncSrcAutoVolume_tip_str;
                             break;
                         default:
                             continue;
