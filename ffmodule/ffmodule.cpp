@@ -644,6 +644,7 @@ namespace ffmodule {
 		IOCtx = NULL;
 		pFormatCtx = NULL;
 		screen = NULL;
+		agraph = NULL;
 
 		filename[0] = '\0';
 		videoStream = audioStream = -1;
@@ -721,9 +722,9 @@ namespace ffmodule {
 		pts = audio_clock; /* maintained in the audio thread */
 		hw_buf_size = audio_buf_size - audio_buf_index;
 		bytes_per_sec = 0;
-		n = audio_ctx->channels * 2;
+		n = audio_out_channels * 2;
 		if (audio_st) {
-			bytes_per_sec = audio_ctx->sample_rate * n;
+			bytes_per_sec = audio_out_sample_rate * n;
 		}
 		if (bytes_per_sec) {
 			pts -= (double)hw_buf_size / bytes_per_sec;
@@ -773,12 +774,106 @@ namespace ffmodule {
 		}
 	}
 
+	bool _FFplayer::configure_audio_filters()
+	{
+		char asrc_args[256] = { 0 };
+		std::shared_ptr<AVFilterGraph> graph(avfilter_graph_alloc(), [](AVFilterGraph *ptr) { avfilter_graph_free(&ptr); });
+		AVFilterContext *filt_asrc = NULL, *filt_asink = NULL;
+		AVFilterContext *filt_volume = NULL;
+		AVFilterContext *filt_loudnorm = NULL;
+
+		afilt_in = NULL;
+		afilt_out = NULL;
+		agraph = NULL;
+
+		if (!graph) return false;
+
+		int ret = snprintf(asrc_args, sizeof(asrc_args),
+			"sample_rate=%d:sample_fmt=%s:channels=%d:time_base=%d/%d",
+			audio_filter_src.freq, av_get_sample_fmt_name(audio_filter_src.fmt),
+			audio_filter_src.channels,
+			1, audio_filter_src.freq);
+		if (audio_filter_src.channel_layout)
+			snprintf(asrc_args + ret, sizeof(asrc_args) - ret,
+				":channel_layout=0x%" PRIx64, audio_filter_src.channel_layout);
+
+		if (avfilter_graph_create_filter(&filt_asrc,
+			avfilter_get_by_name("abuffer"), "ffplay_abuffer",
+			asrc_args, NULL, graph.get()) < 0)
+			return false;
+
+		if (avfilter_graph_create_filter(&filt_asink,
+			avfilter_get_by_name("abuffersink"), "ffplay_abuffersink",
+			NULL, NULL, graph.get()) < 0)
+			return false;
+
+		if (audio_filter_src.audio_volume_dB != 0) {
+			snprintf(asrc_args, sizeof(asrc_args),
+				"volume=%ddB", audio_filter_src.audio_volume_dB);
+			if (avfilter_graph_create_filter(&filt_volume,
+				avfilter_get_by_name("volume"), "ffplay_volume",
+				asrc_args, NULL, graph.get()) < 0)
+				return false;
+		}
+		if (audio_filter_src.audio_volume_auto) {
+			snprintf(asrc_args, sizeof(asrc_args),
+				"f=100");
+			if (avfilter_graph_create_filter(&filt_loudnorm,
+				avfilter_get_by_name("dynaudnorm"), "ffplay_dynaudnorm",
+				asrc_args, NULL, graph.get()) < 0)
+				return false;
+		}
+		AVFilterContext *filt_last = filt_asrc;
+		if (filt_loudnorm) {
+			if (avfilter_link(filt_last, 0, filt_loudnorm, 0) != 0)
+				return false;
+			filt_last = filt_loudnorm;
+		}
+		if (filt_volume) {
+			if (avfilter_link(filt_last, 0, filt_volume, 0) != 0)
+				return false;
+			filt_last = filt_volume;
+		}
+		if (avfilter_link(filt_last, 0, filt_asink, 0) != 0)
+			return false;
+
+		if (avfilter_graph_config(graph.get(), NULL) < 0)
+			return false;
+
+		afilt_in = filt_asrc;
+		afilt_out = filt_asink;
+		agraph = graph;
+		return true;
+	}
+
+	static inline
+	int64_t get_valid_channel_layout(int64_t channel_layout, int channels)
+	{
+		if (channel_layout && av_get_channel_layout_nb_channels(channel_layout) == channels)
+			return channel_layout;
+		else
+			return 0;
+	}
+
+	static inline
+	int cmp_audio_fmts(enum AVSampleFormat fmt1, int64_t channel_count1,
+			enum AVSampleFormat fmt2, int64_t channel_count2)
+	{
+		/* If channel count == 1, planar and non-planar formats are the same */
+		if (channel_count1 == 1 && channel_count2 == 1)
+			return av_get_packed_sample_fmt(fmt1) != av_get_packed_sample_fmt(fmt2);
+		else
+			return channel_count1 != channel_count2 || fmt1 != fmt2;
+	}
 
 	int _FFplayer::audio_decode_frame(uint8_t *audio_buf, int buf_size, double *pts_ptr)
 	{
 		AVCodecContext *aCodecCtx = audio_ctx.get();
 		SwrContext *a_convert_ctx = swr_ctx.get();
 		AVPacket pkt = { 0 };
+		AVFrame audio_frame_in = { 0 };
+		AVFrame audio_frame_out = { 0 };
+		bool timepkt = true;
 
 		for (;;) {
 			int ret;
@@ -806,39 +901,80 @@ namespace ffmodule {
 				goto quit_audio;
 			}
 
-			if (pkt.pts != AV_NOPTS_VALUE) {
-				audio_clock = av_q2d(audio_st->time_base)*pkt.pts;
-				if (isnan(audio_clock_start)) {
-					audio_clock_start = audio_clock;
-				}
-			}
-
 			// send packet to codec context
 			if (avcodec_send_packet(aCodecCtx, &pkt) >= 0) {
 				av_packet_unref(&pkt);
 				int data_size = 0;
 
 				// Decode audio frame
-				while (avcodec_receive_frame(aCodecCtx, &audio_frame) >= 0) {
-					int out_samples = (int)av_rescale_rnd(swr_get_delay(a_convert_ctx, audio_ctx->sample_rate) +
-						audio_frame.nb_samples, audio_out_sample_rate, audio_ctx->sample_rate, AV_ROUND_UP);
-					int out_size = av_samples_get_buffer_size(NULL,
-						audio_out_channels,
-						out_samples,
-						AV_SAMPLE_FMT_S16,
-						1);
-					assert(out_size <= buf_size);
-					swr_convert(a_convert_ctx, &audio_buf, out_samples, (const uint8_t **)audio_frame.data, audio_frame.nb_samples);
-					audio_buf += out_size;
-					buf_size -= out_size;
-					data_size += out_size;
+				while (avcodec_receive_frame(aCodecCtx, &audio_frame_in) >= 0) {
+
+					auto dec_channel_layout = get_valid_channel_layout(audio_frame_in.channel_layout, av_frame_get_channels(&audio_frame_in));
+					bool reconfigure =
+						cmp_audio_fmts(audio_filter_src.fmt, audio_filter_src.channels,
+						(enum AVSampleFormat)audio_frame_in.format, av_frame_get_channels(&audio_frame_in)) ||
+						audio_filter_src.channel_layout != dec_channel_layout ||
+						audio_filter_src.freq != audio_frame_in.sample_rate ||
+						audio_filter_src.audio_volume_dB != audio_volume_dB ||
+						audio_filter_src.audio_volume_auto != audio_volume_auto;
+
+					if (reconfigure) {
+						audio_filter_src.fmt = (enum AVSampleFormat)audio_frame_in.format;
+						audio_filter_src.channels = av_frame_get_channels(&audio_frame_in);
+						audio_filter_src.channel_layout = dec_channel_layout;
+						audio_filter_src.freq = audio_frame_in.sample_rate;
+						audio_filter_src.audio_volume_dB = audio_volume_dB;
+						audio_filter_src.audio_volume_auto = audio_volume_auto;
+
+						if (!configure_audio_filters())
+							goto quit_audio;
+
+						a_convert_ctx = swr_alloc_set_opts(NULL,
+							av_get_default_channel_layout(audio_out_channels), AV_SAMPLE_FMT_S16, audio_out_sample_rate,
+							afilt_out->inputs[0]->channel_layout, (enum AVSampleFormat)afilt_out->inputs[0]->format, afilt_out->inputs[0]->sample_rate,
+							0, NULL);
+						swr_init(a_convert_ctx);
+
+						swr_ctx = std::shared_ptr<SwrContext>(a_convert_ctx, [](SwrContext *ptr) { swr_free(&ptr); });
+					}
+
+					if (av_buffersrc_add_frame(afilt_in, &audio_frame_in) < 0)
+						goto quit_audio;
+
+					av_frame_unref(&audio_frame_in);
+					while ((ret = av_buffersink_get_frame_flags(afilt_out, &audio_frame_out, 0)) >= 0) {
+
+						if (av_frame_get_best_effort_timestamp(&audio_frame_out) != AV_NOPTS_VALUE) {
+							audio_clock = av_q2d(audio_st->time_base)*av_frame_get_best_effort_timestamp(&audio_frame_out);
+							if (isnan(audio_clock_start)) {
+								audio_clock_start = audio_clock;
+							}
+						}
+
+						int out_samples = (int)av_rescale_rnd(swr_get_delay(a_convert_ctx, audio_frame_out.sample_rate) +
+							audio_frame_out.nb_samples, audio_out_sample_rate, audio_frame_out.sample_rate, AV_ROUND_UP);
+						int out_size = av_samples_get_buffer_size(NULL,
+							audio_out_channels,
+							out_samples,
+							AV_SAMPLE_FMT_S16,
+							1);
+						assert(out_size <= buf_size);
+						swr_convert(a_convert_ctx, &audio_buf, out_samples, (const uint8_t **)audio_frame_out.data, audio_frame_out.nb_samples);
+						audio_buf += out_size;
+						buf_size -= out_size;
+						data_size += out_size;
+
+						if (timepkt) {
+							int n = 2 * audio_out_channels;
+							audio_clock += (double)out_size /
+								(double)(n * audio_out_sample_rate);
+						}
+
+						av_frame_unref(&audio_frame_out);
+					}
 				}
-				av_frame_unref(&audio_frame);
 				double pts = audio_clock;
 				*pts_ptr = pts;
-				int n = 2 * audio_out_channels;
-				audio_clock += (double)data_size /
-					(double)(n * audio_out_sample_rate);
 				/* We have data, return it and come back for more later */
 				return data_size;
 			}
@@ -1483,15 +1619,6 @@ namespace ffmodule {
 			audio_buf_index = 0;
 			audio_clock_start = NAN;
 
-			//Swr
-			/* set options */
-			a_convert_ctx = swr_alloc_set_opts(a_convert_ctx,
-				out_channel_layout, AV_SAMPLE_FMT_S16, spec.freq,
-				in_channel_layout, codecCtx->sample_fmt, codecCtx->sample_rate,
-				0, NULL);
-			swr_init(a_convert_ctx);
-
-			swr_ctx = std::shared_ptr<SwrContext>(a_convert_ctx, [](SwrContext *ptr) { swr_free(&ptr); });
 			audio_out_sample_rate = spec.freq;
 			audio_out_channels = spec.channels;
 
@@ -2106,7 +2233,7 @@ namespace ffmodule {
 			mm = ((int)(ns) % 3600) / 60;
 			ss = ((int)(ns) % 60);
 			ns -= (int)(ns);
-			if (1) {
+			if (0) {
 				sprintf_s(out_text, "%2d:%02d:%02d.%03d/%2d:%02d:%02d",
 					hh, mm, ss, (int)(ns * 1000), thh, tmm, tss);
 			}
@@ -2506,6 +2633,12 @@ namespace ffmodule {
 			return;
 		}
 
+		if (isnan(audio_clock_start)) {
+			frame_timer = av_gettime() / 1000000.0;
+			schedule_refresh(100);
+			return;
+		}
+
 		while (pictq_size > 0)
 		{
 			video_current_pts = vp->pts;
@@ -2537,7 +2670,7 @@ namespace ffmodule {
 				double ref_clock = get_master_clock();
 				double diff = vp->pts - ref_clock;
 
-				diff += (audio_callback_time - av_gettime() / 1000000.0);
+				//diff += (audio_callback_time - av_gettime() / 1000000.0);
 				video_delay_to_audio = diff;
 				/* Skip or repeat the frame. Take delay into account
 				FFPlay still doesn't "know if this is the best guess." */
@@ -2562,7 +2695,7 @@ namespace ffmodule {
 
 
 			frame_timer += delay;
-			const double skepdelay = 0.005;
+			const double skepdelay = 0;
 			/* computer the REAL delay */
 			double actual_delay = frame_timer - av_gettime() / 1000000.0;
 
@@ -2960,6 +3093,38 @@ namespace ffmodule {
 		return 0;
 	}
 
+	void _FFplayer::EventOnSrcVolumeChange()
+	{
+		char strbuf[64];
+		if (audio_volume_auto)
+			sprintf_s(strbuf, "Auto Volume %+ddB", audio_volume_dB);
+		else
+			sprintf_s(strbuf, "Volume %+ddB", audio_volume_dB);
+		overlay_text = strbuf;
+		Redraw();
+		overlay_remove_time = av_gettime() + 3 * 1000 * 1000;
+	}
+
+	int _FFplayer::_FFplayerFuncs::FunctionSrcVolumeUp(SDL_Event &evnt)
+	{
+		parent->audio_volume_dB++;
+		parent->EventOnSrcVolumeChange();
+		return 0;
+	}
+
+	int _FFplayer::_FFplayerFuncs::FunctionSrcVolumeDown(SDL_Event &evnt)
+	{
+		parent->audio_volume_dB--;
+		parent->EventOnSrcVolumeChange();
+		return 0;
+	}
+
+	int _FFplayer::_FFplayerFuncs::FunctionToggleDynNormalizeVolume(SDL_Event &evnt)
+	{
+		parent->audio_volume_auto = !parent->audio_volume_auto;
+		parent->EventOnSrcVolumeChange();
+		return 0;
+	}
 
 	bool _FFplayer::EventLoop()
 	{
@@ -3076,6 +3241,9 @@ namespace ffmodule {
 		FuncRewindChapter,
 		FuncTogglePause,
 		FuncResizeOriginal,
+		FuncSrcVolumeUp,
+		FuncSrcVolumeDown,
+		FuncSrcAutoVolume,
 	};
 
 	ref class FFplayer;

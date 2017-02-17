@@ -43,6 +43,7 @@ extern "C" {
 #include <fstream>
 
 #include <stdlib.h>
+#include <inttypes.h>
 
 #define SDL_AUDIO_BUFFER_SIZE 1024
 #define MAX_AUDIO_FRAME_SIZE 192000
@@ -50,7 +51,7 @@ extern "C" {
 #define FF_REFRESH_EVENT (SDL_USEREVENT)
 #define FF_QUIT_EVENT (SDL_USEREVENT + 1)
 
-#define VIDEO_PICTURE_QUEUE_SIZE 30
+#define VIDEO_PICTURE_QUEUE_SIZE 60*20
 
 #define MAX_AUDIOQ_SIZE (1 * 32 * 1024)
 #define MAX_VIDEOQ_SIZE (64 * 32 * 1024)
@@ -266,8 +267,6 @@ namespace ffmodule {
 		uint8_t         audio_buf[(MAX_AUDIO_FRAME_SIZE * 3) / 2];
 		unsigned int    audio_buf_size;
 		unsigned int    audio_buf_index;
-		AVFrame         audio_frame;
-		//AVPacket        audio_pkt;
 		double          audio_diff_cum; /* used for AV difference average computation */
 		double          audio_diff_avg_coef;
 		double          audio_diff_threshold;
@@ -279,6 +278,22 @@ namespace ffmodule {
 		double          audio_clock_start;
 		bool            audio_eof;
 		bool            audio_only;
+		std::shared_ptr<AVFilterGraph> agraph;
+		AVFilterContext *afilt_out, *afilt_in;
+		int             audio_volume_dB;
+		bool            audio_volume_auto;
+
+		typedef struct AudioParams {
+			int freq;
+			int channels;
+			int64_t channel_layout;
+			enum AVSampleFormat fmt;
+			int frame_size;
+			int bytes_per_sec;
+			int audio_volume_dB;
+			bool audio_volume_auto;
+		} AudioParams;
+		AudioParams audio_filter_src;
 
 		bool            audio_pause;
 		double          audio_callback_time;
@@ -375,6 +390,11 @@ namespace ffmodule {
 
 			int FunctionResizeOriginal(SDL_Event & evnt);
 
+			int FunctionSrcVolumeUp(SDL_Event & evnt);
+			int FunctionSrcVolumeDown(SDL_Event & evnt);
+
+			int FunctionToggleDynNormalizeVolume(SDL_Event & evnt);
+
 			int invoke(int(_FFplayer::_FFplayerFuncs::*test)(SDL_Event &evnt), SDL_Event &evnt) {
 				return (this->*test)(evnt);
 			}
@@ -400,6 +420,9 @@ namespace ffmodule {
 			FuncRewindChapter,
 			FuncTogglePause,
 			FuncResizeOriginal,
+			FuncSrcVolumeUp,
+			FuncSrcVolumeDown,
+			FuncSrcAutoVolume,
 		} FFplayer_KeyCommand;
 
 	private:
@@ -421,6 +444,9 @@ namespace ffmodule {
 			{ FuncRewindChapter,	SDLK_PAGEDOWN },
 			{ FuncTogglePause,		SDLK_p },
 			{ FuncResizeOriginal,	SDLK_0 },
+			{ FuncSrcVolumeUp,		SDLK_F1 },
+			{ FuncSrcVolumeDown,	SDLK_F2 },
+			{ FuncSrcAutoVolume,	SDLK_F4 },
 		};
 
 		const std::map<FFplayer_KeyCommand, std::pair<int(_FFplayer::_FFplayerFuncs::*)(SDL_Event &evnt), int(_FFplayer::_FFplayerFuncs::*)(SDL_Event &evnt)>> keyfunctionlist = {
@@ -441,6 +467,9 @@ namespace ffmodule {
 			{ FuncRewindChapter,	{ &_FFplayer::_FFplayerFuncs::FunctionRewindChapter,	&_FFplayer::_FFplayerFuncs::VoidFunction } },
 			{ FuncTogglePause,		{ &_FFplayer::_FFplayerFuncs::FunctionTogglePause,		&_FFplayer::_FFplayerFuncs::VoidFunction } },
 			{ FuncResizeOriginal,	{ &_FFplayer::_FFplayerFuncs::FunctionResizeOriginal,	&_FFplayer::_FFplayerFuncs::VoidFunction } },
+			{ FuncSrcVolumeUp,		{ &_FFplayer::_FFplayerFuncs::FunctionSrcVolumeUp,		&_FFplayer::_FFplayerFuncs::VoidFunction } },
+			{ FuncSrcVolumeDown,	{ &_FFplayer::_FFplayerFuncs::FunctionSrcVolumeDown,	&_FFplayer::_FFplayerFuncs::VoidFunction } },
+			{ FuncSrcAutoVolume,	{ &_FFplayer::_FFplayerFuncs::FunctionToggleDynNormalizeVolume,	&_FFplayer::_FFplayerFuncs::VoidFunction } },
 		};
 	public:
 		std::multimap<FFplayer_KeyCommand, SDL_Keycode> KeyFunctions;
@@ -488,6 +517,7 @@ namespace ffmodule {
 		double get_external_clock();
 		double get_master_clock();
 		double get_master_clock_start();
+		bool configure_audio_filters();
 		void Finalize();
 		int audio_decode_frame(uint8_t *audio_buf, int buf_size, double *pts_ptr);
 		int synchronize_audio(short *samples, int samples_size, double pts);
@@ -525,6 +555,7 @@ namespace ffmodule {
 		void refresh_loop_wait_event(SDL_Event * event);
 		void EventOnVolumeChange();
 		void EventOnSeek(double value, bool frac, bool pre);
+		void EventOnSrcVolumeChange();
 		bool EventLoop();
 		void Quit();
 	};

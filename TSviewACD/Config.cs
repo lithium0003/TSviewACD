@@ -49,6 +49,9 @@ namespace TSviewACD
             { ffmodule.FFplayerKeymapFunction.FuncRewindChapter,    new FFmoduleKeysClass{System.Windows.Forms.Keys.PageDown} },
             { ffmodule.FFplayerKeymapFunction.FuncTogglePause,      new FFmoduleKeysClass{System.Windows.Forms.Keys.P} },
             { ffmodule.FFplayerKeymapFunction.FuncResizeOriginal,   new FFmoduleKeysClass{System.Windows.Forms.Keys.D0} },
+            { ffmodule.FFplayerKeymapFunction.FuncSrcVolumeUp,      new FFmoduleKeysClass{System.Windows.Forms.Keys.F1} },
+            { ffmodule.FFplayerKeymapFunction.FuncSrcVolumeDown,    new FFmoduleKeysClass{System.Windows.Forms.Keys.F2} },
+            { ffmodule.FFplayerKeymapFunction.FuncSrcAutoVolume,    new FFmoduleKeysClass{System.Windows.Forms.Keys.F4} },
         };
         public static string FontFilepath = "ipaexg.ttf";
         public static int FontPtSize = 48;
@@ -268,35 +271,38 @@ namespace TSviewACD
 
         public static void Save()
         {
-            var serializer = new DataContractSerializer(typeof(Savedata));
-            using (var xmlw = XmlWriter.Create(filepath, new XmlWriterSettings { Indent = true }))
+            lock (filepath)
             {
-                var data = new Savedata
+                var serializer = new DataContractSerializer(typeof(Savedata));
+                using (var xmlw = XmlWriter.Create(filepath, new XmlWriterSettings { Indent = true }))
                 {
-                    Version = Version,
-                    LogToFile = LogToFile,
-                    refresh_token = enc_refresh_token,
-                    SendToHost = SendToHost,
-                    SendToPort = SendToPort,
-                    SendPacketNum = SendPacketNum,
-                    SendDelay = SendDelay,
-                    SendLongOffset = SendLongOffset,
-                    SendRatebySendCount = SendRatebySendCount,
-                    SendRatebyTOTCount = SendRatebyTOTCount,
-                    SendVK = SendVK,
-                    SendVK_Application = SendVK_Application,
-                    UploadBandwidthLimit = UploadLimit,
-                    DownloadBandwidthLimit = DownloadLimit,
-                    contentUrl = contentUrl,
-                    metadataUrl = metadataUrl,
-                    URL_time = URL_time,
-                    FFmoduleKeybinds = FFmoduleKeybinds,
-                    FontPtSize = FontPtSize,
-                    FontFilepath = FontFilepath,
-                    FFmodule_TransferLimit = FFmodule_TransferLimit,
-                    FFmodule_AutoResize = FFmodule_AutoResize,
-                };
-                serializer.WriteObject(xmlw, data);
+                    var data = new Savedata
+                    {
+                        Version = Version,
+                        LogToFile = LogToFile,
+                        refresh_token = enc_refresh_token,
+                        SendToHost = SendToHost,
+                        SendToPort = SendToPort,
+                        SendPacketNum = SendPacketNum,
+                        SendDelay = SendDelay,
+                        SendLongOffset = SendLongOffset,
+                        SendRatebySendCount = SendRatebySendCount,
+                        SendRatebyTOTCount = SendRatebyTOTCount,
+                        SendVK = SendVK,
+                        SendVK_Application = SendVK_Application,
+                        UploadBandwidthLimit = UploadLimit,
+                        DownloadBandwidthLimit = DownloadLimit,
+                        contentUrl = contentUrl,
+                        metadataUrl = metadataUrl,
+                        URL_time = URL_time,
+                        FFmoduleKeybinds = FFmoduleKeybinds,
+                        FontPtSize = FontPtSize,
+                        FontFilepath = FontFilepath,
+                        FFmodule_TransferLimit = FFmodule_TransferLimit,
+                        FFmodule_AutoResize = FFmodule_AutoResize,
+                    };
+                    serializer.WriteObject(xmlw, data);
+                }
             }
         }
     }

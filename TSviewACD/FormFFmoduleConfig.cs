@@ -118,6 +118,21 @@ namespace TSviewACD
                             listitem.Text = "Resize to Original";
                             listitem.ToolTipText = "オリジナルのサイズにリサイズします";
                             break;
+                        case ffmodule.FFplayerKeymapFunction.FuncSrcVolumeUp:
+                            listitem.Tag = ffmodule.FFplayerKeymapFunction.FuncSrcVolumeUp;
+                            listitem.Text = "SrcVolume Up";
+                            listitem.ToolTipText = "FFmpegのオーディオフィルタで音量を上げます";
+                            break;
+                        case ffmodule.FFplayerKeymapFunction.FuncSrcVolumeDown:
+                            listitem.Tag = ffmodule.FFplayerKeymapFunction.FuncSrcVolumeDown;
+                            listitem.Text = "SrcVolume Down";
+                            listitem.ToolTipText = "FFmpegのオーディオフィルタで音量を下げます";
+                            break;
+                        case ffmodule.FFplayerKeymapFunction.FuncSrcAutoVolume:
+                            listitem.Tag = ffmodule.FFplayerKeymapFunction.FuncSrcAutoVolume;
+                            listitem.Text = "Dynamic Audio Normalizer";
+                            listitem.ToolTipText = "FFmpegのdynaudnormフィルタにより、音量を自動調整します";
+                            break;
                         default:
                             continue;
                     }

@@ -37,6 +37,7 @@
             this.label3 = new System.Windows.Forms.Label();
             this.label4 = new System.Windows.Forms.Label();
             this.label6 = new System.Windows.Forms.Label();
+            this.checkBox_autosize = new System.Windows.Forms.CheckBox();
             this.groupBox_keybord = new System.Windows.Forms.GroupBox();
             this.listView1 = new System.Windows.Forms.ListView();
             this.columnHeader_Command = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
@@ -55,7 +56,6 @@
             this.label7 = new System.Windows.Forms.Label();
             this.textBox_timeout = new System.Windows.Forms.TextBox();
             this.groupBox_Screen = new System.Windows.Forms.GroupBox();
-            this.checkBox_autosize = new System.Windows.Forms.CheckBox();
             this.groupBox_Mouse.SuspendLayout();
             this.groupBox_keybord.SuspendLayout();
             this.contextMenuStrip1.SuspendLayout();
@@ -136,6 +136,18 @@
             this.label6.TabIndex = 0;
             this.label6.Text = "Disconnect and retry when\r\nthe speed is under";
             this.toolTip1.SetToolTip(this.label6, "転送速度が以下の値を下回った場合は切断して再接続する");
+            // 
+            // checkBox_autosize
+            // 
+            this.checkBox_autosize.AutoSize = true;
+            this.checkBox_autosize.Location = new System.Drawing.Point(8, 18);
+            this.checkBox_autosize.Name = "checkBox_autosize";
+            this.checkBox_autosize.Size = new System.Drawing.Size(127, 28);
+            this.checkBox_autosize.TabIndex = 0;
+            this.checkBox_autosize.Text = "Auto resize window \r\n to fit video";
+            this.toolTip1.SetToolTip(this.checkBox_autosize, "動画の大きさに合わせて自動的にウインドウをリサイズします");
+            this.checkBox_autosize.UseVisualStyleBackColor = true;
+            this.checkBox_autosize.CheckedChanged += new System.EventHandler(this.checkBox_autosize_CheckedChanged);
             // 
             // groupBox_keybord
             // 
@@ -266,6 +278,7 @@
             // 
             // textBox_fontpath
             // 
+            this.textBox_fontpath.ImeMode = System.Windows.Forms.ImeMode.Off;
             this.textBox_fontpath.Location = new System.Drawing.Point(13, 49);
             this.textBox_fontpath.Name = "textBox_fontpath";
             this.textBox_fontpath.Size = new System.Drawing.Size(135, 19);
@@ -299,6 +312,7 @@
             // 
             // textBox_timeout
             // 
+            this.textBox_timeout.ImeMode = System.Windows.Forms.ImeMode.Off;
             this.textBox_timeout.Location = new System.Drawing.Point(50, 51);
             this.textBox_timeout.Name = "textBox_timeout";
             this.textBox_timeout.Size = new System.Drawing.Size(56, 19);
@@ -314,18 +328,6 @@
             this.groupBox_Screen.TabIndex = 5;
             this.groupBox_Screen.TabStop = false;
             this.groupBox_Screen.Text = "Screen";
-            // 
-            // checkBox_autosize
-            // 
-            this.checkBox_autosize.AutoSize = true;
-            this.checkBox_autosize.Location = new System.Drawing.Point(8, 18);
-            this.checkBox_autosize.Name = "checkBox_autosize";
-            this.checkBox_autosize.Size = new System.Drawing.Size(127, 28);
-            this.checkBox_autosize.TabIndex = 0;
-            this.checkBox_autosize.Text = "Auto resize window \r\n to fit video";
-            this.toolTip1.SetToolTip(this.checkBox_autosize, "動画の大きさに合わせて自動的にウインドウをリサイズします");
-            this.checkBox_autosize.UseVisualStyleBackColor = true;
-            this.checkBox_autosize.CheckedChanged += new System.EventHandler(this.checkBox_autosize_CheckedChanged);
             // 
             // FormFFmoduleConfig
             // 

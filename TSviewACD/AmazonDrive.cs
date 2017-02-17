@@ -144,7 +144,6 @@ namespace TSviewACD
                 {
                     error_str = ex.Message;
                     Config.Log.LogOut("\t[GetEndpoint] " + error_str);
-                    System.Diagnostics.Debug.WriteLine(error_str);
                 }
                 catch (OperationCanceledException)
                 {
@@ -154,7 +153,6 @@ namespace TSviewACD
                 {
                     error_str = ex.ToString();
                     Config.Log.LogOut("\t[GetEndpoint] " + error_str);
-                    System.Diagnostics.Debug.WriteLine(error_str);
                 }
             }
             return false;
@@ -184,7 +182,6 @@ namespace TSviewACD
                 {
                     error_str = ex.Message;
                     Config.Log.LogOut("\t[GetAccountInfo] " + error_str);
-                    System.Diagnostics.Debug.WriteLine(error_str);
                 }
                 catch (OperationCanceledException)
                 {
@@ -194,7 +191,6 @@ namespace TSviewACD
                 {
                     error_str = ex.ToString();
                     Config.Log.LogOut("\t[GetAccountInfo] " + error_str);
-                    System.Diagnostics.Debug.WriteLine(error_str);
                 }
             }
             return false;
@@ -223,7 +219,6 @@ namespace TSviewACD
                 {
                     error_str = ex.Message;
                     Config.Log.LogOut("\t[GetFileMetadata] " + error_str);
-                    System.Diagnostics.Debug.WriteLine(error_str);
                 }
                 catch (OperationCanceledException)
                 {
@@ -233,7 +228,6 @@ namespace TSviewACD
                 {
                     error_str = ex.ToString();
                     Config.Log.LogOut("\t[GetFileMetadata] " + error_str);
-                    System.Diagnostics.Debug.WriteLine(error_str);
                 }
             }
             throw new SystemException("GetFileMetadata Failed. " + error_str);
@@ -276,7 +270,6 @@ namespace TSviewACD
                     {
                         error_str = ex.Message;
                         Config.Log.LogOut("\t[ListMetadata] " + error_str);
-                        System.Diagnostics.Debug.WriteLine(error_str);
 
                         if (ex.Message.Contains("401 (Unauthorized)") ||
                             ex.Message.Contains("500 (Internal Server Error)") ||
@@ -284,7 +277,6 @@ namespace TSviewACD
                         {
                             var waitsec = rnd.Next((int)Math.Pow(2, Math.Min(retry - 1, 8)));
                             Config.Log.LogOut("\t[ListMetadata] wait " + waitsec.ToString() + " sec");
-                            System.Diagnostics.Debug.WriteLine("{0} sec wait", waitsec);
                             await Task.Delay(waitsec * 1000);
                         }
                         else { break; }
@@ -297,7 +289,6 @@ namespace TSviewACD
                     {
                         error_str = ex.ToString();
                         Config.Log.LogOut("\t[ListMetadata] " + error_str);
-                        System.Diagnostics.Debug.WriteLine(error_str);
                         break;
                     }
                 }
@@ -339,7 +330,6 @@ namespace TSviewACD
                     {
                         error_str = ex.Message;
                         Config.Log.LogOut("\t[ListChildren] " + error_str);
-                        System.Diagnostics.Debug.WriteLine(error_str);
 
                         if (ex.Message.Contains("401 (Unauthorized)") ||
                             ex.Message.Contains("500 (Internal Server Error)") ||
@@ -347,7 +337,6 @@ namespace TSviewACD
                         {
                             var waitsec = rnd.Next((int)Math.Pow(2, Math.Min(retry - 1, 8)));
                             Config.Log.LogOut("\t[ListChildren] wait " + waitsec.ToString() + " sec");
-                            System.Diagnostics.Debug.WriteLine("{0} sec wait", waitsec);
                             await Task.Delay(waitsec * 1000);
                         }
                         else { break; }
@@ -360,7 +349,6 @@ namespace TSviewACD
                     {
                         error_str = ex.ToString();
                         Config.Log.LogOut("\t[ListChildren] " + error_str);
-                        System.Diagnostics.Debug.WriteLine(error_str);
                         break;
                     }
                 }
@@ -439,7 +427,6 @@ namespace TSviewACD
                 {
                     error_str = ex.Message;
                     Config.Log.LogOut("\t[uploadFile] " + error_str);
-                    System.Diagnostics.Debug.WriteLine(error_str);
                     throw;
                 }
                 catch (OperationCanceledException)
@@ -450,7 +437,6 @@ namespace TSviewACD
                 {
                     error_str = ex.ToString();
                     Config.Log.LogOut("\t[uploadFile] " + error_str);
-                    System.Diagnostics.Debug.WriteLine(error_str);
                     throw;
                 }
             }
@@ -496,7 +482,6 @@ namespace TSviewACD
                 {
                     error_str = ex.Message;
                     Config.Log.LogOut("\t[Trash] " + error_str);
-                    System.Diagnostics.Debug.WriteLine(error_str);
                 }
                 catch (OperationCanceledException)
                 {
@@ -506,7 +491,6 @@ namespace TSviewACD
                 {
                     error_str = ex.ToString();
                     Config.Log.LogOut("\t[Trash] " + error_str);
-                    System.Diagnostics.Debug.WriteLine(error_str);
                 }
             }
             return false;
@@ -535,7 +519,6 @@ namespace TSviewACD
             {
                 error_str = ex.Message;
                 Config.Log.LogOut("\t[downloadFile] " + error_str);
-                System.Diagnostics.Debug.WriteLine(error_str);
                 throw;
             }
             catch (OperationCanceledException)
@@ -546,7 +529,6 @@ namespace TSviewACD
             {
                 error_str = ex.ToString();
                 Config.Log.LogOut("\t[downloadFile] " + error_str);
-                System.Diagnostics.Debug.WriteLine(error_str);
                 throw;
             }
             throw new SystemException("fileDownload failed. " + error_str);
@@ -578,7 +560,6 @@ namespace TSviewACD
                 {
                     error_str = ex.Message;
                     Config.Log.LogOut("\t[rename] " + error_str);
-                    System.Diagnostics.Debug.WriteLine(error_str);
                 }
                 catch (OperationCanceledException)
                 {
@@ -588,7 +569,6 @@ namespace TSviewACD
                 {
                     error_str = ex.ToString();
                     Config.Log.LogOut("\t[rename] " + error_str);
-                    System.Diagnostics.Debug.WriteLine(error_str);
                 }
             }
             throw new SystemException("rename failed. " + error_str);
@@ -635,7 +615,6 @@ namespace TSviewACD
                 {
                     error_str = ex.Message;
                     Config.Log.LogOut("\t[createFolder] " + error_str);
-                    System.Diagnostics.Debug.WriteLine(error_str);
                 }
                 catch (OperationCanceledException)
                 {
@@ -645,7 +624,6 @@ namespace TSviewACD
                 {
                     error_str = ex.ToString();
                     Config.Log.LogOut("\t[createFolder] " + error_str);
-                    System.Diagnostics.Debug.WriteLine(error_str);
                 }
             }
             throw new SystemException("mkFolder failed. " + error_str);
@@ -700,7 +678,6 @@ namespace TSviewACD
                 {
                     error_str = ex.Message;
                     Config.Log.LogOut("\t[move] " + error_str);
-                    System.Diagnostics.Debug.WriteLine(error_str);
                 }
                 catch (OperationCanceledException)
                 {
@@ -710,7 +687,6 @@ namespace TSviewACD
                 {
                     error_str = ex.ToString();
                     Config.Log.LogOut("\t[move] " + error_str);
-                    System.Diagnostics.Debug.WriteLine(error_str);
                 }
             }
             throw new SystemException("moveChild failed. " + error_str);
