@@ -45,9 +45,13 @@ namespace TSviewACD
                 case "help":
                     Console.WriteLine("usage");
                     Console.WriteLine("\thelp                                      : show help");
+                    Console.WriteLine("\tlist     (REMOTE_PATH)                    : list item");
                     Console.WriteLine("\tdownload (REMOTE_PATH) (LOCAL_DIR_PATH)   : download item");
-                    Console.WriteLine("\tupload (LOCAL_FILE_PATH) (REMOTE_PATH)    : upload item");
+                    Console.WriteLine("\tupload   (LOCAL_FILE_PATH) (REMOTE_PATH)  : upload item");
                     break;
+                case "list":
+                    Console.Error.WriteLine("list...");
+                    return await ListItems(args).ConfigureAwait(false);
                 case "download":
                     Console.Error.WriteLine("download...");
                     return await Download(args).ConfigureAwait(false);
@@ -85,13 +89,7 @@ namespace TSviewACD
 
         static async Task<FileMetadata_Info[]> FindItems(string[] path_str, FileMetadata_Info root = null)
         {
-            if (path_str.Length == 0) return null;
-            while (path_str.Length > 0 && string.IsNullOrEmpty(path_str.First()))
-            {
-                path_str = path_str.Skip(1).ToArray();
-            }
-            if (path_str.Length == 0) return null;
-
+            List<FileMetadata_Info> ret = new List<FileMetadata_Info>();
             if (root == null)
             {
                 Console.Error.WriteLine("loading Drive tree...");
@@ -99,13 +97,26 @@ namespace TSviewACD
                 // Load Root
                 root = (await Drive.ListMetadata("isRoot:true").ConfigureAwait(false)).data[0];
             }
+            if (!(path_str?.Length > 0))
+            {
+                ret.Add(root);
+                return ret.ToArray();
+            }
+            while (path_str.Length > 0 && string.IsNullOrEmpty(path_str.First()))
+            {
+                path_str = path_str.Skip(1).ToArray();
+            }
+            if (path_str.Length == 0)
+            {
+                ret.Add(root);
+                return ret.ToArray();
+            }
 
             Console.Error.WriteLine("loading child of "+root.name);
             // add tree Root
             // Load Children
             var children = (await Drive.ListChildren(root.id).ConfigureAwait(false)).data;
 
-            List<FileMetadata_Info> ret = new List<FileMetadata_Info>();
             foreach(var c in children)
             {
                 if(c.name == path_str[0] 
@@ -167,6 +178,44 @@ namespace TSviewACD
                 }
             }
             return null;
+        }
+
+        static async Task<int> ListItems(string[] args)
+        {
+            string remotepath = null;
+            FileMetadata_Info[] target = null;
+
+            if (args.Length > 1)
+            {
+                remotepath = args[1];
+                remotepath = remotepath.Replace('\\', '/');
+            }
+
+            try
+            {
+                Drive = new AmazonDrive();
+                await Login().ConfigureAwait(false);
+                target = await FindItems(remotepath?.Split('/')).ConfigureAwait(false);
+
+                if (target.Length < 1) return 2;
+
+                Console.Error.WriteLine("Found : " + target.Length);
+                foreach (var item in target)
+                {
+                    Console.WriteLine(item.name + ((item.kind == "FOLDER") ? "/" : ""));
+                }
+
+                return 0;
+            }
+            catch (OperationCanceledException)
+            {
+                return -1;
+            }
+            catch (Exception ex)
+            {
+                Console.Error.WriteLine("error: " + ex.ToString());
+                return 1;
+            }
         }
 
         static async Task<int> Download(string[] args)
@@ -274,7 +323,7 @@ namespace TSviewACD
                                         var f = new PositionStream(ret, downitem.contentProperties.size.Value);
                                         f.PosChangeEvent += (src, evnt) =>
                                         {
-                                            Console.Error.Write('\r' + download_str + evnt.Log + "     ");
+                                            Console.Error.Write("\r{0,-79}", download_str + evnt.Log);
                                         };
                                         await f.CopyToAsync(outfile, 16 * 1024 * 1024, Drive.ct);
                                     }
@@ -289,7 +338,7 @@ namespace TSviewACD
                                     var f = new PositionStream(ret, downitem.contentProperties.size.Value);
                                     f.PosChangeEvent += (src, evnt) =>
                                     {
-                                        Console.Error.Write('\r' + download_str + evnt.Log + "     ");
+                                        Console.Error.Write("\r{0,-79}", download_str + evnt.Log);
                                     };
                                     await f.CopyToAsync(outfile, 16 * 1024 * 1024, Drive.ct);
                                 }
@@ -402,7 +451,7 @@ namespace TSviewACD
                             target_id,
                             (src, evnt) =>
                             {
-                                Console.Error.Write('\r' + upload_str + evnt.Log + "     ");
+                                Console.Error.Write("\r{0,-79}", upload_str + evnt.Log);
                             });
                         break;
                     }
