@@ -50,7 +50,7 @@ namespace TSviewACD
             }
             else
             {
-                var ret = ConsoleFunc.MainFunc(args).Result;
+                var ret = ConsoleFunc.MainFunc(args);
                 Console.Error.WriteLine(ret.ToString());
                 return ret;
             }

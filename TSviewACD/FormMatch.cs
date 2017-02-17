@@ -30,7 +30,7 @@ namespace TSviewACD
             listBox_remote.DataSource = _SelectedRemoteFiles;
         }
 
-        CancellationTokenSource cts;
+        JobControler.Job runningJob;
 
         private IEnumerable<FileMetadata_Info> _SelectedRemoteFiles;
 
@@ -127,9 +127,11 @@ namespace TSviewACD
                 }
                 if (prefix == "")
                     break;
-                while(!p.StartsWith(prefix) && prefix != "")
+                while (!p.StartsWith(prefix) && prefix != "")
                 {
                     prefix = prefix.Substring(0, prefix.Length - 1);
+                    var filename = Path.GetFileName(prefix);
+                    prefix = prefix.Substring(0, prefix.Length - filename.Length);
                 }
             }
             return prefix ?? "";
@@ -174,7 +176,7 @@ namespace TSviewACD
             }
         }
 
-        private async void button1_Click(object sender, EventArgs e)
+        private void button1_Click(object sender, EventArgs e)
         {
             if (SelectedRemoteFiles == null) return;
 
@@ -185,228 +187,240 @@ namespace TSviewACD
             Dictionary<string, LocalItemInfo[]> LocalDup = new Dictionary<string, LocalItemInfo[]>();
             Dictionary<string, RemoteItemInfo[]> RemoteDup = new Dictionary<string, RemoteItemInfo[]>();
 
-            var task = TaskCanceler.CreateTask("match");
-            cts = task.cts;
-            try
+            var synchronizationContext = SynchronizationContext.Current;
+            bool TreeFlag = radioButton_Tree.Checked;
+            bool FilenameFlag = radioButton_filename.Checked;
+            bool MD5Flag = radioButton_MD5.Checked;
+
+            var job = JobControler.CreateNewJob(JobControler.JobClass.Normal);
+            job.DisplayName = "Match";
+            job.ProgressStr = "wait for run";
+            runningJob = job;
+            bool done = false;
+            JobControler.Run(job, (j) =>
             {
-                button_start.Enabled = false;
-                var synchronizationContext = SynchronizationContext.Current;
+                job.ProgressStr = "running...";
+                job.Progress = -1;
+
+                synchronizationContext.Post((o) =>
+                {
+                    button_start.Enabled = false;
+                }, null);
 
                 var remote = SelectedRemoteFiles.Select(x => new RemoteItemInfo(x, DriveData.GetFullPathfromId(x.id), null)).ToArray();
                 var remotebasepath = GetBasePath(remote.Select(x => x.path));
-                if (radioButton_Tree.Checked)
+
+                if (TreeFlag)
                     remote = remote.Select(x => new RemoteItemInfo(x.info, x.path, x.path.Substring(remotebasepath.Length))).ToArray();
-                if(radioButton_filename.Checked)
+                if (FilenameFlag)
                     remote = remote.Select(x => new RemoteItemInfo(x.info, x.path, DriveData.AmazonDriveTree[x.info.id].DisplayName)).ToArray();
-                if(radioButton_MD5.Checked)
+                if (MD5Flag)
                     remote = remote.Select(x => new RemoteItemInfo(x.info, x.path, x.info.contentProperties?.md5)).ToArray();
 
                 var localpath = listBox_local.Items.Cast<string>();
                 var localbasepath = GetBasePath(localpath);
                 var len = localpath.Count();
                 int i = 0;
-                await Task.Run(() =>
+                foreach (var ritem in remote.GroupBy(x => x.name).Where(g => g.Count() > 1))
                 {
-                    foreach(var ritem in remote.GroupBy(x => x.name).Where(g => g.Count() > 1))
+                    RemoteDup[ritem.Key] = ritem.ToArray();
+                }
+                var local = ((radioButton_MD5.Checked) ?
+                    (localpath.Select(x =>
                     {
-                        RemoteDup[ritem.Key] = ritem.ToArray();
-                    }
-
-                    var local = ((radioButton_MD5.Checked) ?
-                        (localpath.Select(x =>
+                        byte[] md5 = null;
+                        ++i;
+                        synchronizationContext.Post((o) =>
                         {
-                            byte[] md5 = null;
-                            ++i;
-                            synchronizationContext.Send(
-                                (o) =>
+                            if (runningJob?.ct.IsCancellationRequested ?? true) return;
+                            label_info.Text = o as string;
+                        }, string.Format("{0}/{1} Check file MD5...{2}", i, len, x));
+                        using (var md5calc = new System.Security.Cryptography.MD5CryptoServiceProvider())
+                        using (var hfile = File.Open(x, FileMode.Open, FileAccess.Read, FileShare.Read))
+                        {
+                            md5 = md5calc.ComputeHash(hfile);
+                            var MD5 = BitConverter.ToString(md5).ToLower().Replace("-", "");
+                            return new LocalItemInfo(x, MD5, hfile.Length, MD5);
+                        }
+                    })) :
+                    (radioButton_Tree.Checked) ?
+                        localpath.Select(x =>
+                        {
+                            if (checkBox_MD5.Checked)
+                            {
+                                byte[] md5 = null;
+                                ++i;
+                                synchronizationContext.Post((o) =>
                                 {
-                                    if (cts.IsCancellationRequested) return;
+                                    if (runningJob?.ct.IsCancellationRequested ?? true) return;
                                     label_info.Text = o as string;
                                 }, string.Format("{0}/{1} Check file MD5...{2}", i, len, x));
-                            using (var md5calc = new System.Security.Cryptography.MD5CryptoServiceProvider())
-                            using (var hfile = File.Open(x, FileMode.Open, FileAccess.Read, FileShare.Read))
-                            {
-                                md5 = md5calc.ComputeHash(hfile);
-                                var MD5 = BitConverter.ToString(md5).ToLower().Replace("-", "");
-                                return new LocalItemInfo(x, MD5, hfile.Length, MD5);
-                            }
-                        })) :
-                        (radioButton_Tree.Checked) ?
-                            localpath.Select(x =>
-                            {
-                                if (checkBox_MD5.Checked)
+                                using (var md5calc = new System.Security.Cryptography.MD5CryptoServiceProvider())
+                                using (var hfile = File.Open(x, FileMode.Open, FileAccess.Read, FileShare.Read))
                                 {
-                                    byte[] md5 = null;
-                                    ++i;
-                                    synchronizationContext.Post(
-                                        (o) =>
-                                        {
-                                            if (cts.IsCancellationRequested) return;
-                                            label_info.Text = o as string;
-                                        }, string.Format("{0}/{1} Check file MD5...{2}", i, len, x));
-                                    using (var md5calc = new System.Security.Cryptography.MD5CryptoServiceProvider())
-                                    using (var hfile = File.Open(x, FileMode.Open, FileAccess.Read, FileShare.Read))
-                                    {
-                                        md5 = md5calc.ComputeHash(hfile);
-                                        var MD5 = BitConverter.ToString(md5).ToLower().Replace("-", "");
-                                        return new LocalItemInfo(x, x.Substring(localbasepath.Length).Replace('\\', '/'), hfile.Length, MD5);
-                                    }
+                                    md5 = md5calc.ComputeHash(hfile);
+                                    var MD5 = BitConverter.ToString(md5).ToLower().Replace("-", "");
+                                    return new LocalItemInfo(x, x.Substring(localbasepath.Length).Replace('\\', '/'), hfile.Length, MD5);
                                 }
-                                else
-                                {
-                                    ++i;
-                                    synchronizationContext.Post(
-                                        (o) =>
-                                        {
-                                            if (cts.IsCancellationRequested) return;
-                                            label_info.Text = o as string;
-                                        }, string.Format("{0}/{1} Check file ...{2}", i, len, x));
-                                    return new LocalItemInfo(x, x.Substring(localbasepath.Length).Replace('\\', '/'), new FileInfo(x).Length, null);
-                                }
-                            }) :
-                            localpath.Select(x =>
-                           {
-                               if (checkBox_MD5.Checked)
-                               {
-                                   byte[] md5 = null;
-                                   ++i;
-                                   synchronizationContext.Post(
-                                       (o) =>
-                                       {
-                                           if (cts.IsCancellationRequested) return;
-                                           label_info.Text = o as string;
-                                       }, string.Format("{0}/{1} Check file MD5...{2}", i, len, x));
-                                   using (var md5calc = new System.Security.Cryptography.MD5CryptoServiceProvider())
-                                   using (var hfile = File.Open(x, FileMode.Open, FileAccess.Read, FileShare.Read))
-                                   {
-                                       md5 = md5calc.ComputeHash(hfile);
-                                       var MD5 = BitConverter.ToString(md5).ToLower().Replace("-", "");
-                                       return new LocalItemInfo(x, Path.GetFileName(x), hfile.Length, MD5);
-                                   }
-                               }
-                               else
-                               {
-                                   ++i;
-                                   synchronizationContext.Post(
-                                       (o) =>
-                                       {
-                                           if (cts.IsCancellationRequested) return;
-                                           label_info.Text = o as string;
-                                       }, string.Format("{0}/{1} Check file ...{2}", i, len, x));
-                                   return new LocalItemInfo(x, Path.GetFileName(x), new FileInfo(x).Length, null);
-                               }
-                           }))
-                    .GroupBy(x => x.name).ToArray();
-
-                    i = 0;
-                    foreach (var litem in local)
-                    {
-                        cts.Token.ThrowIfCancellationRequested();
-                        var matchitem = remote.Where(x => x.name == litem.FirstOrDefault()?.name).ToArray();
-
-                        if(litem.Count() > 1)
-                        {
-                            LocalDup[litem.Key] = litem.ToArray();
-                        }
-
-                        if (matchitem.Length > 0)
-                        {
-                            List<RemoteItemInfo> RemoteMatched = new List<RemoteItemInfo>();
-                            List<LocalItemInfo> LocalUnMatched = new List<LocalItemInfo>();
-                            // match test
-                            foreach (var item in litem)
-                            {
-                                ++i;
-                                synchronizationContext.Post(
-                                    (o) =>
-                                    {
-                                        if (cts.IsCancellationRequested) return;
-                                        label_info.Text = o as string;
-                                    }, string.Format("{0}/{1} {2}", i, len, item.path));
-
-                                List<RemoteItemInfo> Matched = new List<RemoteItemInfo>();
-                                foreach (var ritem in matchitem)
-                                {
-                                    if (item.size == ritem.info.contentProperties?.size)
-                                    {
-                                        if(item.MD5 == null || item.MD5 == ritem.info.contentProperties?.md5)
-                                        {
-                                            Matched.Add(ritem);
-                                        }
-                                    }
-                                }
-
-                                if(Matched.Count() == 0)
-                                {
-                                    LocalUnMatched.Add(item);
-                                }
-
-                                BothAndMatch.AddRange(Matched.Select(x => new MatchItem(item, x)));
-                                RemoteMatched.AddRange(Matched);
-                            }
-
-                            var RemoteUnMatched = matchitem.Except(RemoteMatched);
-                            if(RemoteUnMatched.Count() < LocalUnMatched.Count())
-                            {
-                                BothAndUnmatch.AddRange(RemoteUnMatched.Concat(RemoteMatched).Zip(LocalUnMatched, (r, l) => new MatchItem(l, r)));
-                            }
-                            else if(RemoteUnMatched.Count() > LocalUnMatched.Count())
-                            {
-                                BothAndUnmatch.AddRange(LocalUnMatched.Concat(litem).Zip(RemoteUnMatched, (l, r) => new MatchItem(l, r)));
                             }
                             else
                             {
-                                if(RemoteUnMatched.Count() > 0)
-                                    BothAndUnmatch.AddRange(LocalUnMatched.Zip(RemoteUnMatched, (l, r) => new MatchItem(l, r)));
+                                ++i;
+                                synchronizationContext.Post((o) =>
+                                {
+                                    if (runningJob?.ct.IsCancellationRequested ?? true) return;
+                                    label_info.Text = o as string;
+                                }, string.Format("{0}/{1} Check file ...{2}", i, len, x));
+                                return new LocalItemInfo(x, x.Substring(localbasepath.Length).Replace('\\', '/'), new FileInfo(x).Length, null);
                             }
+                        }) :
+                        localpath.Select(x =>
+                        {
+                            if (checkBox_MD5.Checked)
+                            {
+                                byte[] md5 = null;
+                                ++i;
+                                synchronizationContext.Post((o) =>
+                                {
+                                    if (runningJob?.ct.IsCancellationRequested ?? true) return;
+                                    label_info.Text = o as string;
+                                }, string.Format("{0}/{1} Check file MD5...{2}", i, len, x));
+                                using (var md5calc = new System.Security.Cryptography.MD5CryptoServiceProvider())
+                                using (var hfile = File.Open(x, FileMode.Open, FileAccess.Read, FileShare.Read))
+                                {
+                                    md5 = md5calc.ComputeHash(hfile);
+                                    var MD5 = BitConverter.ToString(md5).ToLower().Replace("-", "");
+                                    return new LocalItemInfo(x, Path.GetFileName(x), hfile.Length, MD5);
+                                }
+                            }
+                            else
+                            {
+                                ++i;
+                                synchronizationContext.Post((o) =>
+                                {
+                                    if (runningJob?.ct.IsCancellationRequested ?? true) return;
+                                    label_info.Text = o as string;
+                                }, string.Format("{0}/{1} Check file ...{2}", i, len, x));
+                                return new LocalItemInfo(x, Path.GetFileName(x), new FileInfo(x).Length, null);
+                            }
+                        }))
+                .GroupBy(x => x.name).ToArray();
+
+                i = 0;
+                foreach (var litem in local)
+                {
+                    job.ct.ThrowIfCancellationRequested();
+                    var matchitem = remote.Where(x => x.name == litem.FirstOrDefault()?.name).ToArray();
+
+                    if (litem.Count() > 1)
+                    {
+                        LocalDup[litem.Key] = litem.ToArray();
+                    }
+
+                    if (matchitem.Length > 0)
+                    {
+                        List<RemoteItemInfo> RemoteMatched = new List<RemoteItemInfo>();
+                        List<LocalItemInfo> LocalUnMatched = new List<LocalItemInfo>();
+                        // match test
+                        foreach (var item in litem)
+                        {
+                            ++i;
+                            synchronizationContext.Post((o) =>
+                            {
+                                if (runningJob?.ct.IsCancellationRequested ?? true) return;
+                                label_info.Text = o as string;
+                            }, string.Format("{0}/{1} {2}", i, len, item.path));
+
+                            List<RemoteItemInfo> Matched = new List<RemoteItemInfo>();
+                            foreach (var ritem in matchitem)
+                            {
+                                if (item.size == ritem.info.contentProperties?.size)
+                                {
+                                    if (item.MD5 == null || item.MD5 == ritem.info.contentProperties?.md5)
+                                    {
+                                        Matched.Add(ritem);
+                                    }
+                                }
+                            }
+
+                            if (Matched.Count() == 0)
+                            {
+                                LocalUnMatched.Add(item);
+                            }
+
+                            BothAndMatch.AddRange(Matched.Select(x => new MatchItem(item, x)));
+                            RemoteMatched.AddRange(Matched);
+                        }
+
+                        var RemoteUnMatched = matchitem.Except(RemoteMatched);
+                        if (RemoteUnMatched.Count() < LocalUnMatched.Count())
+                        {
+                            BothAndUnmatch.AddRange(RemoteUnMatched.Concat(RemoteMatched).Zip(LocalUnMatched, (r, l) => new MatchItem(l, r)));
+                        }
+                        else if (RemoteUnMatched.Count() > LocalUnMatched.Count())
+                        {
+                            BothAndUnmatch.AddRange(LocalUnMatched.Concat(litem).Zip(RemoteUnMatched, (l, r) => new MatchItem(l, r)));
                         }
                         else
                         {
-                            //nomatch
-                            foreach (var item in litem)
-                            {
-                                ++i;
-                                synchronizationContext.Post(
-                                    (o) =>
-                                    {
-                                        if (cts.IsCancellationRequested) return;
-                                        label_info.Text = o as string;
-                                    }, string.Format("{0}/{1} {2}", i, len, item.path));
-                                LocalOnly.Add(new MatchItem(item, null));
-                            }
+                            if (RemoteUnMatched.Count() > 0)
+                                BothAndUnmatch.AddRange(LocalUnMatched.Zip(RemoteUnMatched, (l, r) => new MatchItem(l, r)));
                         }
                     }
-                    RemoteOnly.AddRange(remote.Select(x => x.info)
-                        .Except(BothAndMatch.Select(x => x.remote.info))
-                        .Except(BothAndUnmatch.Select(x => x.remote.info))
-                        .Select(x => remote.Where(y => y.info == x).FirstOrDefault())
-                        .Select(x => new MatchItem(null, x)));
-                }, cts.Token);
-            }
-            catch (OperationCanceledException)
+                    else
+                    {
+                        //nomatch
+                        foreach (var item in litem)
+                        {
+                            ++i;
+                            synchronizationContext.Post((o) =>
+                            {
+                                if (runningJob?.ct.IsCancellationRequested ?? true) return;
+                                label_info.Text = o as string;
+                            }, string.Format("{0}/{1} {2}", i, len, item.path));
+                            LocalOnly.Add(new MatchItem(item, null));
+                        }
+                    }
+                }
+                RemoteOnly.AddRange(remote.Select(x => x.info)
+                    .Except(BothAndMatch.Select(x => x.remote.info))
+                    .Except(BothAndUnmatch.Select(x => x.remote.info))
+                    .Select(x => remote.Where(y => y.info == x).FirstOrDefault())
+                    .Select(x => new MatchItem(null, x)));
+                done = true;
+                job.Progress = 1;
+                job.ProgressStr = "done.";
+            });
+            var afterjob = JobControler.CreateNewJob(JobControler.JobClass.Clean, job);
+            afterjob.DisplayName = "clean up";
+            afterjob.DoAlways = true;
+            JobControler.Run(afterjob, (j) =>
             {
-                return;
-            }
-            finally
-            {
-                label_info.Text = "";
-                TaskCanceler.FinishTask(task);
-                cts = null;
-                button_start.Enabled = true;
-            }
-            var result = new FormMatchResult();
-            result.RemoteOnly = RemoteOnly;
-            result.LocalOnly = LocalOnly;
-            result.Unmatch = BothAndUnmatch;
-            result.Match = BothAndMatch;
-            result.RemoteDup = RemoteDup;
-            result.LocalDup = LocalDup;
-            result.Show();
+                afterjob.ProgressStr = "done.";
+                afterjob.Progress = 1;
+                runningJob = null;
+                synchronizationContext.Post((o) =>
+                {
+                    label_info.Text = "";
+                    button_start.Enabled = true;
+                    if (done)
+                    {
+                        var result = new FormMatchResult();
+                        result.RemoteOnly = RemoteOnly;
+                        result.LocalOnly = LocalOnly;
+                        result.Unmatch = BothAndUnmatch;
+                        result.Match = BothAndMatch;
+                        result.RemoteDup = RemoteDup;
+                        result.LocalDup = LocalDup;
+                        result.Show();
+                    }
+                }, null);
+            });
         }
 
         private void FormMatch_FormClosing(object sender, FormClosingEventArgs e)
         {
-            cts?.Cancel();
+            runningJob?.Cancel();
             Hide();
             e.Cancel = true;
         }
@@ -452,7 +466,7 @@ namespace TSviewACD
 
         private void button_cancel_Click(object sender, EventArgs e)
         {
-            cts?.Cancel();
+            runningJob?.Cancel();
         }
 
         private void listBox_local_DragEnter(object sender, DragEventArgs e)

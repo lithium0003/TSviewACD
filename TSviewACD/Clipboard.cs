@@ -478,7 +478,7 @@ namespace TSviewACD
                     foreach (var i in subtotal)
                         total.Add(i);
                 });
-            var exItems = total.ToDictionary(y => y.Key, y => y.Value);
+            SortedDictionary<string, FileMetadata_Info> exItems = new SortedDictionary<string, FileMetadata_Info>(total.ToDictionary(y => y.Key, y => y.Value));
             selectedItems = exItems.Values.ToArray();
             baseItems = items.Select(x => x.info).ToArray();
 

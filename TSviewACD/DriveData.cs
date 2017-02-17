@@ -207,6 +207,7 @@ namespace TSviewACD
                             Config.Log.LogOut("[GetChanges] " + ex.Message);
                         }
                     }
+                    if (history == null) break;
                     foreach (var h in history)
                     {
                         if(!(h.end ?? false))
@@ -497,7 +498,15 @@ namespace TSviewACD
     public class ItemInfo
     {
         [DataMember]
-        public FileMetadata_Info info;
+        public FileMetadata_Info info
+        {
+            get { return _info; }
+            set
+            {
+                _DisplayName = null;
+                _info = value;
+            }
+        }
         [DataMember]
         [OptionalField(VersionAdded = 2)]
         public CryptMethods IsEncrypted;
@@ -514,6 +523,7 @@ namespace TSviewACD
         }
 
         private string _DisplayName;
+        private FileMetadata_Info _info;
 
         private void ProcessCryption()
         {

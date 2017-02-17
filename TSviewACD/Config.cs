@@ -116,6 +116,11 @@ namespace TSviewACD
         public static CryptMethods CryptMethod = CryptMethods.Method1_CTR;
         public static bool AutoDecode = true;
         public static string CarotDAV_CryptNameHeader = CarotDAV_crypt_names[0];
+        public static int UploadBufferSize = 16 * 1024 * 1024;
+        public static int DownloadBufferSize = 16 * 1024 * 1024;
+        public static bool UploadTrick1 = false;
+        public static int ParallelDownload = 3;
+        public static int ParallelUpload = 3;
         // temporary
         public static bool FFmodule_fullscreen = false;
         public static bool FFmodule_display = false;
@@ -126,6 +131,7 @@ namespace TSviewACD
         public static int FFmodule_x = 0;
         public static int FFmodule_y = 0;
         public static int AmazonDriveTempCount = 0;
+        public static double UploadLimitTemp = 100 * 1024;
 
         private static byte[] _salt = Encoding.ASCII.GetBytes("TSviewACD");
         private const string token_password = ConfigAPI.token_save_password;
@@ -352,6 +358,16 @@ namespace TSviewACD
                         AutoDecode = data.AutoDecode;
                     if (data.CarotDAV_CryptNameHeader != default(string))
                         CarotDAV_CryptNameHeader = data.CarotDAV_CryptNameHeader;
+                    if (data.UploadBufferSize != default(int))
+                        UploadBufferSize = data.UploadBufferSize;
+                    if (data.DownloadBufferSize != default(int))
+                        DownloadBufferSize = data.DownloadBufferSize;
+                    if (data.UploadTrick1 != default(bool))
+                        UploadTrick1 = data.UploadTrick1;
+                    if (data.ParallelDownload != default(int))
+                        ParallelDownload = data.ParallelDownload;
+                    if (data.ParallelUpload != default(int))
+                        ParallelUpload = data.ParallelUpload;
                     contentUrl = data.contentUrl;
                     metadataUrl = data.metadataUrl;
                     if (data.URL_time < DateTime.Now)
@@ -403,6 +419,11 @@ namespace TSviewACD
                         CryptMethod = CryptMethod,
                         AutoDecode = AutoDecode,
                         CarotDAV_CryptNameHeader = CarotDAV_CryptNameHeader,
+                        UploadBufferSize = UploadBufferSize,
+                        DownloadBufferSize = DownloadBufferSize,
+                        UploadTrick1 = UploadTrick1,
+                        ParallelDownload = ParallelDownload,
+                        ParallelUpload = ParallelUpload,
                     };
                     serializer.WriteObject(xmlw, data);
                 }
@@ -473,6 +494,16 @@ namespace TSviewACD
         public bool AutoDecode;
         [DataMember]
         public string CarotDAV_CryptNameHeader;
+        [DataMember]
+        public int UploadBufferSize;
+        [DataMember]
+        public int DownloadBufferSize;
+        [DataMember]
+        public bool UploadTrick1;
+        [DataMember]
+        public int ParallelDownload;
+        [DataMember]
+        public int ParallelUpload;
     }
 
     [CollectionDataContract

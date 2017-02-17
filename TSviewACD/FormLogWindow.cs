@@ -63,12 +63,15 @@ namespace TSviewACD
             lock (this)
             {
                 if (Config.debug)
+                {
                     Console.Error.WriteLine(str);
+                    Console.Error.Flush();
+                }
                 str = string.Format("[{0}] {1}\r\n", DateTime.Now.ToString(), str);
                 LogStream?.Write(str);
                 LogStream?.Flush();
                 if (Config.IsClosing) return;
-                synchronizationContext.Post(
+                synchronizationContext?.Post(
                     (o) =>
                     {
                         if (Config.IsClosing) return;

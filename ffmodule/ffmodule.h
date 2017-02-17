@@ -490,6 +490,7 @@ namespace ffmodule {
 	public:
 		volatile bool   quit;
 		gcroot<System::Threading::CancellationToken^> ct;
+		gcroot<System::Threading::CancellationTokenSource^> cts;
 		double          audio_volume; // 100 = MAX
 		bool            audio_mute;
 		bool            display_on;

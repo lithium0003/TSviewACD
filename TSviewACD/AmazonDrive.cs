@@ -360,10 +360,16 @@ namespace TSviewACD
             public string[] parents;
         }
 
+        Task DelayUploadReset;
 
         public async Task<FileMetadata_Info> uploadFile(string filename, string parent_id = null, string uploadname = null, string uploadkey = null, PoschangeEventHandler process = null, CancellationToken ct = default(CancellationToken))
         {
-            const int transbufsize = 4 * 1024 * 1024;
+            int transbufsize = Config.UploadBufferSize;
+            if (Config.UploadLimit < transbufsize) transbufsize = (int)Config.UploadLimit;
+            if (transbufsize < 1 * 1024) transbufsize = 1 * 1024;
+            if (Config.UploadTrick1) transbufsize = 256 * 1024;
+
+
             Config.Log.LogOut("\t[uploadFile] " + filename);
             string error_str;
             string HashStr = "";
@@ -404,61 +410,76 @@ namespace TSviewACD
                     StreamReader sr = new StreamReader(ms);
                     content.Add(new StringContent(sr.ReadToEnd(), System.Text.Encoding.UTF8, "application/json"), "metadata");
 
-                    using (var file = File.OpenRead(filename))
-                    using (var thstream = new ThrottleUploadStream(file))
-                    using (var f = new PositionStream(thstream))
+                    using (var file = new FileStream(filename, FileMode.Open, FileAccess.Read, FileShare.Read, 256*1024))
                     {
-                        if (process != null)
-                            f.PosChangeEvent += process;
-                        //f.PosChangeEvent += (src, e) =>
-                        //{
-                        //    System.Diagnostics.Debug.WriteLine("HTTP pos :" + e.Log);
-                        //};
+                        HashStream contStream = null;
+                        Stream cryptStream = null;
                         StreamContent fileContent = null;
                         IHashStream hasher = null;
                         if (Config.UseEncryption)
                         {
                             if (Config.CryptMethod == CryptMethods.Method1_CTR)
                             {
-                                var c = new HashStream(new CryptCTR.AES256CTR_CryptStream(f, uploadkey), new MD5CryptoServiceProvider());
-                                hasher = c;
-                                fileContent = new StreamContent(c, transbufsize);
-                                fileContent.Headers.ContentLength = f.Length;
+                                cryptStream = new CryptCTR.AES256CTR_CryptStream(file, uploadkey);
+                                contStream = new HashStream(cryptStream, new MD5CryptoServiceProvider());
+                                hasher = contStream;
                             }
                             if (Config.CryptMethod == CryptMethods.Method2_CBC_CarotDAV)
                             {
-                                var cryptstream = new CryptCarotDAV.CryptCarotDAV_CryptStream(f);
-                                var c = new HashStream(cryptstream, new MD5CryptoServiceProvider());
-                                hasher = c;
-                                fileContent = new StreamContent(c, transbufsize);
-                                fileContent.Headers.ContentLength = cryptstream.Length;
+                                cryptStream = new CryptCarotDAV.CryptCarotDAV_CryptStream(file);
+                                contStream = new HashStream(cryptStream, new MD5CryptoServiceProvider());
+                                hasher = contStream;
                             }
                         }
                         else
                         {
-                            var c = new HashStream(f, new MD5CryptoServiceProvider());
-                            hasher = c;
-                            fileContent = new StreamContent(c, transbufsize);
-                            fileContent.Headers.ContentLength = f.Length;
+                            contStream = new HashStream(file, new MD5CryptoServiceProvider());
+                            hasher = contStream;
                         }
-                        fileContent.Headers.ContentType = new MediaTypeHeaderValue("application/octet-stream");
-                        content.Add(fileContent, "content", Path.GetFileName(filename));
 
-                        using (fileContent)
+                        using (cryptStream)
+                        using (contStream)
+                        using (var thstream = new ThrottleUploadStream(contStream, ct))
+                        using (var f = new PositionStream(thstream))
                         {
-                            var response = await client.PostAsync(
-                                Config.contentUrl + "nodes?suppress=deduplication",
-                                content,
-                                ct).ConfigureAwait(false);
-                            response.EnsureSuccessStatusCode();
-                            HashStr = hasher.Hash.ToLower();
-                            string responseBody = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
-                            // Above three lines can be replaced with new helper method in following line
-                            // string body = await client.GetStringAsync(uri);
-                            var ret = ParseResponse<FileMetadata_Info>(responseBody);
-                            if (ret.contentProperties?.md5 != HashStr)
-                                throw new AmazonDriveUploadException(HashStr);
-                            return ret;
+                            if (process != null)
+                                f.PosChangeEvent += process;
+
+                            fileContent = new StreamContent(f, transbufsize);
+                            fileContent.Headers.ContentLength = f.Length;
+                            fileContent.Headers.ContentType = new MediaTypeHeaderValue("application/octet-stream");
+                            content.Add(fileContent, "content", Path.GetFileName(filename));
+
+                            using (fileContent)
+                            {
+                                if (Config.UploadTrick1)
+                                {
+                                    if(DelayUploadReset != null)
+                                    {
+                                        if (Interlocked.CompareExchange(ref Config.UploadLimitTemp, Config.UploadLimit, 10 * 1024) == 10 * 1024)
+                                        {
+                                            DelayUploadReset = Task.Delay(TimeSpan.FromSeconds(10)).ContinueWith((task) =>
+                                            {
+                                                Interlocked.Exchange(ref Config.UploadLimit, Config.UploadLimitTemp);
+                                                DelayUploadReset = null;
+                                            });
+                                        }
+                                    }
+                                }
+                                var response = await client.PostAsync(
+                                    Config.contentUrl + "nodes?suppress=deduplication",
+                                    content,
+                                    ct).ConfigureAwait(false);
+                                HashStr = hasher.Hash.ToLower();
+                                response.EnsureSuccessStatusCode();
+                                string responseBody = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
+                                // Above three lines can be replaced with new helper method in following line
+                                // string body = await client.GetStringAsync(uri);
+                                var ret = ParseResponse<FileMetadata_Info>(responseBody);
+                                if (ret.contentProperties?.md5 != HashStr)
+                                    throw new AmazonDriveUploadException(HashStr);
+                                return ret;
+                            }
                         }
                     }
                 }
@@ -626,20 +647,20 @@ namespace TSviewACD
                 response.EnsureSuccessStatusCode();
                 if (Encrypted == CryptMethods.Method1_CTR)
                 {
-                    return new CryptCTR.AES256CTR_CryptStream(new ThrottleDownloadStream(new HashStream(await response.Content.ReadAsStreamAsync().ConfigureAwait(false), new MD5CryptoServiceProvider())),
+                    return new CryptCTR.AES256CTR_CryptStream(new ThrottleDownloadStream(new HashStream(await response.Content.ReadAsStreamAsync().ConfigureAwait(false), new MD5CryptoServiceProvider()), ct),
                         enckey,
                         from ?? 0);
                 }
                 else if (Encrypted == CryptMethods.Method2_CBC_CarotDAV)
                 {
-                    return new CryptCarotDAV.CryptCarotDAV_DecryptStream(new ThrottleDownloadStream(new HashStream(await response.Content.ReadAsStreamAsync().ConfigureAwait(false), new MD5CryptoServiceProvider())),
+                    return new CryptCarotDAV.CryptCarotDAV_DecryptStream(new ThrottleDownloadStream(new HashStream(await response.Content.ReadAsStreamAsync().ConfigureAwait(false), new MD5CryptoServiceProvider()), ct),
                         from ?? 0,
                         fix_from ?? 0,
                         target.contentProperties?.size ?? -1
                         );
                 }
                 else
-                    return new ThrottleDownloadStream(new HashStream(await response.Content.ReadAsStreamAsync().ConfigureAwait(false), new MD5CryptoServiceProvider()));
+                    return new ThrottleDownloadStream(new HashStream(await response.Content.ReadAsStreamAsync().ConfigureAwait(false), new MD5CryptoServiceProvider()), ct);
             }
             catch (HttpRequestException ex)
             {
@@ -844,11 +865,11 @@ namespace TSviewACD
                 handler.AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate;
                 using (var client = new HttpClient(handler))
                 {
+                    client.Timeout = TimeSpan.FromDays(1);
+                    client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", Authkey.access_token);
+
                     return await DoWithRetry(async () =>
                     {
-                        client.Timeout = TimeSpan.FromDays(1);
-                        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", Authkey.access_token);
-
                         DataContractJsonSerializer jsonSer = new DataContractJsonSerializer(typeof(changesreq_Info));
 
                         MemoryStream ms = new MemoryStream();

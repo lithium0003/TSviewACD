@@ -262,7 +262,7 @@ namespace TSviewACD
             });
         }
 
-        private async void button_Upload_Click(object sender, EventArgs e)
+        private void button_Upload_Click(object sender, EventArgs e)
         {
             button_Upload.Enabled = false;
             try
@@ -286,75 +286,41 @@ namespace TSviewACD
 
                 // アップロードファイルのパス共通部分を検索
                 var pathbase = FormMatch.GetBasePath(items.Cast<FormMatch.MatchItem>().Select(x => x.local.path));
-                bool createdir = items.Count > 1 && items.Cast<FormMatch.MatchItem>().GroupBy(x => Path.GetFileName(x.local.path)).Any(g => g.Count() > 1);
+                //bool createdir = items.Count > 1 && items.Cast<FormMatch.MatchItem>().GroupBy(x => Path.GetFileName(x.local.path)).Any(g => g.Count() > 1);
+                bool createdir = true;
                 var uploadfiles = items.Cast<FormMatch.MatchItem>().Select(x => x.local.path.Substring(pathbase.Length)).ToArray();
 
-                var task = TaskCanceler.CreateTask("match");
-                var ct = task.cts.Token;
-                try
+                var joblist = new List<JobControler.Job>();
+                JobControler.Job prevjob = null;
+                foreach (var upfile in uploadfiles)
                 {
-                    foreach (var upfile in uploadfiles)
+                    var job = JobControler.CreateNewJob(JobControler.JobClass.Normal, prevjob);
+                    prevjob = job;
+                    job.DisplayName = upfile;
+                    job.ProgressStr = "wait for upload.";
+                    joblist.Add(job);
+                    JobControler.Run(job, (j) =>
                     {
-                        ct.ThrowIfCancellationRequested();
                         var parentID = targetID;
                         var filename = Path.Combine(pathbase, upfile);
                         if (createdir)
                         {
-                            var path = upfile.Split('\\', '/');
                             // フォルダを確認してなければ作る
-                            foreach (var p in path.Take(path.Length - 1))
+                            var job_mkdir = AmazonDriveControl.CreateDirectory(Path.GetDirectoryName(upfile), parentID);
+                            job_mkdir.Wait(ct: (j as JobControler.Job).ct);
+
+                            parentID = job_mkdir.Result as string;
+                            if (parentID == null)
                             {
-                                if (p == "") continue;
-                                if (DriveData.AmazonDriveTree[parentID].children.Values.Select(x => x.DisplayName).Contains(p))
-                                {
-                                    parentID = DriveData.AmazonDriveTree[parentID].children.Values.Where(x => x.DisplayName == p).Select(x => x.info.id).FirstOrDefault();
-                                }
-                                else
-                                {
-                                    int retry = 6;
-                                    while (--retry > 0)
-                                    {
-                                        try
-                                        {
-                                            var checkpoint = DriveData.ChangeCheckpoint;
-                                            // make subdirectory
-                                            var newdir = await DriveData.Drive.createFolder(p, parentID, ct);
-                                            var children = await DriveData.GetChanges(checkpoint, ct);
-                                            if (children.Where(x => x.name.Contains(p)).LastOrDefault()?.status == "AVAILABLE")
-                                            {
-                                                Config.Log.LogOut("createFolder : child found.");
-                                                parentID = newdir.id;
-                                                break;
-                                            }
-                                            await Task.Delay(2000, ct);
-                                        }
-                                        catch (HttpRequestException)
-                                        {
-                                            //retry
-                                        }
-                                        catch (OperationCanceledException)
-                                        {
-                                            throw;
-                                        }
-                                    }
-                                }
+                                job.Error("Upload : (ERROR)createFolder");
+                                return;
                             }
                         }
                         // アップロード
-                        var checkpoint2 = DriveData.ChangeCheckpoint;
-                        if (await Program.MainForm.DoFileUpload(new string[] { filename }, parentID, ct: ct) < 0)
-                            break;
-                        await DriveData.GetChanges(checkpoint2, ct);
-                    }
+                        AmazonDriveControl.DoFileUpload(new string[] { filename }, parentID);
+                    });
                 }
-                catch (OperationCanceledException)
-                {
-                    return;
-                }
-                finally
-                {
-                    TaskCanceler.FinishTask(task);
-                }
+                Program.MainForm.ReloadAfterJob(joblist.ToArray());
             }
             finally
             {
@@ -362,7 +328,7 @@ namespace TSviewACD
             }
         }
 
-        private async void button_Download_Click(object sender, EventArgs e)
+        private void button_Download_Click(object sender, EventArgs e)
         {
             button_Download.Enabled = false;
             try
@@ -370,7 +336,7 @@ namespace TSviewACD
                 var items = listBox_RemoteOnly.SelectedItems;
                 if (items.Count == 0) return;
 
-                await Program.MainForm.downloadItems(items.Cast<FormMatch.MatchItem>().Select(x => x.remote.info));
+                Program.MainForm.downloadItems(items.Cast<FormMatch.MatchItem>().Select(x => x.remote.info));
             }
             finally
             {
@@ -378,7 +344,7 @@ namespace TSviewACD
             }
         }
 
-        private async void button_trash_Click(object sender, EventArgs e)
+        private void button_trash_Click(object sender, EventArgs e)
         {
             button_trash.Enabled = false;
             try
@@ -386,7 +352,7 @@ namespace TSviewACD
                 var items = listBox_RemoteOnly.SelectedItems;
                 if (items.Count == 0) return;
 
-                await Program.MainForm.DoTrashItem(items.Cast<FormMatch.MatchItem>().Select(x => x.remote.info.id));
+                Program.MainForm.DoTrashItem(items.Cast<FormMatch.MatchItem>().Select(x => x.remote.info.id));
             }
             finally
             {

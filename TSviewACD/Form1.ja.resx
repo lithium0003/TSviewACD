@@ -117,9 +117,6 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
-  <data name="button1.ToolTip" xml:space="preserve">
-    <value />
-  </data>
   <assembly alias="System.Drawing" name="System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" />
   <data name="checkBox_overrideUpload.Size" type="System.Drawing.Size, System.Drawing">
     <value>173, 16</value>
@@ -131,36 +128,6 @@
     <value />
   </data>
   <assembly alias="System.Windows.Forms" name="System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" />
-  <data name="button_breakone.ImeMode" type="System.Windows.Forms.ImeMode, System.Windows.Forms">
-    <value>NoControl</value>
-  </data>
-  <data name="button_breakone.Location" type="System.Drawing.Point, System.Drawing">
-    <value>636, 18</value>
-  </data>
-  <data name="button_breakone.Size" type="System.Drawing.Size, System.Drawing">
-    <value>88, 23</value>
-  </data>
-  <data name="button_breakone.Text" xml:space="preserve">
-    <value>キャンセル</value>
-  </data>
-  <data name="button_breakone.ToolTip" xml:space="preserve">
-    <value>選択したタスクをキャンセルします</value>
-  </data>
-  <data name="label23.ImeMode" type="System.Windows.Forms.ImeMode, System.Windows.Forms">
-    <value>NoControl</value>
-  </data>
-  <data name="label23.Size" type="System.Drawing.Size, System.Drawing">
-    <value>76, 12</value>
-  </data>
-  <data name="label23.Text" xml:space="preserve">
-    <value>実行中のタスク</value>
-  </data>
-  <data name="label23.ToolTip" xml:space="preserve">
-    <value />
-  </data>
-  <data name="listView_TaskList.ToolTip" xml:space="preserve">
-    <value />
-  </data>
   <data name="checkBox_MD5.ImeMode" type="System.Windows.Forms.ImeMode, System.Windows.Forms">
     <value>NoControl</value>
   </data>
@@ -199,21 +166,6 @@
   </data>
   <data name="button_Go.ToolTip" xml:space="preserve">
     <value>選択したフォルダに移動します</value>
-  </data>
-  <data name="button_breakall.ImeMode" type="System.Windows.Forms.ImeMode, System.Windows.Forms">
-    <value>NoControl</value>
-  </data>
-  <data name="button_breakall.Location" type="System.Drawing.Point, System.Drawing">
-    <value>636, 43</value>
-  </data>
-  <data name="button_breakall.Size" type="System.Drawing.Size, System.Drawing">
-    <value>88, 23</value>
-  </data>
-  <data name="button_breakall.Text" xml:space="preserve">
-    <value>全てキャンセル</value>
-  </data>
-  <data name="button_breakall.ToolTip" xml:space="preserve">
-    <value>全てのタスクをキャンセルします</value>
   </data>
   <data name="textBox_path.ToolTip" xml:space="preserve">
     <value>カレントフォルダ、または移動したいフォルダ</value>
@@ -925,6 +877,36 @@
   <data name="tabPage_FFmpeg.ToolTipText" xml:space="preserve">
     <value>内蔵のFFmpegプレーヤーで再生する</value>
   </data>
+  <data name="numericUpDown_ParallelDownload.ToolTip" xml:space="preserve">
+    <value />
+  </data>
+  <data name="label29.Size" type="System.Drawing.Size, System.Drawing">
+    <value>96, 12</value>
+  </data>
+  <data name="label29.Text" xml:space="preserve">
+    <value>ダウンロード並列数</value>
+  </data>
+  <data name="label29.ToolTip" xml:space="preserve">
+    <value />
+  </data>
+  <data name="numericUpDown_ParallelUpload.ToolTip" xml:space="preserve">
+    <value />
+  </data>
+  <data name="label23.ImeMode" type="System.Windows.Forms.ImeMode, System.Windows.Forms">
+    <value>NoControl</value>
+  </data>
+  <data name="label23.Size" type="System.Drawing.Size, System.Drawing">
+    <value>94, 12</value>
+  </data>
+  <data name="label23.Text" xml:space="preserve">
+    <value>アップロード並列数</value>
+  </data>
+  <data name="label23.ToolTip" xml:space="preserve">
+    <value />
+  </data>
+  <data name="checkBox_UploadTrick.ToolTip" xml:space="preserve">
+    <value />
+  </data>
   <data name="comboBox_DownloadLimitUnit.ToolTip" xml:space="preserve">
     <value />
   </data>
@@ -1222,6 +1204,15 @@
   <data name="playWithFFplayToolStripMenuItem.Text" xml:space="preserve">
     <value>内蔵プレーヤで再生する(&amp;P)</value>
   </data>
+  <data name="toolStripMenuItem7.Size" type="System.Drawing.Size, System.Drawing">
+    <value>199, 6</value>
+  </data>
+  <data name="cutToolStripMenuItem.Size" type="System.Drawing.Size, System.Drawing">
+    <value>202, 22</value>
+  </data>
+  <data name="pasteToolStripMenuItem.Size" type="System.Drawing.Size, System.Drawing">
+    <value>202, 22</value>
+  </data>
   <data name="toolStripMenuItem3.Size" type="System.Drawing.Size, System.Drawing">
     <value>199, 6</value>
   </data>
@@ -1241,7 +1232,7 @@
     <value>ゴミ箱に移動する</value>
   </data>
   <data name="contextMenuStrip1.Size" type="System.Drawing.Size, System.Drawing">
-    <value>203, 148</value>
+    <value>203, 198</value>
   </data>
   <data name="contextMenuStrip1.ToolTip" xml:space="preserve">
     <value />
@@ -1259,9 +1250,6 @@
     <value />
   </data>
   <data name="splitContainer1.ToolTip" xml:space="preserve">
-    <value />
-  </data>
-  <data name="statusStrip1.ToolTip" xml:space="preserve">
     <value />
   </data>
   <data name="$this.Icon" type="System.Drawing.Icon, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">

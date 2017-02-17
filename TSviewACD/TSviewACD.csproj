@@ -116,6 +116,7 @@
       <DependentUpon>AboutBox1.cs</DependentUpon>
     </Compile>
     <Compile Include="AmazonDrive.cs" />
+    <Compile Include="AmazonDriveControl.cs" />
     <Compile Include="AmazonDriveStream.cs" />
     <Compile Include="Clipboard.cs" />
     <Compile Include="Config.cs" />
@@ -130,6 +131,12 @@
     <Compile Include="Form1.Designer.cs">
       <DependentUpon>Form1.cs</DependentUpon>
     </Compile>
+    <Compile Include="FormClosing.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="FormClosing.Designer.cs">
+      <DependentUpon>FormClosing.cs</DependentUpon>
+    </Compile>
     <Compile Include="FormDriveLog.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -141,6 +148,12 @@
     </Compile>
     <Compile Include="FormDriveTree.Designer.cs">
       <DependentUpon>FormDriveTree.cs</DependentUpon>
+    </Compile>
+    <Compile Include="FormErrorLog.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="FormErrorLog.Designer.cs">
+      <DependentUpon>FormErrorLog.cs</DependentUpon>
     </Compile>
     <Compile Include="FormFFmoduleConfig.cs">
       <SubType>Form</SubType>
@@ -172,6 +185,12 @@
     <Compile Include="FormMatchResult.Designer.cs">
       <DependentUpon>FormMatchResult.cs</DependentUpon>
     </Compile>
+    <Compile Include="FormTaskList.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="FormTaskList.Designer.cs">
+      <DependentUpon>FormTaskList.cs</DependentUpon>
+    </Compile>
     <Compile Include="FormTemplink.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -186,6 +205,12 @@
     </Compile>
     <Compile Include="Icon.cs" />
     <Compile Include="JSONitem.cs" />
+    <Compile Include="ListViewNF.cs">
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Include="ListViewNF.Designer.cs">
+      <DependentUpon>ListViewNF.cs</DependentUpon>
+    </Compile>
     <Compile Include="ProgressStream.cs" />
     <Compile Include="Resource_text.Designer.cs">
       <AutoGen>True</AutoGen>
@@ -205,7 +230,6 @@
     </Compile>
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="TaskCanceler.cs" />
     <Compile Include="ThrottleStream.cs" />
     <Compile Include="TS_packet.cs" />
     <Compile Include="UDPsend.cs" />
@@ -218,11 +242,17 @@
     <EmbeddedResource Include="Form1.resx">
       <DependentUpon>Form1.cs</DependentUpon>
     </EmbeddedResource>
+    <EmbeddedResource Include="FormClosing.resx">
+      <DependentUpon>FormClosing.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="FormDriveLog.resx">
       <DependentUpon>FormDriveLog.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="FormDriveTree.resx">
       <DependentUpon>FormDriveTree.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="FormErrorLog.resx">
+      <DependentUpon>FormErrorLog.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="FormFFmoduleConfig.ja.resx">
       <DependentUpon>FormFFmoduleConfig.cs</DependentUpon>
@@ -254,11 +284,17 @@
     <EmbeddedResource Include="FormMatchResult.resx">
       <DependentUpon>FormMatchResult.cs</DependentUpon>
     </EmbeddedResource>
+    <EmbeddedResource Include="FormTaskList.resx">
+      <DependentUpon>FormTaskList.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="FormTemplink.resx">
       <DependentUpon>FormTemplink.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="FormTestDownload.resx">
       <DependentUpon>FormTestDownload.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="ListViewNF.resx">
+      <DependentUpon>ListViewNF.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Properties\Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>

@@ -248,17 +248,17 @@ namespace TSviewACD
                     count -= len;
                     readbyte += len;
                     offset += len;
+                    if (count <= 0) return readbyte;
                 }
-                if (count <= 0) return readbyte;
-                if(_position < CryptHeaderByte + cryptlen)
+                if (_position < CryptHeaderByte + cryptlen)
                 {
                     int len = cryptStream.Read(buffer, offset, count);
                     _position += len;
                     count -= len;
                     readbyte += len;
                     offset += len;
+                    if (count <= 0) return readbyte;
                 }
-                if (count <= 0) return readbyte;
                 if (_position < CryptHeaderByte + cryptlen + patlen)
                 {
                     int len = count;
@@ -269,8 +269,8 @@ namespace TSviewACD
                     count -= len;
                     readbyte += len;
                     offset += len;
+                    if (count <= 0) return readbyte;
                 }
-                if (count <= 0) return readbyte;
                 if (_position == CryptHeaderByte + cryptlen + patlen)
                 {
                     innerStream.Flush();
@@ -325,7 +325,7 @@ namespace TSviewACD
             public CryptCarotDAV_DecryptStream(Stream baseStream, long orignalOffset = 0, long cryptedOffset = 0, long cryptedLength = -1) : base()
             {
                 innerStream = baseStream;
-                if (cryptedLength < 0) cryptedLength = innerStream.Length;
+                if (cryptedLength < 0) CryptLength = innerStream.Length;
                 else CryptLength = cryptedLength;
                 CryptOffset = cryptedOffset;
                 if (cryptedOffset > CryptHeaderByte)
@@ -365,11 +365,11 @@ namespace TSviewACD
                 decryptor = aes.CreateDecryptor();
 
                 decryptStream = new CryptoStream(innerStream, decryptor, CryptoStreamMode.Read);
-                if(orignalOffset == 0)
+                if (orignalOffset == 0)
                     hash = new HashStream(new SHA256CryptoServiceProvider());
 
                 // 要求されているストリームとのズレを解消
-                if(offset > 0)
+                if (offset > 0)
                 {
                     long len = offset;
                     long clen = OrignalLength - (CryptPossiton - CryptHeaderByte);

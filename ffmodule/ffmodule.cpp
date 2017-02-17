@@ -3425,7 +3425,7 @@ namespace ffmodule {
 		int Play(Stream^ input, String^ name, System::Threading::CancellationToken^ ct)
 		{
 			this->ct = *ct;
-			if (ct->IsCancellationRequested) return -1;
+			if (this->ct.IsCancellationRequested) return -1;
 			this->player->ct = ct;
 			return Play(input, name);
 		}

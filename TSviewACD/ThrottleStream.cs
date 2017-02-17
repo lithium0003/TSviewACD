@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace TSviewACD
@@ -12,7 +13,7 @@ namespace TSviewACD
     /// </summary>
     class ThrottleUploadStream : ThrottleStream
     {
-        public ThrottleUploadStream(Stream s) : base(s, double.NaN)
+        public ThrottleUploadStream(Stream s, CancellationToken ct = default(CancellationToken)) : base(s, double.NaN, ct)
         {
         }
 
@@ -25,7 +26,7 @@ namespace TSviewACD
 
     class ThrottleDownloadStream : ThrottleStream
     {
-        public ThrottleDownloadStream(Stream s) : base(s, double.NaN)
+        public ThrottleDownloadStream(Stream s, CancellationToken ct = default(CancellationToken)) : base(s, double.NaN, ct)
         {
         }
 
@@ -44,12 +45,14 @@ namespace TSviewACD
         Dictionary<DateTime, int> TransWrite = new Dictionary<DateTime, int>();
         long ReadTotal = 0;
         long WriteTotal = 0;
-        const double ThrottleTimeSpan = 10;
+        const double ThrottleTimeSpan = 100;
+        CancellationToken ct;
 
-        public ThrottleStream(Stream s, double bandwidth = double.PositiveInfinity) : base()
+        public ThrottleStream(Stream s, double bandwidth = double.PositiveInfinity, CancellationToken ct = default(CancellationToken)) : base()
         {
             innerStream = s;
             TargetBandwidth = bandwidth;
+            this.ct = ct;
         }
 
         protected virtual double TargetBandwidth
@@ -74,7 +77,7 @@ namespace TSviewACD
                 {
                     double waitsec = (ReadTotal / TargetBandwidth) - (DateTime.Now - lasttime).TotalSeconds;
                     waitsec = (waitsec > ThrottleTimeSpan) ? ThrottleTimeSpan : waitsec;
-                    System.Threading.Thread.Sleep((int)(waitsec*1000));
+                    Task.Delay(TimeSpan.FromSeconds(waitsec), ct).Wait(ct);
                 }
             }
             catch { }
@@ -96,7 +99,7 @@ namespace TSviewACD
                 {
                     double waitsec = (ReadTotal / TargetBandwidth) - (DateTime.Now - lasttime).TotalSeconds;
                     waitsec = (waitsec > ThrottleTimeSpan) ? ThrottleTimeSpan : waitsec;
-                    System.Threading.Thread.Sleep((int)(waitsec * 1000));
+                    Task.Delay(TimeSpan.FromSeconds(waitsec), ct).Wait(ct);
                 }
             }
             catch { }

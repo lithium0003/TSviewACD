@@ -13,10 +13,11 @@ namespace TSviewACD
 {
     class AmazonDriveStreamConfig
     {
-        public const int slotsize = 1 * 1024 * 1024;
-        public const int slotbacklog = 128;
+        public const int slotsize = 2 * 1024 * 1024;
+        public const int slotbacklog = 64;
         public const int lockslotfirstnum = 4;
         public const int lockslotlastnum = 4;
+        public const int preforwardnum = 10;
         public const int slotnearby = 3;
         public const int slotkeepold = slotbacklog / 2;
         public const int shortbuflen = slotsize;
@@ -288,7 +289,7 @@ namespace TSviewACD
 
         public void StartDownload(long slotno, ConcurrentDictionary<long, MemoryStreamSlot> slot, BlockingCollection<KeyValuePair<long, MemoryStreamSlot>> SlotBuffer)
         {
-            int timeout = (int)(1000 * AmazonDriveStreamConfig.shortbuflen / (Config.FFmodule_TransferLimit * 1024));
+            int timeout = (int)(1000 * (double)AmazonDriveStreamConfig.shortbuflen / (Config.FFmodule_TransferLimit * 1024));
             long start = slotno * AmazonDriveStreamConfig.slotsize;
             long length = AmazonDriveStreamConfig.slotsize;
             if (start + length > (targetItem.OrignalLength ?? 0))
@@ -796,7 +797,7 @@ namespace TSviewACD
             slots.CreateTask(0);
             slots.CreateTask(lockslot2);
             slots.CreateTask(lockslot1);
-            slots.CreateTask(lockslot1 + AmazonDriveStreamConfig.lockslotfirstnum);
+            slots.CreateTask(lockslot1 + AmazonDriveStreamConfig.preforwardnum);
         }
 
         protected override void Dispose(bool disposing)
@@ -909,8 +910,8 @@ namespace TSviewACD
             //Config.Log.LogOut(string.Format("AmazonDriveStream : seek pos {0:#,0} slot {1}", _Position, s));
             slots.TouchSlot(s);
             slots.CreateTask(s);
-            slots.CreateTask(s + AmazonDriveStreamConfig.lockslotfirstnum);
-            slots.CreateTask(s + AmazonDriveStreamConfig.lockslotfirstnum * 2);
+            slots.CreateTask(s + AmazonDriveStreamConfig.preforwardnum);
+            slots.CreateTask(s + AmazonDriveStreamConfig.preforwardnum * 2);
             return Position;
         }
 
@@ -978,12 +979,11 @@ namespace TSviewACD
         string OrgFilename = null;
         Stream innerStream;
         int failcount = 0;
-        TaskCanselToken task;
-        CancellationTokenSource cts;
         CancellationToken ct;
         bool autodecrypt;
         bool EOF = false;
         bool hashcheck = false;
+        JobControler.Job downloadJob;
 
         protected void InitStream()
         {
@@ -1015,7 +1015,6 @@ namespace TSviewACD
                     else
                     {
                         Config.Log.LogOut(string.Format("AmazonDriveBaseStream : ERROR too much fail stop."));
-                        cts.Cancel(true);
                     }
                 }
             })
@@ -1067,21 +1066,23 @@ namespace TSviewACD
             }
         }
 
-        public AmazonDriveBaseStream(AmazonDrive Drive, FileMetadata_Info downitem, bool autodecrypt = true, CancellationToken ct = default(CancellationToken)) : base()
+        public AmazonDriveBaseStream(AmazonDrive Drive, FileMetadata_Info downitem, bool autodecrypt = true, JobControler.Job parentJob = null) : base()
         {
             this.Drive = Drive;
             targetItem = downitem;
             FileSize = targetItem.OrignalLength ?? 0;
             this.autodecrypt = autodecrypt;
-            if (ct == default(CancellationToken))
+            if (parentJob == null)
             {
-                task = TaskCanceler.CreateTask("AmazonDriveBaseStream");
-                cts = task.cts;
-                this.ct = cts.Token;
+                downloadJob = JobControler.CreateNewJob(JobControler.JobClass.Download);
+                downloadJob.DisplayName = downitem.name;
+                downloadJob.ProgressStr = "wait for download";
+                downloadJob.Progress = -1;
+                ct = downloadJob.ct;
             }
             else
             {
-                this.ct = ct;
+                ct = parentJob.ct;
             }
 
             if (FileSize < 0) return;
@@ -1096,15 +1097,23 @@ namespace TSviewACD
             }
 
             InitStream();
+            if(parentJob == null)
+            {
+                JobControler.Run(downloadJob, (j) =>
+                {
+                    downloadJob.ProgressStr = "download...";
+                    downloadJob.Wait(ct: ct);
+                    downloadJob.Progress = 1;
+                    downloadJob.ProgressStr = "done.";
+                });
+            }
         }
 
         protected override void Dispose(bool disposing)
         {
             if (disposing)
             {
-                cts?.Cancel();
-                if(task != null)
-                    TaskCanceler.FinishTask(task);
+                downloadJob?.Cancel();
                 innerStream?.Dispose();
             }
 
@@ -1126,7 +1135,8 @@ namespace TSviewACD
 
         public override long Seek(long offset, SeekOrigin origin)
         {
-            if(origin == SeekOrigin.Begin && offset == 0)
+            //Config.Log.LogOut(string.Format("AmazonDriveBaseStream : Seek {0} {1}", offset, origin));
+            if (origin == SeekOrigin.Begin && offset == 0)
             {
                 if(innerStream?.Position > 0)
                 {
@@ -1145,6 +1155,7 @@ namespace TSviewACD
 
         public override int Read(byte[] buffer, int offset, int count)
         {
+            //Config.Log.LogOut(string.Format("AmazonDriveBaseStream : read pos:{0} count:{1}", pos, count));
             ct.ThrowIfCancellationRequested();
             var ret = innerStream?.Read(buffer, offset, count) ?? -1;
             pos += ret;
