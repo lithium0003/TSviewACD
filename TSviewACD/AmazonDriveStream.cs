@@ -1074,7 +1074,13 @@ namespace TSviewACD
             this.autodecrypt = autodecrypt;
             if (parentJob == null)
             {
-                downloadJob = JobControler.CreateNewJob(JobControler.JobClass.Download);
+                downloadJob = JobControler.CreateNewJob(
+                    type: JobControler.JobClass.Download,
+                    info: new JobControler.Job.SubInfo
+                    {
+                        type = JobControler.Job.SubInfo.SubType.DownloadFile,
+                        size = downitem.contentProperties?.size ?? 0,
+                    });
                 downloadJob.DisplayName = downitem.name;
                 downloadJob.ProgressStr = "wait for download";
                 downloadJob.Progress = -1;

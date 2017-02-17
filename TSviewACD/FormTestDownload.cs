@@ -69,7 +69,7 @@ namespace TSviewACD
             var joblist = new ConcurrentBag<JobControler.Job>();
             Parallel.ForEach(SelectedRemoteFiles, (item) =>
             {
-                var job = JobControler.CreateNewJob(JobControler.JobClass.Download, masterjob);
+                var job = JobControler.CreateNewJob(JobControler.JobClass.Download, depends: masterjob);
                 job.WeekDepend = true;
                 job.DisplayName = DriveData.GetFullPathfromId(item.id);
                 job.ProgressStr = "Wait for download";
@@ -157,7 +157,7 @@ namespace TSviewACD
                 masterjob.Progress = 1;
                 masterjob.ProgressStr = "done.";
             });
-            var afterjob = JobControler.CreateNewJob(JobControler.JobClass.Clean, masterjob);
+            var afterjob = JobControler.CreateNewJob(JobControler.JobClass.Clean, depends: masterjob);
             afterjob.DisplayName = "clean up";
             afterjob.DoAlways = true;
             JobControler.Run(afterjob, (j) =>

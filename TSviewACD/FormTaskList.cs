@@ -70,7 +70,8 @@ namespace TSviewACD
             if (joblist == null) return;
             var now = DateTime.Now;
             internalJobList = joblist.Where(x => !x.IsHidden)
-                .OrderBy(x => (x.IsDone) ? 1 : (x.IsRunning) ? 2 : 3)
+                .OrderBy(x => (x.IsInfo)? 0: (x.IsDone) ? 1 : (x.IsRunning) ? 2 : 3)
+                .ThenBy(x => x.index)
                 .ThenBy(x => (x.StartTime == default(DateTime)) ? now : x.StartTime)
                 .ThenBy(x => x.QueueTime).ToArray();
             listView1.VirtualListSize = internalJobList.Length;
@@ -290,10 +291,48 @@ namespace TSviewACD
             Play,
             PlayDownload,
             Clean,
+            ControlMaster,
+            UploadInfo,
+            DownloadInfo,
         }
+
 
         public class Job
         {
+            public class SubInfo
+            {
+                public long index
+                {
+                    get; internal set;
+                }
+                public long size;
+                public long pos
+                {
+                    set
+                    {
+                        if (value > 0)
+                        {
+                            if (type == SubType.UploadFile)
+                            {
+                                UploadProgress.AddOrUpdate(index, value, (key, val) => value);
+                            }
+                            else if (type == SubType.DownloadFile)
+                            {
+                                DownloadProgress.AddOrUpdate(index, value, (key, val) => value);
+                            }
+                        }
+                    }
+                }
+                public enum SubType
+                {
+                    unknown,
+                    UploadFile,
+                    UploadDirectory,
+                    DownloadFile,
+                }
+                public SubType type;
+            }
+
             private string _ProgressStr;
             public string DisplayName;
             public string ProgressStr
@@ -305,17 +344,56 @@ namespace TSviewACD
                             return string.Format("Upload({0}/{1}) : {2}", index, UploadAll, _ProgressStr);
                         case JobClass.Download:
                             return string.Format("Download({0}/{1}) : {2}", index, DownloadAll, _ProgressStr);
+                        case JobClass.UploadInfo:
+                            {
+                                var sb = new StringBuilder();
+                                var subtotal = UploadProgress.Aggregate(0L, (acc, kvp) => acc + kvp.Value);
+                                sb.Append("Upload ");
+                                sb.AppendFormat("File({0}/{1}) ", UploadFileDone, UploadFileAll);
+                                sb.AppendFormat("Folder({0}/{1}) ", UploadFolderDone, UploadFolderAll);
+                                Progress = (double)(subtotal + UploadProgressDone) / UploadTotal;
+                                if (double.IsNaN(Progress)) Progress = 1;
+                                sb.AppendFormat("{0:#,0}/{1:#,0}({2:0.00%}) ", subtotal + UploadProgressDone, UploadTotal, Progress);
+                                var speed = (subtotal + UploadProgressDone) / (DateTime.Now - StartTime).TotalSeconds;
+                                var togo = Math.Round((UploadTotal - subtotal - UploadProgressDone) / speed);
+                                togo = (double.IsInfinity(togo)) ? 0 : togo;
+                                sb.AppendFormat("{0} [to go {1}]", ConvertUnit(speed), TimeSpan.FromSeconds(togo));
+                                return sb.ToString();
+                            }
+                        case JobClass.DownloadInfo:
+                            {
+                                var sb = new StringBuilder();
+                                var subtotal = DownloadProgress.Aggregate(0L, (acc, kvp) => acc + kvp.Value);
+                                sb.Append("Download ");
+                                sb.AppendFormat("({0}/{1}) ", DownloadDone, DownloadAll);
+                                Progress = (double)(subtotal + DownloadProgressDone) / DownloadTotal;
+                                if (double.IsNaN(Progress)) Progress = 1;
+                                sb.AppendFormat("{0:#,0}/{1:#,0}({2:0.00%}) ", subtotal + DownloadProgressDone, DownloadTotal, Progress);
+                                var speed = (subtotal + DownloadProgressDone) / (DateTime.Now - StartTime).TotalSeconds;
+                                var togo = Math.Round((DownloadTotal - subtotal - DownloadProgressDone) / speed);
+                                togo = (double.IsInfinity(togo)) ? 0 : togo;
+                                sb.AppendFormat("{0} [to go {1}]", ConvertUnit(speed), TimeSpan.FromSeconds(togo));
+                                return sb.ToString();
+                            }
                         default:
                             return _ProgressStr;
                     }
                 }
                 set { _ProgressStr = value; }
             }
+            public bool IsInfo
+            {
+                get { return (JobType == JobClass.UploadInfo || JobType == JobClass.DownloadInfo) ? true : false; }
+            }
             public double Progress = 0;
             public object Result;
             public object[] ResultOfDepend;
             public long index;
             public JobClass JobType
+            {
+                get; internal set;
+            }
+            public SubInfo JobInfo
             {
                 get; internal set;
             }
@@ -408,7 +486,8 @@ namespace TSviewACD
                 {
                     return JobType == JobClass.WaitReload 
                         || JobType == JobClass.WaitChanges
-                        || JobType == JobClass.Clean;
+                        || JobType == JobClass.Clean
+                        || JobType == JobClass.ControlMaster;
                 }
             }
 
@@ -432,8 +511,19 @@ namespace TSviewACD
         public static bool IsReloading = false;
         public static long UploadAll = 0;
         public static long UploadCur = 0;
+        public static long UploadFileAll = 0;
+        public static long UploadFileDone = 0;
+        public static long UploadFolderAll = 0;
+        public static long UploadFolderDone = 0;
+        public static long UploadTotal = 0;
         public static long DownloadAll = 0;
         public static long DownloadCur = 0;
+        public static long DownloadDone = 0;
+        public static long DownloadTotal = 0;
+        public static ConcurrentDictionary<long, long> UploadProgress = new ConcurrentDictionary<long, long>();
+        public static long UploadProgressDone = 0;
+        public static ConcurrentDictionary<long, long> DownloadProgress = new ConcurrentDictionary<long, long>();
+        public static long DownloadProgressDone = 0;
 
         static public bool IsEmpty
         {
@@ -470,7 +560,10 @@ namespace TSviewACD
             ErrorOut(string.Format(format, args));
         }
 
-        static private Job InternalCreateJob(JobClass type)
+        static Job UploadInfoJob;
+        static Job DownloadInfoJob;
+
+        static private Job InternalCreateJob(JobClass type, Job.SubInfo info)
         {
             var newjob = new Job();
             newjob.JobType = type;
@@ -478,13 +571,42 @@ namespace TSviewACD
             jobempty = false;
             if (type == JobClass.Upload)
             {
+                if(UploadInfoJob == null)
+                {
+                    UploadInfoJob = CreateNewJob(JobClass.UploadInfo);
+                    UploadInfoJob.DisplayName = "Upload Progress";
+                    UploadInfoJob.StartTime = DateTime.Now;
+                }
                 Interlocked.Increment(ref UploadAll);
                 newjob.index = Interlocked.Increment(ref UploadCur);
+                info.index = newjob.index;
+                newjob.JobInfo = info;
+                if (info?.type == Job.SubInfo.SubType.UploadFile)
+                {
+                    Interlocked.Increment(ref UploadFileAll);
+                    Interlocked.Add(ref UploadTotal, info.size);
+                }
+                else if (info?.type == Job.SubInfo.SubType.UploadDirectory)
+                {
+                    Interlocked.Increment(ref UploadFolderAll);
+                }
             }
             else if (type == JobClass.Download)
             {
+                if (DownloadInfoJob == null)
+                {
+                    DownloadInfoJob = CreateNewJob(JobClass.DownloadInfo);
+                    DownloadInfoJob.DisplayName = "Download Progress";
+                    DownloadInfoJob.StartTime = DateTime.Now;
+                }
                 Interlocked.Increment(ref DownloadAll);
                 newjob.index = Interlocked.Increment(ref DownloadCur);
+                info.index = newjob.index;
+                newjob.JobInfo = info;
+                if (info?.type == Job.SubInfo.SubType.DownloadFile)
+                {
+                    Interlocked.Add(ref DownloadTotal, info.size);
+                }
             }
             joblist_type.AddOrUpdate(type,
                 (key) =>
@@ -501,16 +623,16 @@ namespace TSviewACD
             return newjob;
         }
 
-        static public Job CreateNewJob(JobClass type = JobClass.Normal)
+        static public Job CreateNewJob(JobClass type = JobClass.Normal, Job.SubInfo info = null)
         {
-            var newjob = InternalCreateJob(type);
+            var newjob = InternalCreateJob(type, info);
             TriggerDisplay();
             return newjob;
         }
 
-        static public Job CreateNewJob(JobClass type = JobClass.Normal, params Job[] depends)
+        static public Job CreateNewJob(JobClass type = JobClass.Normal, Job.SubInfo info = null, params Job[] depends)
         {
-            var newjob = InternalCreateJob(type);
+            var newjob = InternalCreateJob(type, info);
             foreach (var d in depends)
             {
                 if(d != null)
@@ -580,8 +702,19 @@ namespace TSviewACD
             {
                 Interlocked.Exchange(ref UploadAll, 0);
                 Interlocked.Exchange(ref UploadCur, 0);
+                Interlocked.Exchange(ref UploadFileAll, 0);
+                Interlocked.Exchange(ref UploadFileDone, 0);
+                Interlocked.Exchange(ref UploadFolderAll, 0);
+                Interlocked.Exchange(ref UploadFolderDone, 0);
+                Interlocked.Exchange(ref UploadTotal, 0);
                 Interlocked.Exchange(ref DownloadAll, 0);
                 Interlocked.Exchange(ref DownloadCur, 0);
+                Interlocked.Exchange(ref DownloadDone, 0);
+                Interlocked.Exchange(ref DownloadTotal, 0);
+                UploadProgress.Clear();
+                Interlocked.Exchange(ref UploadProgressDone, 0);
+                DownloadProgress.Clear();
+                Interlocked.Exchange(ref DownloadProgressDone, 0);
                 jobempty = true;
             }
         }
@@ -689,6 +822,58 @@ namespace TSviewACD
                             var s = target as Job;
                             s._done = true;
                             s.FinishTime = DateTime.Now;
+                            if(s.JobInfo != null)
+                            {
+                                long val;
+                                switch (s.JobInfo.type)
+                                {
+                                    case Job.SubInfo.SubType.UploadFile:
+                                        while (!UploadProgress.TryRemove(s.index, out val))
+                                            if(!UploadProgress.TryGetValue(s.index, out val))
+                                                break;
+                                        Interlocked.Add(ref UploadProgressDone, s.JobInfo.size);
+                                        Interlocked.Increment(ref UploadFileDone);
+                                        break;
+                                    case Job.SubInfo.SubType.UploadDirectory:
+                                        Interlocked.Increment(ref UploadFolderDone);
+                                        break;
+                                    case Job.SubInfo.SubType.DownloadFile:
+                                        while (!DownloadProgress.TryRemove(s.index, out val))
+                                            if (!DownloadProgress.TryGetValue(s.index, out val))
+                                                break;
+                                        Interlocked.Add(ref DownloadProgressDone, s.JobInfo.size);
+                                        Interlocked.Increment(ref DownloadDone);
+                                        break;
+                                }
+                            }
+                            if(UploadInfoJob != null)
+                            {
+                                if(UploadFileDone + UploadFolderDone >= UploadAll)
+                                {
+                                    UploadInfoJob._done = true;
+                                    UploadInfoJob._delete = true;
+                                    var u = UploadInfoJob;
+                                    Task.Delay(5000).ContinueWith((t2) =>
+                                    {
+                                        RemoveJob(u);
+                                    });
+                                    UploadInfoJob = null;
+                                }
+                            }
+                            if (DownloadInfoJob != null)
+                            {
+                                if (DownloadDone >= DownloadAll)
+                                {
+                                    DownloadInfoJob._done = true;
+                                    DownloadInfoJob._delete = true;
+                                    var d = DownloadInfoJob;
+                                    Task.Delay(5000).ContinueWith((t2) =>
+                                    {
+                                        RemoveJob(d);
+                                    });
+                                    DownloadInfoJob = null;
+                                }
+                            }
                             if (t.IsCanceled)
                             {
                                 s.ProgressStr = "Operation canceled.";
@@ -808,6 +993,21 @@ namespace TSviewACD
             {
                 return 0;
             }
+        }
+
+        static private string ConvertUnit(double rate)
+        {
+            if (rate < 1024)
+                return string.Format("{0:#,0.00}Byte/s", rate);
+            if (rate < 1024 * 1024)
+                return string.Format("{0:#,0.00}KiB/s", rate / 1024);
+            if (rate < 1024 * 1024 * 1024)
+                return string.Format("{0:#,0.00}MiB/s", rate / 1024 / 1024);
+            if (rate < (double)1024 * 1024 * 1024 * 1024)
+                return string.Format("{0:#,0.00}GiB/s", rate / 1024 / 1024 / 1024);
+            if (rate < (double)1024 * 1024 * 1024 * 1024 * 1024)
+                return string.Format("{0:#,0.00}TiB/s", rate / 1024 / 1024 / 1024 / 1024);
+            return string.Format("{0:#,0.00}PiB/s", rate / 1024 / 1024 / 1024 / 1024);
         }
     }
 }

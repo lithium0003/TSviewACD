@@ -5,6 +5,7 @@ using System.Linq;
 using System.Net.Http;
 using System.Text;
 using System.Text.RegularExpressions;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace TSviewACD
@@ -52,20 +53,114 @@ namespace TSviewACD
             return job;
         }
 
-        static public JobControler.Job CreateDirectory(string path, string parent_id, JobControler.Job prev_job = null)
+        static public string CreateDirectory(string path, string parent_id, CancellationToken ct = default(CancellationToken))
         {
+            var parentPath = DriveData.GetFullPathfromId(parent_id);
+            var targetPath = (parentPath.EndsWith("/")) ? parentPath + path : parentPath + "/" + path;
+            targetPath = targetPath.Replace('\\', '/');
+            // lock 
+            ManualResetEvent h;
+            if(DriveData.MkDirLock.TryGetValue(targetPath, out h))
+            {
+                WaitHandle.WaitAny(new WaitHandle[] { ct.WaitHandle, h });
+                ct.ThrowIfCancellationRequested();
+            }
+            else
+            {
+                DriveData.MkDirLock.AddOrUpdate(targetPath, new ManualResetEvent(false), (key, evnt) =>
+                {
+                    //wait
+                    WaitHandle.WaitAny(new WaitHandle[] { ct.WaitHandle, h });
+                    ct.ThrowIfCancellationRequested();
+                    evnt.Reset();
+                    return evnt;
+                });
+            }
+            // check present path
             var paths = path.Split('\\', '/');
-            // フォルダを確認してなければ作る
-            var job = JobControler.CreateNewJob(type: JobControler.JobClass.Normal, depends: prev_job);
-            job.WeekDepend = true;
-            job.DisplayName = "create folder(s) : " + path;
+            var parentID = parent_id;
+            var createPaths = new List<string>();
+            foreach (var p in paths)
+            {
+                if (p == "") continue;
+
+                if(createPaths.Count > 0)
+                {
+                    createPaths.Add(p);
+                    continue;
+                }
+
+                var done_files = DriveData.AmazonDriveTree[parentID].children.Values.Select(x => x.info).ToArray();
+                FileMetadata_Info newdir = null;
+                if (done_files?.Where(x => x.kind == "FOLDER").Select(x => x.name.ToLower()).Contains(p.ToLower()) ?? false)
+                {
+                    newdir = done_files.First(x => x.name.ToLower() == p.ToLower() && x.kind == "FOLDER");
+                }
+                if (newdir == null && Config.UseEncryption)
+                {
+                    if (Config.CryptMethod == CryptMethods.Method1_CTR)
+                    {
+                        var selection = done_files?.Where(x => (Path.GetExtension(x.name) == ".enc") && (Path.GetFileNameWithoutExtension(Path.GetFileNameWithoutExtension(x.name)) == p));
+                        if (selection?.Any() ?? false)
+                        {
+                            newdir = selection.FirstOrDefault();
+                        }
+                        if (newdir == null && Config.UseFilenameEncryption)
+                        {
+                            selection = done_files?.Where(x =>
+                            {
+                                var enc = DriveData.DecryptFilename(x);
+                                if (enc == null) return false;
+                                return Path.GetFileNameWithoutExtension(enc) == p;
+                            });
+                            if (selection?.Any() ?? false)
+                            {
+                                newdir = selection.FirstOrDefault();
+                            }
+                        }
+                    }
+                    if (Config.CryptMethod == CryptMethods.Method2_CBC_CarotDAV)
+                    {
+                        var selection = done_files?.Where(x =>
+                        {
+                            var enc = CryptCarotDAV.DecryptFilename(x.name);
+                            if (enc == null) return false;
+                            return enc == p;
+                        });
+                        if (selection?.Any() ?? false)
+                        {
+                            newdir = selection.FirstOrDefault();
+                        }
+                    }
+                }
+                if(newdir != null)
+                {
+                    parentID = newdir.id;
+                    continue;
+                }
+                createPaths.Add(p);
+                continue;
+            }
+            // found present
+            if(createPaths.Count == 0)
+            {
+                while(!DriveData.MkDirLock.TryRemove(targetPath, out h))
+                {
+                    ct.ThrowIfCancellationRequested();
+                }
+                h.Set();
+                return parentID;
+            }
+            // create new path
+            var job = JobControler.CreateNewJob(type: JobControler.JobClass.Normal);
+            job.DisplayName = "create folder(s) : " + targetPath;
             job.ProgressStr = "wait for create folder(s).";
             JobControler.Run(job, (j) =>
             {
-                var parentID = parent_id;
+                var ct1 = CancellationTokenSource.CreateLinkedTokenSource((j as JobControler.Job).ct, ct).Token;
                 job.Progress = -1;
                 job.ProgressStr = "Create folder(s).";
-                foreach (var p in paths)
+                foreach(var p in createPaths)
                 {
                     if (p == "") continue;
 
@@ -119,7 +214,7 @@ namespace TSviewACD
                         job_mkdir.ProgressStr = "wait for create folder.";
                         JobControler.Run(job_mkdir, (j2) =>
                         {
-                            var ct = (j2 as JobControler.Job).ct;
+                            var ct2 = CancellationTokenSource.CreateLinkedTokenSource((j2 as JobControler.Job).ct, ct).Token;
                             job_mkdir.ProgressStr = "Create folder...";
                             job_mkdir.Progress = -1;
                             var enckey = p + "." + Path.GetFileNameWithoutExtension(Path.GetRandomFileName());
@@ -144,37 +239,40 @@ namespace TSviewACD
                             while (--retry > 0)
                             {
                                 bool breakflag = false;
-                                DriveData.Drive.createFolder(makedirname, parentID, ct).ContinueWith((t) =>
+                                if (newdir == null)
                                 {
-                                    if (t.IsFaulted)
+                                    DriveData.Drive.createFolder(makedirname, parentID, ct2).ContinueWith((t) =>
                                     {
-                                        var e = t.Exception;
-                                        e.Flatten().Handle(ex =>
+                                        if (t.IsFaulted)
                                         {
-                                            return true;
-                                        });
-                                        e.Handle(ex =>
-                                        {
-                                            return true;
-                                        });
-                                        return;
-                                    }
-                                    newdir = t.Result;
-                                    Task.Delay(2000, ct).Wait(ct);
-                                    DriveData.GetChanges(checkpoint, ct).ContinueWith((t2) =>
-                                    {
-                                        var children = t2.Result;
-                                        if (children?.Where(x => x.name.Contains(makedirname)).LastOrDefault()?.status == "AVAILABLE")
-                                        {
-                                            Config.Log.LogOut("createFolder : child found.");
-                                            job_mkdir.ProgressStr = "createFolder success.";
-                                            breakflag = true;
+                                            var e = t.Exception;
+                                            e.Flatten().Handle(ex =>
+                                            {
+                                                return true;
+                                            });
+                                            e.Handle(ex =>
+                                            {
+                                                return true;
+                                            });
+                                            return;
                                         }
-                                    }, ct).Wait(ct);
-                                }, ct).Wait(ct);
+                                        newdir = t.Result;
+                                        Task.Delay(2000, ct2).Wait(ct);
+                                        DriveData.GetChanges(checkpoint, ct2).ContinueWith((t2) =>
+                                        {
+                                            var children = t2.Result;
+                                            if (children?.Where(x => x.name.Contains(makedirname)).LastOrDefault()?.status == "AVAILABLE")
+                                            {
+                                                Config.Log.LogOut("createFolder : child found.");
+                                                job_mkdir.ProgressStr = "createFolder success.";
+                                                breakflag = true;
+                                            }
+                                        }, ct2).Wait(ct2);
+                                    }, ct2).Wait(ct2);
+                                }
                                 if (breakflag) break;
 
-                                DriveData.GetChanges(checkpoint, ct).ContinueWith((t2) =>
+                                DriveData.GetChanges(checkpoint, ct2).ContinueWith((t2) =>
                                 {
                                     var children = t2.Result;
                                     if (children?.Where(x => x.name.Contains(makedirname)).LastOrDefault()?.status == "AVAILABLE")
@@ -187,8 +285,8 @@ namespace TSviewACD
                                         }
                                         breakflag = true;
                                     }
-                                    Task.Delay(2000, ct).Wait(ct);
-                                }, ct).Wait(ct);
+                                    Task.Delay(2000, ct2).Wait(ct);
+                                }, ct2).Wait(ct2);
 
                                 if (breakflag) break;
                             }
@@ -201,7 +299,7 @@ namespace TSviewACD
                             }
                             if (Config.UseEncryption && Config.UseFilenameEncryption && Config.CryptMethod == CryptMethods.Method1_CTR)
                             {
-                                DriveData.EncryptFilename(uploadfilename: makedirname, enckey: enckey, checkpoint: checkpoint, ct: ct).ContinueWith((t) =>
+                                DriveData.EncryptFilename(uploadfilename: makedirname, enckey: enckey, checkpoint: checkpoint, ct: ct2).ContinueWith((t) =>
                                 {
                                     if (!t.Result)
                                     {
@@ -210,14 +308,14 @@ namespace TSviewACD
                                         job_mkdir.Error("(ERROR)name cryption failed.");
                                         return;
                                     }
-                                }, ct);
+                                }, ct2);
 
                                 if (job_mkdir.IsError) return;
                             }
                             job_mkdir.Progress = 1;
                             Reload(parentID);
                         });
-                        job_mkdir.Wait(ct: job.ct);
+                        job_mkdir.Wait(ct: ct1);
 
                         if (newdir == null)
                         {
@@ -228,11 +326,16 @@ namespace TSviewACD
                     }
                     parentID = newdir.id;
                 }
+                while (!DriveData.MkDirLock.TryRemove(targetPath, out h))
+                {
+                    ct1.ThrowIfCancellationRequested();
+                }
+                h.Set();
                 job.Progress = 1;
                 job.ProgressStr = "done.";
-                job.Result = parentID;
             });
-            return job;
+            job.Wait(ct: ct);
+            return parentID;
         }
 
         static public JobControler.Job[] DoDirectoryUpload(IEnumerable<string> Filenames, string parent_id = null, bool WeekDepend = false, params JobControler.Job[] parentJob)
@@ -244,7 +347,7 @@ namespace TSviewACD
             foreach (var filename in Filenames)
             {
                 if (parentJob.Any(x => x.IsCanceled)) return null;
-                var job = JobControler.CreateNewJob(type: JobControler.JobClass.Upload, depends: parentJob);
+                var job = JobControler.CreateNewJob(type: JobControler.JobClass.Upload, info: new JobControler.Job.SubInfo { type = JobControler.Job.SubInfo.SubType.UploadDirectory }, depends: parentJob);
                 job.WeekDepend = WeekDepend;
                 job.DisplayName = filename;
                 job.ProgressStr = "wait for folder upload.";
@@ -269,9 +372,7 @@ namespace TSviewACD
 
                     var short_name = Path.GetFullPath(filename).Split(new char[] { '\\', '/' }).Last();
 
-                    var mkdirjob = CreateDirectory(short_name, parent_id);
-                    mkdirjob.Wait(ct: ct);
-                    var newdir_id = mkdirjob.Result as string;
+                    var newdir_id = CreateDirectory(short_name, parent_id, ct: ct);
 
                     if (newdir_id == null)
                     {
@@ -295,7 +396,19 @@ namespace TSviewACD
             foreach (var filename in Filenames)
             {
                 if (parentJob.Any(x => x.IsCanceled)) return null;
-                var job = JobControler.CreateNewJob(type: JobControler.JobClass.Upload, depends: parentJob);
+                var filesize = new FileInfo(filename).Length;
+                if (Config.UseEncryption && Config.CryptMethod == CryptMethods.Method2_CBC_CarotDAV)
+                {
+                    filesize = filesize + CryptCarotDAV.BlockSizeByte + CryptCarotDAV.CryptHeaderByte + CryptCarotDAV.CryptFooterByte;
+                }
+                var job = JobControler.CreateNewJob(
+                    type: JobControler.JobClass.Upload, 
+                    info: new JobControler.Job.SubInfo
+                    {
+                        type = JobControler.Job.SubInfo.SubType.UploadFile,
+                        size = filesize,
+                    }, 
+                    depends: parentJob);
                 job.WeekDepend = WeekDepend;
                 job.DisplayName = filename;
                 job.ProgressStr = "wait for upload.";
@@ -344,11 +457,6 @@ namespace TSviewACD
                         }
                     }
                     var checkpoint = DriveData.ChangeCheckpoint;
-                    var filesize = new FileInfo(filename).Length;
-                    if (Config.UseEncryption && Config.CryptMethod == CryptMethods.Method2_CBC_CarotDAV)
-                    {
-                        filesize = filesize + CryptCarotDAV.BlockSizeByte + CryptCarotDAV.CryptHeaderByte + CryptCarotDAV.CryptFooterByte;
-                    }
 
                     bool dup_flg = done_files?.Select(x => x.name.ToLower()).Contains(short_filename.ToLower()) ?? false;
                     if (Config.UseEncryption)
@@ -562,6 +670,7 @@ namespace TSviewACD
                                 var eo = evnt;
                                 job.ProgressStr = eo.Log;
                                 job.Progress = (double)eo.Position / eo.Length;
+                                job.JobInfo.pos = eo.Position;
                             }, ct: ct)
                             .ContinueWith((t) =>
                             {
@@ -712,7 +821,14 @@ namespace TSviewACD
             var joblist = new List<JobControler.Job>();
             foreach (var downitem in target)
             {
-                var job = JobControler.CreateNewJob(JobControler.JobClass.Download, prevJob);
+                var job = JobControler.CreateNewJob(
+                    type: JobControler.JobClass.Download,
+                    info: new JobControler.Job.SubInfo
+                    {
+                        type = JobControler.Job.SubInfo.SubType.DownloadFile,
+                        size = downitem.contentProperties?.size?? 0,
+                    },
+                    depends: prevJob);
                 job.WeekDepend = true;
                 var filename = DriveData.AmazonDriveTree[downitem.id].DisplayName;
                 job.DisplayName = filename;
@@ -779,6 +895,7 @@ namespace TSviewACD
                                     {
                                         job.Progress = (double)evnt.Position / evnt.Length;
                                         job.ProgressStr = evnt.Log;
+                                        job.JobInfo.pos = evnt.Position;
                                     };
                                     ct.ThrowIfCancellationRequested();
                                     f.CopyToAsync(outfile, Config.DownloadBufferSize, ct).Wait(ct);

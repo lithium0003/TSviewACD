@@ -391,7 +391,7 @@ namespace TSviewACD
                 job.Progress = 1;
                 job.ProgressStr = "done.";
             });
-            var afterjob = JobControler.CreateNewJob(JobControler.JobClass.Clean, job);
+            var afterjob = JobControler.CreateNewJob(JobControler.JobClass.Clean, depends: job);
             afterjob.DisplayName = "clean up";
             afterjob.DoAlways = true;
             JobControler.Run(afterjob, (j) =>

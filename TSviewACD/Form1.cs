@@ -541,7 +541,7 @@ namespace TSviewACD
             var job = AmazonDriveControl.InitAlltree(prevJob);
 
             // Refresh Drive Tree
-            var wait = JobControler.CreateNewJob(JobControler.JobClass.WaitReload, job);
+            var wait = JobControler.CreateNewJob(JobControler.JobClass.WaitReload, depends: job);
             JobControler.Run(wait, (j) =>
             {
                 synchronizationContext.Send((o) =>
@@ -1408,7 +1408,17 @@ namespace TSviewACD
 
             var newname = textBox_newName.Text;
 
-            var job = AmazonDriveControl.CreateDirectory(newname, parent_id);
+            var job = JobControler.CreateNewJob();
+            job.DisplayName = "Create Folder: " + newname;
+            job.ProgressStr = "wait for create folder";
+            JobControler.Run(job, (j) =>
+            {
+                job.ProgressStr = "Create folder...";
+                job.Progress = -1;
+                AmazonDriveControl.CreateDirectory(newname, parent_id);
+                job.ProgressStr = "done.";
+                job.Progress = 1;
+            });
 
             var wait1 = JobControler.CreateNewJob(type: JobControler.JobClass.WaitChanges, depends: job);
             wait1.DisplayName = "Wait changes";
@@ -1447,7 +1457,7 @@ namespace TSviewACD
 
                 var oldname = DriveData.AmazonDriveTree[downitem.id].DisplayName;
 
-                var job = JobControler.CreateNewJob(JobControler.JobClass.Normal, prevjob);
+                var job = JobControler.CreateNewJob(JobControler.JobClass.Normal, depends: prevjob);
                 prevjob = job;
                 job.DisplayName = "Rename";
                 job.ProgressStr = "wait for rename " + oldname;
@@ -2544,7 +2554,7 @@ namespace TSviewACD
             nextUDPcount = 0;
             foreach (var downitem in selectItem)
             {
-                var cjob = JobControler.CreateNewJob(JobControler.JobClass.PlayDownload, prevjob, job);
+                var cjob = JobControler.CreateNewJob(JobControler.JobClass.PlayDownload, null, prevjob, job);
                 if (prevjob == job) cjob.WeekDepend = true;
                 prevjob = cjob;
                 var filename = DriveData.AmazonDriveTree[downitem.id].DisplayName;
@@ -2592,7 +2602,7 @@ namespace TSviewACD
                 job.ProgressStr = "play";
                 job.Progress = 1;
             });
-            var afterjob = JobControler.CreateNewJob(JobControler.JobClass.Clean, prevjob);
+            var afterjob = JobControler.CreateNewJob(JobControler.JobClass.Clean, depends: prevjob);
             afterjob.DisplayName = "Clean up";
             return afterjob;
         }
@@ -2772,7 +2782,7 @@ namespace TSviewACD
             var joblist = new List<JobControler.Job>();
             foreach (var item in selectItem)
             {
-                var job = JobControler.CreateNewJob(JobControler.JobClass.Normal, prevjob);
+                var job = JobControler.CreateNewJob(JobControler.JobClass.Normal, depends: prevjob);
                 prevjob = job;
                 joblist.Add(job);
                 var ct = job.ct;
@@ -2818,7 +2828,7 @@ namespace TSviewACD
                     }
                 });
             }
-            var afterjob = JobControler.CreateNewJob(JobControler.JobClass.Normal, joblist.ToArray());
+            var afterjob = JobControler.CreateNewJob(JobControler.JobClass.Normal, depends: joblist.ToArray());
             afterjob.DisplayName = "Make temporary link result";
             afterjob.DoAlways = true;
             JobControler.Run(afterjob, (j) =>

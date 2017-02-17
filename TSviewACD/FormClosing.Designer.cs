@@ -50,7 +50,6 @@
             this.Name = "FormClosing";
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
             this.Text = "FormClosing";
-            this.TopMost = true;
             this.Load += new System.EventHandler(this.FormClosing_Load);
             this.ResumeLayout(false);
 

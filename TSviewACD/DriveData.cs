@@ -22,6 +22,8 @@ namespace TSviewACD
 
         public static AmazonDrive Drive = new AmazonDrive();
 
+        public static ConcurrentDictionary<string, ManualResetEvent> MkDirLock = new ConcurrentDictionary<string, ManualResetEvent>();
+
         static string root_id;
         static ConcurrentDictionary<string, ItemInfo> DriveTree = new ConcurrentDictionary<string, ItemInfo>();
         static List<FileMetadata_Info> historydata = new List<FileMetadata_Info>();
@@ -437,10 +439,25 @@ namespace TSviewACD
                             {
                                 cryptname += (char)('\u2800' + c);
                             }
-                            var reItem = await Drive.renameItem(id: child.id, newname: cryptname, ct: ct).ConfigureAwait(false);
-                            await GetChanges(checkpoint: ChangeCheckpoint, ct: ct).ConfigureAwait(false);
-                            AmazonDriveTree[reItem.id].IsEncrypted = CryptMethods.Method1_CTR;
-                            AmazonDriveTree[reItem.id].ReloadCryptedMethod1();
+                            int retry2 = 30;
+                            FileMetadata_Info reItem = null;
+                            while (--retry2 > 0)
+                            {
+                                try
+                                {
+                                    if(reItem == null)
+                                        reItem = await Drive.renameItem(id: child.id, newname: cryptname, ct: ct).ConfigureAwait(false);
+                                }
+                                catch { }
+                                var child2 = (await GetChanges(checkpoint: ChangeCheckpoint, ct: ct).ConfigureAwait(false)).Where(x => x.name.Contains(cryptname)).LastOrDefault();
+                                if (reItem != null && child2?.status == "AVAILABLE")
+                                {
+                                    AmazonDriveTree[reItem.id].IsEncrypted = CryptMethods.Method1_CTR;
+                                    AmazonDriveTree[reItem.id].ReloadCryptedMethod1();
+                                    break;
+                                }
+                                await Task.Delay(2000).ConfigureAwait(false);
+                            }
                             return true;
                         }
                     }

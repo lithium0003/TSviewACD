@@ -294,7 +294,7 @@ namespace TSviewACD
                 JobControler.Job prevjob = null;
                 foreach (var upfile in uploadfiles)
                 {
-                    var job = JobControler.CreateNewJob(JobControler.JobClass.Normal, prevjob);
+                    var job = JobControler.CreateNewJob(JobControler.JobClass.Normal, depends: prevjob);
                     prevjob = job;
                     job.DisplayName = upfile;
                     job.ProgressStr = "wait for upload.";
@@ -306,10 +306,7 @@ namespace TSviewACD
                         if (createdir)
                         {
                             // フォルダを確認してなければ作る
-                            var job_mkdir = AmazonDriveControl.CreateDirectory(Path.GetDirectoryName(upfile), parentID);
-                            job_mkdir.Wait(ct: (j as JobControler.Job).ct);
-
-                            parentID = job_mkdir.Result as string;
+                            parentID = AmazonDriveControl.CreateDirectory(Path.GetDirectoryName(upfile), parentID);
                             if (parentID == null)
                             {
                                 job.Error("Upload : (ERROR)createFolder");

@@ -101,13 +101,16 @@ namespace TSviewACD
                 case "help":
                     Console.WriteLine("usage");
                     Console.WriteLine("\thelp                                      : show help");
-                    Console.WriteLine("\tlist     (REMOTE_PATH)                    : list item");
+                    Console.WriteLine("\tlist (REMOTE_PATH)                        : list item");
                     Console.WriteLine("\t\t--recursive: recursive mode");
                     Console.WriteLine("\t\t--md5: show MD5 hash");
                     Console.WriteLine("\t\t--nodecrypt: disable auto decrypt");
                     Console.WriteLine("");
-                    Console.WriteLine("\tdownload (REMOTE_PATH) (LOCAL_DIR_PATH)   : download item(s)");
+                    Console.WriteLine("\tdownload (REMOTE_PATH) (LOCAL_DIR_PATH)");
+                    Console.WriteLine("\tdownload (REMOTE_PATH) (LOCAL_DIR_PATH) (IGNORE_LIST)");
+                    Console.WriteLine("\t : download item(s)");
                     Console.WriteLine("\tdownload_index (INDEX_PATH) (REMOTE_PATH) (LOCAL_DIR_PATH)");
+                    Console.WriteLine("\tdownload_index (INDEX_PATH) (REMOTE_PATH) (LOCAL_DIR_PATH) (IGNORE_LIST)");
                     Console.WriteLine("\t : make link index after download item(s)");
                     Console.WriteLine("\t\t--nodecrypt: disable auto decrypt");
                     Console.WriteLine("");
@@ -298,7 +301,7 @@ namespace TSviewACD
 
         static int ListItems(string[] targetArgs, string[] paramArgs)
         {
-            var job = JobControler.CreateNewJob();
+            var job = JobControler.CreateNewJob(JobControler.JobClass.ControlMaster);
             job.DisplayName = "ListItem";
             JobControler.Run(job, (j) =>
             {
@@ -383,7 +386,7 @@ namespace TSviewACD
 
         static int Download(string[] targetArgs, string[] paramArgs, bool index_mode = false)
         {
-            var masterjob = JobControler.CreateNewJob();
+            var masterjob = JobControler.CreateNewJob(JobControler.JobClass.ControlMaster);
             masterjob.DisplayName = "Download";
             var ct = masterjob.ct;
             JobControler.Run(masterjob, (j) =>
@@ -391,10 +394,13 @@ namespace TSviewACD
                 string remotepath = null;
                 string localpath = null;
                 string indexpath = null;
+                string ignorespath = null;
                 FileMetadata_Info[] target = null;
 
                 if (index_mode)
                 {
+                    if (targetArgs.Length > 4)
+                        ignorespath = targetArgs[4];
                     if (targetArgs.Length > 3)
                         localpath = targetArgs[3];
                     if (targetArgs.Length > 2)
@@ -407,6 +413,8 @@ namespace TSviewACD
                 }
                 else
                 {
+                    if (targetArgs.Length > 3)
+                        ignorespath = targetArgs[3];
                     if (targetArgs.Length > 2)
                         localpath = targetArgs[2];
                     if (targetArgs.Length > 1)
@@ -464,6 +472,49 @@ namespace TSviewACD
                     Console.Error.WriteLine("error: " + ex.ToString());
                     masterjob.Result = 1;
                     return;
+                }
+
+                if (ignorespath != null)
+                {
+                    var targetdict = new ConcurrentDictionary<string, FileMetadata_Info>();
+                    Parallel.ForEach(target, item =>
+                    {
+                        targetdict[DriveData.GetFullPathfromId(item.id)] = item;
+                    });
+                    Console.WriteLine("ignore list loading...");
+                    using (var file = new FileStream(ignorespath, FileMode.Open))
+                    using (var sr = new StreamReader(file))
+                    {
+                        while (!sr.EndOfStream)
+                        {
+                            var line = sr.ReadLine().Split('\t');
+                            FileMetadata_Info o;
+                            if (line.Length > 1)
+                            {
+                                if (targetdict.TryGetValue(line[0], out o))
+                                {
+                                    if(o.contentProperties?.md5 == line[1])
+                                    {
+                                        if (targetdict.TryRemove(line[0], out o))
+                                            Console.WriteLine(line[0]);
+                                    }
+                                }
+                            }
+                            else
+                            {
+                                if (targetdict.TryRemove(line[0], out o))
+                                    Console.WriteLine(line[0]);
+                            }
+                        }
+                    }
+                    target = targetdict.Values.ToArray();
+                    Console.WriteLine("remain target: " + target.Length);
+
+                    if (target.Length < 1)
+                    {
+                        masterjob.Result = 2;
+                        return;
+                    }
                 }
 
                 bool SelectFullpath = false;
@@ -622,10 +673,7 @@ namespace TSviewACD
                 targetpath = targetpath.Substring(UploadParam.localbasepath.Length);
                 if (!string.IsNullOrEmpty(targetpath))
                 {
-                    prevJob = AmazonDriveControl.CreateDirectory(targetpath, target_id, prevJob);
-                    prevJob.Wait(ct: UploadParam.master.ct);
-                    if (UploadParam.master.ct.IsCancellationRequested) return;
-                    target_id = prevJob.Result as string;
+                    target_id = AmazonDriveControl.CreateDirectory(targetpath, target_id, ct: UploadParam.master.ct);
                     if(target_id == null)
                     {
                         Console.Error.WriteLine("CreateFolder failed.");
@@ -634,7 +682,7 @@ namespace TSviewACD
                 }
             }
             var upjob = AmazonDriveControl.DoFileUpload(new string[] { uploadpath }, target_id, WeekDepend: true, parentJob: prevJob);
-            var cleanjob = JobControler.CreateNewJob(JobControler.JobClass.Clean, upjob);
+            var cleanjob = JobControler.CreateNewJob(JobControler.JobClass.Clean, depends: upjob);
             cleanjob.DisplayName = "clean file";
             cleanjob.DoAlways = true;
             JobControler.Run(cleanjob, (j) =>
@@ -695,7 +743,7 @@ namespace TSviewACD
 
         static int Upload(string[] targetArgs, string[] paramArgs, bool watchflag = false)
         {
-            var masterjob = JobControler.CreateNewJob();
+            var masterjob = JobControler.CreateNewJob(JobControler.JobClass.ControlMaster);
             masterjob.DisplayName = "upload";
             var ct = masterjob.ct;
             JobControler.Run(masterjob, (j) =>
@@ -821,9 +869,7 @@ namespace TSviewACD
                     if (string.IsNullOrEmpty(target_id) && createdir)
                     {
                         Console.Error.WriteLine("create path:" + remotepath);
-                        var mkdirjob = AmazonDriveControl.CreateDirectory(remotepath, DriveData.AmazonDriveRootID, masterjob);
-                        mkdirjob.Wait(ct: ct);
-                        target_id = mkdirjob.Result as string;
+                        target_id = AmazonDriveControl.CreateDirectory(remotepath, DriveData.AmazonDriveRootID, ct: ct);
                     }
                     if (string.IsNullOrEmpty(target_id))
                     {
