@@ -329,6 +329,7 @@ namespace ffmodule {
 		int64_t         video_current_pts_time;  ///<time (av_gettime) at which we updated video_current_pts - used to have running video pts
 		double          video_clock_start;
 		bool            video_eof;
+		bool            video_only;
 		int             video_width;
 		int             video_height;
 		int             video_srcwidth;

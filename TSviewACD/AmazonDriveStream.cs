@@ -31,7 +31,6 @@ namespace TSviewACD
         DateTime readtime = default(DateTime);
 
         public Stream Stream;
-        public bool Lock;
 
         public long Offset
         {
@@ -84,6 +83,7 @@ namespace TSviewACD
                 {
                     //Config.Log.LogOut(string.Format("AmazonDriveStream : remove {0:#,0} - {1:#,0}", _offset, _offset + _length - 1));
                     Stream?.Dispose();
+                    Stream = null;
                 }
                 disposed = true;
             }
@@ -208,17 +208,26 @@ namespace TSviewACD
                             }
                         }
                         cts_1.Token.ThrowIfCancellationRequested();
+                        var newslot = new MemoryStreamSlot(mem, start);
                         if (leadThread)
                         {
                             while (leadThread)
                             {
-                                if (SlotBuffer.TryAdd(new KeyValuePair<long, MemoryStreamSlot>(slotno, new MemoryStreamSlot(mem, start)), 500, cts_1.Token))
+                                if (SlotBuffer.TryAdd(new KeyValuePair<long, MemoryStreamSlot>(slotno, newslot), 500, cts_1.Token))
                                     break;
                             }
-                            if (!leadThread) slot[slotno] = new MemoryStreamSlot(mem, start);
+                            if (!leadThread)
+                            {
+                                if (slot.GetOrAdd(slotno, newslot) != newslot)
+                                    cts.Cancel();
+                            }
                         }
                         else
-                            slot[slotno] = new MemoryStreamSlot(mem, start);
+                        {
+                            if (slot.GetOrAdd(slotno, newslot) != newslot)
+                                cts.Cancel();
+                        }
+                        cts_1.Token.ThrowIfCancellationRequested();
 
                         start = ++slotno * AmazonDriveStreamConfig.slotsize;
                         length = AmazonDriveStreamConfig.slotsize;
@@ -315,6 +324,21 @@ namespace TSviewACD
         long lockslot1;
         long lockslot2;
 
+        long? StartLock = null;
+        long? EndLock = null;
+
+        public void LockRange(long start, long end)
+        {
+            StartLock = start;
+            EndLock = end;
+        }
+
+        public void ReleaseLockRange()
+        {
+            StartLock = null;
+            EndLock = null;
+        }
+
         public int ThreadCount
         {
             get { return Tasks.Count; }
@@ -338,7 +362,7 @@ namespace TSviewACD
                 {
                     try
                     {
-                        slot[newitem.Key] = newitem.Value;
+                        slot.GetOrAdd(newitem.Key, newitem.Value);
 
                         while (slot.Count > AmazonDriveStreamConfig.slotbacklog + extraslot)
                             Task.Delay(100, cts.Token).Wait(cts.Token);
@@ -362,22 +386,19 @@ namespace TSviewACD
                             .OrderBy(x => x.Value.ReadAge)
                             .First().Key;
 
-                            if (slot.Any(x => x.Value.Lock))
-                                pos = slot.Where(x => x.Value.Lock).First().Key;
+                            var s = StartLock;
+                            if (s != null)
+                                pos = s.Value;
 
                             //Config.Log.LogOut(string.Format("AmazonDriveStream : Removing slots current pos {0}", pos));
 
                             var deleteitem = slot
-                            .Where(x => !x.Value.Lock)
+                            .Where(x => !(x.Key >= StartLock && x.Key <= EndLock))
                             .Where(x => x.Key > lockslot1 && x.Key < lockslot2);
 
                             deleteitem = deleteitem
-                            .Where(x => x.Key < pos - AmazonDriveStreamConfig.slotkeepold)
+                            .Where(x => x.Key < pos - AmazonDriveStreamConfig.slotkeepold || x.Key > pos + AmazonDriveStreamConfig.slotbacklog * 2)
                             .OrderByDescending(x => x.Value.ReadAge)
-                            .Concat(deleteitem
-                                .Where(x => x.Key > pos + AmazonDriveStreamConfig.slotbacklog)
-                                .OrderByDescending(x => x.Value.Age)
-                                )
                             .Take(slot.Count - slotnumc).ToArray();
                             foreach (var item in deleteitem)
                             {
@@ -385,7 +406,10 @@ namespace TSviewACD
                                 if (slot.TryRemove(item.Key, out o))
                                 {
                                     //Config.Log.LogOut(string.Format("AmazonDriveStream : Remove slot {0} pos {1:#,0} len {2:#,0}", item.Key, o.Offset, o.Length));
-                                    o.Dispose();
+                                    if (!(item.Key >= StartLock && item.Key <= EndLock))
+                                        o.Dispose();
+                                    else
+                                        slot.GetOrAdd(item.Key, o);
                                 }
                             }
                             extraslot = slot.Count - slotnumc;
@@ -705,7 +729,7 @@ namespace TSviewACD
             }
             finally
             {
-                ReleasePosition(p_old, c_old);
+                slots.ReleaseLockRange();
             }
         }
 
@@ -748,10 +772,11 @@ namespace TSviewACD
         private bool EnsurePosition(long Offset, int length)
         {
             if (Offset < 0 || Offset + length > FileSize) return false;
-            var LastOffset = Offset + length - 1;
+            var LastOffset = Offset + length;
             var s = Offset / AmazonDriveStreamConfig.slotsize;
             var e = LastOffset / AmazonDriveStreamConfig.slotsize;
 
+            slots.LockRange(s, e);
             var stime = DateTime.Now;
 
             //Config.Log.LogOut(string.Format("AmazonDriveStream : Ensure pos {0:#,0}({2}) end {1:#,0}({3})", Offset, LastOffset, s, e));
@@ -778,7 +803,6 @@ namespace TSviewACD
                         Task.Delay(100, cts.Token).Wait(cts.Token);
                     }
                     s++;
-                    o.Lock = true;
                     o.TouchToRead();
                 }
             }
@@ -787,26 +811,6 @@ namespace TSviewACD
                 return false;
             }
             return true;
-        }
-
-        private void ReleasePosition(long Offset, int length)
-        {
-            if (Offset < 0 || Offset + length >= FileSize) return;
-            var LastOffset = Offset + length - 1;
-            var s = Offset / AmazonDriveStreamConfig.slotsize;
-            var e = LastOffset / AmazonDriveStreamConfig.slotsize;
-
-            //Config.Log.LogOut(string.Format("AmazonDriveStream : release pos {0:#,0}({2}) end {1:#,0}({3})", Offset, LastOffset, s, e));
-
-            while (s <= e)
-            {
-                MemoryStreamSlot o;
-                while (!slots.TryGetSlot(s++, out o))
-                    ;
-                o.Lock = false;
-            }
-
-            return;
         }
     }
 }

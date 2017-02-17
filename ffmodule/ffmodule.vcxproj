@@ -78,27 +78,23 @@
     <LinkIncremental>true</LinkIncremental>
     <IncludePath>$(SolutionDir)external\SDL2\include;$(SolutionDir)external\ffmpeg\include;$(IncludePath)</IncludePath>
     <LibraryPath>$(SolutionDir)external\SDL2\lib32;$(SolutionDir)external\ffmpeg\lib32;$(LibraryPath)</LibraryPath>
-    <OutDir>bin\$(Platform)\$(Configuration)\</OutDir>
-    <IntDir>$(Platform)\$(Configuration)\</IntDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
     <IncludePath>$(SolutionDir)external\SDL2\include;$(SolutionDir)external\ffmpeg\include;$(IncludePath)</IncludePath>
     <LibraryPath>$(SolutionDir)external\SDL2\lib;$(SolutionDir)external\ffmpeg\lib;$(LibraryPath)</LibraryPath>
-    <OutDir>bin\$(Platform)\$(Configuration)\</OutDir>
+    <OutDir>$(SolutionDir)$(Configuration)\</OutDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
     <IncludePath>$(SolutionDir)external\SDL2\include;$(SolutionDir)external\ffmpeg\include;$(IncludePath)</IncludePath>
     <LibraryPath>$(SolutionDir)external\SDL2\lib32;$(SolutionDir)external\ffmpeg\lib32;$(LibraryPath)</LibraryPath>
-    <OutDir>bin\$(Platform)\$(Configuration)\</OutDir>
-    <IntDir>$(Platform)\$(Configuration)\</IntDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
     <IncludePath>$(SolutionDir)external\SDL2\include;$(SolutionDir)external\ffmpeg\include;$(IncludePath)</IncludePath>
     <LibraryPath>$(SolutionDir)external\SDL2\lib;$(SolutionDir)external\ffmpeg\lib;$(LibraryPath)</LibraryPath>
-    <OutDir>bin\$(Platform)\$(Configuration)\</OutDir>
+    <OutDir>$(SolutionDir)$(Configuration)\</OutDir>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -114,8 +110,7 @@
       <GenerateDebugInformation>Debug</GenerateDebugInformation>
     </Link>
     <PostBuildEvent>
-      <Command>mkdir $(SolutionDir)bin
-copy $(TargetPath) $(SolutionDir)bin</Command>
+      <Command>copy $(TargetPath) $(SolutionDir)bin</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -132,8 +127,7 @@ copy $(TargetPath) $(SolutionDir)bin</Command>
       <GenerateDebugInformation>Debug</GenerateDebugInformation>
     </Link>
     <PostBuildEvent>
-      <Command>mkdir $(SolutionDir)bin
-copy $(TargetPath) $(SolutionDir)bin</Command>
+      <Command>copy $(TargetPath) $(SolutionDir)bin</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -154,8 +148,7 @@ copy $(TargetPath) $(SolutionDir)bin</Command>
       <GenerateDebugInformation>No</GenerateDebugInformation>
     </Link>
     <PostBuildEvent>
-      <Command>mkdir $(SolutionDir)bin
-copy $(TargetPath) $(SolutionDir)bin</Command>
+      <Command>copy $(TargetPath) $(SolutionDir)bin</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -176,8 +169,7 @@ copy $(TargetPath) $(SolutionDir)bin</Command>
       <GenerateDebugInformation>No</GenerateDebugInformation>
     </Link>
     <PostBuildEvent>
-      <Command>mkdir $(SolutionDir)bin
-copy $(TargetPath) $(SolutionDir)bin</Command>
+      <Command>copy $(TargetPath) $(SolutionDir)bin</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>

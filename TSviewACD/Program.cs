@@ -19,7 +19,10 @@ namespace TSviewACD
         [STAThread]
         static int Main(string[] args)
         {
-            Trace.Listeners.Add(new TextWriterTraceListener(System.IO.Path.ChangeExtension(Application.ExecutablePath, ".err.log")));
+            Application.EnableVisualStyles();
+            Application.SetCompatibleTextRenderingDefault(false);
+
+            Trace.Listeners.Add(new TextWriterTraceListener(System.IO.Path.Combine(Config.Config_BasePath, System.IO.Path.GetFileNameWithoutExtension(Application.ExecutablePath)+".err.log")));
             Trace.AutoFlush = true;
 
             TaskScheduler.UnobservedTaskException += (sender, e) =>
@@ -27,8 +30,6 @@ namespace TSviewACD
                 Trace.WriteLine(e.Exception);
             };
 
-            Application.EnableVisualStyles();
-            Application.SetCompatibleTextRenderingDefault(false);
             if (args.Length == 0)
             {
                 try

@@ -1941,6 +1941,8 @@ namespace ffmodule {
 			is->stream_component_open(subtitle_index);
 		}
 		is->external_clock = NAN;
+		is->audio_only = false;
+		is->video_only = false;
 
 		if (is->videoStream < 0 || is->audioStream < 0) {
 			if (is->videoStream < 0) {
@@ -1978,6 +1980,7 @@ namespace ffmodule {
 				av_log(NULL, AV_LOG_VERBOSE, "audio missing\n");
 				is->av_sync_type = AV_SYNC_VIDEO_MASTER;
 				is->audio_eof = audio_eof_enum::eof;
+				is->video_only = true;
 			}
 		}
 
@@ -2767,7 +2770,7 @@ namespace ffmodule {
 			return;
 		}
 
-		if (isnan(audio_clock)) {
+		if (!video_only && (isnan(audio_clock) || (audio_eof != audio_eof_enum::eof && audio_pause))) {
 			schedule_refresh(250);
 			frame_timer = av_gettime() / 1000000.0;
 			return;
@@ -2842,7 +2845,7 @@ namespace ffmodule {
 			}
 			if (delay >= 0 && delay <= 1.0) {
 				frame_last_delay.push_back(delay);
-				if (frame_last_delay.size() > 10)
+				if (frame_last_delay.size() > 100)
 					frame_last_delay.pop_front();
 			}
 
