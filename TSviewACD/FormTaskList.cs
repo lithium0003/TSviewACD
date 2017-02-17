@@ -56,13 +56,14 @@ namespace TSviewACD
             TSviewACD.FormClosing.Instance.Close();
         }
 
-        long tic = 0;
+        int tic = 0;
         JobControler.Job[] internalJobList;
 
 
         private void timer1_Tick(object sender, EventArgs e)
         {
             tic++;
+            if (tic > 10000) tic = 0;
             listView1.Invalidate();
             if (tic % 10 != 0) return;
 
@@ -183,7 +184,10 @@ namespace TSviewACD
             else if (job.Progress < 1)
             {
                 var rect = new Rectangle(e.Bounds.Location, new Size((int)(e.Bounds.Width * job.Progress), e.Bounds.Height));
-                e.Graphics.FillRectangle(Brushes.LightBlue, rect);
+                if(job.IsInfo)
+                    e.Graphics.FillRectangle(Brushes.Plum, rect);
+                else
+                    e.Graphics.FillRectangle(Brushes.LightBlue, rect);
             }
             else if (job.Progress >= 10)
             {

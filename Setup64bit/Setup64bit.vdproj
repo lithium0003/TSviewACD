@@ -39,18 +39,6 @@
         }
         "Entry"
         {
-        "MsmKey" = "8:_58560E9F72EAF703CF4A8CC843A15B18"
-        "OwnerKey" = "8:_9EF8E958004C4CB4B65E85A6A271BB16"
-        "MsmSig" = "8:_UNDEFINED"
-        }
-        "Entry"
-        {
-        "MsmKey" = "8:_58560E9F72EAF703CF4A8CC843A15B18"
-        "OwnerKey" = "8:_F2CC19CFEBF44648AEA35821DE165D77"
-        "MsmSig" = "8:_UNDEFINED"
-        }
-        "Entry"
-        {
         "MsmKey" = "8:_65432A5FB20D4ED09FC6B8F3F9F8FD2D"
         "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
@@ -59,6 +47,18 @@
         {
         "MsmKey" = "8:_6776D1F3EADF42B1BC2E4D913350BC5A"
         "OwnerKey" = "8:_UNDEFINED"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
+        "MsmKey" = "8:_81A9D0128E1A5163C562043C4B894E9E"
+        "OwnerKey" = "8:_9EF8E958004C4CB4B65E85A6A271BB16"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
+        "MsmKey" = "8:_81A9D0128E1A5163C562043C4B894E9E"
+        "OwnerKey" = "8:_F2CC19CFEBF44648AEA35821DE165D77"
         "MsmSig" = "8:_UNDEFINED"
         }
         "Entry"
@@ -178,7 +178,7 @@
         "Entry"
         {
         "MsmKey" = "8:_UNDEFINED"
-        "OwnerKey" = "8:_58560E9F72EAF703CF4A8CC843A15B18"
+        "OwnerKey" = "8:_81A9D0128E1A5163C562043C4B894E9E"
         "MsmSig" = "8:_UNDEFINED"
         }
         "Entry"
@@ -372,37 +372,6 @@
             "IsDependency" = "11:FALSE"
             "IsolateTo" = "8:"
             }
-            "{9F6F8455-1EF1-4B85-886A-4223BCC8E7F7}:_58560E9F72EAF703CF4A8CC843A15B18"
-            {
-            "AssemblyRegister" = "3:1"
-            "AssemblyIsInGAC" = "11:FALSE"
-            "AssemblyAsmDisplayName" = "8:ffmodule_conf, Version=1.0.0.0, Culture=neutral, processorArchitecture=AMD64"
-                "ScatterAssemblies"
-                {
-                    "_58560E9F72EAF703CF4A8CC843A15B18"
-                    {
-                    "Name" = "8:ffmodule_conf.dll"
-                    "Attributes" = "3:512"
-                    }
-                }
-            "SourcePath" = "8:ffmodule_conf.dll"
-            "TargetName" = "8:"
-            "Tag" = "8:"
-            "Folder" = "8:_8D9756B685E142D791ACF2E5FDFC53C4"
-            "Condition" = "8:"
-            "Transitive" = "11:FALSE"
-            "Vital" = "11:TRUE"
-            "ReadOnly" = "11:FALSE"
-            "Hidden" = "11:FALSE"
-            "System" = "11:FALSE"
-            "Permanent" = "11:FALSE"
-            "SharedLegacy" = "11:FALSE"
-            "PackageAs" = "3:1"
-            "Register" = "3:1"
-            "Exclude" = "11:TRUE"
-            "IsDependency" = "11:TRUE"
-            "IsolateTo" = "8:"
-            }
             "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_65432A5FB20D4ED09FC6B8F3F9F8FD2D"
             {
             "SourcePath" = "8:..\\external\\bin\\LICENSE.FFmpeg.LGPLv2.1"
@@ -441,6 +410,37 @@
             "Register" = "3:1"
             "Exclude" = "11:FALSE"
             "IsDependency" = "11:FALSE"
+            "IsolateTo" = "8:"
+            }
+            "{9F6F8455-1EF1-4B85-886A-4223BCC8E7F7}:_81A9D0128E1A5163C562043C4B894E9E"
+            {
+            "AssemblyRegister" = "3:1"
+            "AssemblyIsInGAC" = "11:FALSE"
+            "AssemblyAsmDisplayName" = "8:ffmodule_conf, Version=1.0.0.0, Culture=neutral, processorArchitecture=AMD64"
+                "ScatterAssemblies"
+                {
+                    "_81A9D0128E1A5163C562043C4B894E9E"
+                    {
+                    "Name" = "8:ffmodule_conf.dll"
+                    "Attributes" = "3:512"
+                    }
+                }
+            "SourcePath" = "8:ffmodule_conf.dll"
+            "TargetName" = "8:"
+            "Tag" = "8:"
+            "Folder" = "8:_8D9756B685E142D791ACF2E5FDFC53C4"
+            "Condition" = "8:"
+            "Transitive" = "11:FALSE"
+            "Vital" = "11:TRUE"
+            "ReadOnly" = "11:FALSE"
+            "Hidden" = "11:FALSE"
+            "System" = "11:FALSE"
+            "Permanent" = "11:FALSE"
+            "SharedLegacy" = "11:FALSE"
+            "PackageAs" = "3:1"
+            "Register" = "3:1"
+            "Exclude" = "11:TRUE"
+            "IsDependency" = "11:TRUE"
             "IsolateTo" = "8:"
             }
             "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_95E573CB1AB5405DA1B473878CBD4C68"
@@ -812,15 +812,15 @@
         {
         "Name" = "8:Microsoft Visual Studio"
         "ProductName" = "8:TSviewACD"
-        "ProductCode" = "8:{7C2B3AB9-51FE-4FC3-BB50-3D3ABCF8F0B8}"
-        "PackageCode" = "8:{6709130C-0BE9-4A1F-AFD8-07405BBE9363}"
+        "ProductCode" = "8:{4C869643-E5FA-48C1-A9A0-E477A1216BB0}"
+        "PackageCode" = "8:{F205C0D1-C1E8-4475-9DD2-DC469EF0886E}"
         "UpgradeCode" = "8:{35BB5569-D1AC-4F9A-861C-2B676D50BCC7}"
         "AspNetVersion" = "8:4.0.30319.0"
         "RestartWWWService" = "11:FALSE"
         "RemovePreviousVersions" = "11:TRUE"
         "DetectNewerInstalledVersion" = "11:TRUE"
         "InstallAllUsers" = "11:FALSE"
-        "ProductVersion" = "8:5.2.1"
+        "ProductVersion" = "8:5.2.3"
         "Manufacturer" = "8:lithium03"
         "ARPHELPTELEPHONE" = "8:"
         "ARPHELPLINK" = "8:"

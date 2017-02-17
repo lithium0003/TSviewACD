@@ -55,6 +55,26 @@ namespace TSviewACD
             get { return _filepath; }
         }
 
+        private static string _MasterPassword = "crypt for password";
+        public static string MasterPassword
+        {
+            get { return _MasterPassword; }
+            set
+            {
+                try
+                {
+                    if (IsMasterPasswordCorrect || Decrypt(enc_Check_drive_password, value) == Check_pass_password)
+                    {
+                        _MasterPassword = value;
+                        if (string.IsNullOrEmpty(value)) _MasterPassword = "crypt for password";
+                        enc_Check_drive_password = Encrypt(Check_pass_password, _MasterPassword);
+                    }
+                }
+                catch { }
+            }
+        }
+        private const string Check_pass_password = "check for dirve password";
+
         public static readonly string Version = System.Diagnostics.FileVersionInfo.GetVersionInfo(System.Reflection.Assembly.GetExecutingAssembly().Location).ProductVersion.ToString();
         public static string SendToHost = "localhost";
         public static int SendToPort = 1240;
@@ -97,15 +117,42 @@ namespace TSviewACD
         public static int FontPtSize = 48;
         public static double FFmodule_TransferLimit = 128;
         public static bool FFmodule_AutoResize = true;
-        static string _DrivePassword = "";
+        static string _DrivePassword = null;
+        public static bool IsMasterPasswordCorrect
+        {
+            get {
+                try
+                {
+                    return string.IsNullOrEmpty(_Encrypted_DirvePasswordCheck) || Decrypt(_Encrypted_DirvePasswordCheck, MasterPassword) == Check_pass_password;
+                }
+                catch
+                {
+                    return false;
+                }
+            }
+        }
         public static string DrivePassword
         {
-            get { return _DrivePassword; }
+            get {
+                if (_DrivePassword != null) return _DrivePassword;
+                try
+                {
+                    if(string.IsNullOrEmpty(_Encrypted_DirvePasswordCheck) || Decrypt(_Encrypted_DirvePasswordCheck, MasterPassword) == Check_pass_password)
+                    {
+                        _DrivePassword = Decrypt(_Encrypted_DrivePassword, MasterPassword);
+                    }
+                }
+                catch
+                {
+                    _DrivePassword = null;
+                }
+                return _DrivePassword ?? "";
+            }
             set
             {
                 _DrivePassword = value;
-                CryptCarotDAV.Password = _DrivePassword;
-                CryptCTR.password = _DrivePassword;
+                CryptCarotDAV.Password = _DrivePassword ?? "";
+                CryptCTR.password = _DrivePassword ?? "";
             }
         }
         public static bool LockPassword = false;
@@ -121,7 +168,6 @@ namespace TSviewACD
         public static bool UploadTrick1 = false;
         public static int ParallelDownload = 3;
         public static int ParallelUpload = 3;
-        // temporary
         public static bool FFmodule_fullscreen = false;
         public static bool FFmodule_display = false;
         public static double FFmodule_volume = 50;
@@ -130,12 +176,14 @@ namespace TSviewACD
         public static int FFmodule_hight = 0;
         public static int FFmodule_x = 0;
         public static int FFmodule_y = 0;
+        public static System.Drawing.Point? Main_Location;
+        public static System.Drawing.Size? Main_Size;
+        // temporary
         public static int AmazonDriveTempCount = 0;
         public static double UploadLimitTemp = 100 * 1024;
 
         private static byte[] _salt = Encoding.ASCII.GetBytes("TSviewACD");
         private const string token_password = ConfigAPI.token_save_password;
-        private const string pass_password = "crypt for password";
 
         public static FormLogWindow Log = new FormLogWindow();
         public static bool LogToFile
@@ -184,22 +232,33 @@ namespace TSviewACD
             }
         }
 
+        private static string _Encrypted_DirvePasswordCheck;
+        public static string enc_Check_drive_password
+        {
+            get
+            {
+                if (!IsMasterPasswordCorrect)
+                    return _Encrypted_DirvePasswordCheck;
+                return Encrypt(Check_pass_password, MasterPassword);
+            }
+            set
+            {
+                _Encrypted_DirvePasswordCheck = value;
+            }
+        }
+
+        private static string _Encrypted_DrivePassword;
         public static string enc_drive_password
         {
             get
             {
-                return (string.IsNullOrEmpty(DrivePassword)) ? "" : Encrypt(DrivePassword, pass_password);
+                if (!IsMasterPasswordCorrect)
+                    return _Encrypted_DrivePassword;
+                return (string.IsNullOrEmpty(DrivePassword)) ? "" : Encrypt(DrivePassword, MasterPassword);
             }
             set
             {
-                try
-                {
-                    DrivePassword = Decrypt(value, pass_password);
-                }
-                catch
-                {
-                    DrivePassword = "";
-                }
+                _Encrypted_DrivePassword = value;
             }
         }
 
@@ -296,7 +355,7 @@ namespace TSviewACD
 
         static Config()
         {
-            DrivePassword = "";
+            DrivePassword = null;
             var serializer = new DataContractSerializer(typeof(Savedata));
             try
             {
@@ -341,9 +400,10 @@ namespace TSviewACD
                         FontPtSize = data.FontPtSize;
                     if (data.FFmodule_TransferLimit != default(double))
                         FFmodule_TransferLimit = data.FFmodule_TransferLimit;
-                    if (data.FFmodule_AutoResize != default(bool))
+                    if (data.FFmodule_AutoResize != true)
                         FFmodule_AutoResize = data.FFmodule_AutoResize;
                     enc_drive_password = data.DrivePassword;
+                    enc_Check_drive_password = data.DrivePasswordCheck;
                     if (data.LockPassword != default(bool))
                         LockPassword = data.LockPassword;
                     if (data.UseEncryption != default(bool))
@@ -354,7 +414,7 @@ namespace TSviewACD
                         Language = data.Language;
                     if (data.CryptMethod != default(CryptMethods))
                         CryptMethod = data.CryptMethod;
-                    if (data.AutoDecode != default(bool))
+                    if (data.AutoDecode != true)
                         AutoDecode = data.AutoDecode;
                     if (data.CarotDAV_CryptNameHeader != default(string))
                         CarotDAV_CryptNameHeader = data.CarotDAV_CryptNameHeader;
@@ -368,6 +428,26 @@ namespace TSviewACD
                         ParallelDownload = data.ParallelDownload;
                     if (data.ParallelUpload != default(int))
                         ParallelUpload = data.ParallelUpload;
+                    if (data.FFmodule_fullscreen != default(bool))
+                        FFmodule_display = data.FFmodule_display;
+                    if (data.FFmodule_volume != default(double))
+                        FFmodule_volume = data.FFmodule_volume;
+                    if (data.FFmodule_mute != default(bool))
+                        FFmodule_mute = data.FFmodule_mute;
+                    if (data.FFmodule_Size != null)
+                    {
+                        FFmodule_width = data.FFmodule_Size.Value.Width;
+                        FFmodule_hight = data.FFmodule_Size.Value.Height;
+                    }
+                    if (data.FFmodule_Location != null)
+                    {
+                        FFmodule_x = data.FFmodule_Location.Value.X;
+                        FFmodule_y = data.FFmodule_Location.Value.Y;
+                    }
+                    if (data.Main_Size != null)
+                        Main_Size = data.Main_Size;
+                    if (data.Main_Location != null)
+                        Main_Location = data.Main_Location;
                     contentUrl = data.contentUrl;
                     metadataUrl = data.metadataUrl;
                     if (data.URL_time < DateTime.Now)
@@ -412,6 +492,7 @@ namespace TSviewACD
                         FFmodule_TransferLimit = FFmodule_TransferLimit,
                         FFmodule_AutoResize = FFmodule_AutoResize,
                         DrivePassword = enc_drive_password,
+                        DrivePasswordCheck = enc_Check_drive_password,
                         LockPassword = LockPassword,
                         UseEncryption = UseEncryption,
                         UseFilenameEncryption = UseFilenameEncryption,
@@ -424,6 +505,14 @@ namespace TSviewACD
                         UploadTrick1 = UploadTrick1,
                         ParallelDownload = ParallelDownload,
                         ParallelUpload = ParallelUpload,
+                        FFmodule_fullscreen = FFmodule_fullscreen,
+                        FFmodule_display = FFmodule_display,
+                        FFmodule_volume = FFmodule_volume,
+                        FFmodule_mute = FFmodule_mute,
+                        FFmodule_Size = new System.Drawing.Size(FFmodule_width, FFmodule_hight),
+                        FFmodule_Location = new System.Drawing.Point(FFmodule_x, FFmodule_y),
+                        Main_Size = Program.MainForm?.Size ?? Main_Size,
+                        Main_Location = Program.MainForm?.Location ?? Main_Location,
                     };
                     serializer.WriteObject(xmlw, data);
                 }
@@ -481,6 +570,8 @@ namespace TSviewACD
         [DataMember]
         public string DrivePassword;
         [DataMember]
+        public string DrivePasswordCheck;
+        [DataMember]
         public bool LockPassword;
         [DataMember]
         public bool UseEncryption;
@@ -504,6 +595,22 @@ namespace TSviewACD
         public int ParallelDownload;
         [DataMember]
         public int ParallelUpload;
+        [DataMember]
+        public bool FFmodule_fullscreen;
+        [DataMember]
+        public bool FFmodule_display;
+        [DataMember]
+        public double FFmodule_volume;
+        [DataMember]
+        public bool FFmodule_mute;
+        [DataMember]
+        public System.Drawing.Size? FFmodule_Size;
+        [DataMember]
+        public System.Drawing.Point? FFmodule_Location;
+        [DataMember]
+        public System.Drawing.Size? Main_Size;
+        [DataMember]
+        public System.Drawing.Point? Main_Location;
     }
 
     [CollectionDataContract

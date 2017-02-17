@@ -617,6 +617,24 @@ namespace TSviewACD
 
         private void Form1_Load(object sender, EventArgs e)
         {
+            if (!Config.IsMasterPasswordCorrect)
+            {
+                using(var f = new FormMasterPass())
+                    f.ShowDialog();
+                if (!Config.IsMasterPasswordCorrect)
+                    Close();
+            }
+            var tempLocation = Location;
+            var tempSize = Size;
+            if (Config.Main_Location != null)
+                Location = Config.Main_Location.Value;
+            if (Config.Main_Size != null)
+                Size = Config.Main_Size.Value;
+            if (!Screen.GetWorkingArea(this).IntersectsWith(Bounds))
+            {
+                Location = tempLocation;
+                Size = tempSize;
+            }
             LoadImage();
             logToFileToolStripMenuItem.Checked = Config.LogToFile;
             textBox_HostName.Text = Config.SendToHost;
@@ -3000,6 +3018,12 @@ namespace TSviewACD
         private void numericUpDown_ParallelDownload_ValueChanged(object sender, EventArgs e)
         {
             Config.ParallelDownload = (int)numericUpDown_ParallelDownload.Value;
+        }
+
+        private void button_masterpass_Click(object sender, EventArgs e)
+        {
+            using (var f = new FormMasterPass())
+                f.ShowDialog();
         }
     }
 

@@ -25,6 +25,12 @@ namespace TSviewACD
 
         public static int MainFunc(string[] args)
         {
+            bool inputRedirected = IsRedirected(GetStdHandle(StandardHandle.Input));
+            if (inputRedirected)
+            {
+                Config.MasterPassword = Console.ReadLine();
+            }
+
             bool outputRedirected = IsRedirected(GetStdHandle(StandardHandle.Output));
             Stream initialOut = null;
             if (outputRedirected)
@@ -47,6 +53,10 @@ namespace TSviewACD
             if (outputRedirected)
             {
                 Console.SetOut(new StreamWriter(initialOut, Encoding.GetEncoding(codepage)));
+            }
+            else
+            {
+                Console.OutputEncoding = Encoding.GetEncoding(codepage);
             }
 
             if (errorRedirected)
@@ -129,22 +139,50 @@ namespace TSviewACD
                     Console.WriteLine("\t\t--debug : debug log output");
                     break;
                 case "list":
+                    CheckMasterPassword();
                     Console.Error.WriteLine("list...");
                     return ListItems(targetArgs, paramArgs);
                 case "download":
+                    CheckMasterPassword();
                     Console.Error.WriteLine("download...");
                     return Download(targetArgs, paramArgs);
                 case "download_index":
+                    CheckMasterPassword();
                     Console.Error.WriteLine("download with index...");
                     return Download(targetArgs, paramArgs, true);
                 case "upload":
+                    CheckMasterPassword();
                     Console.Error.WriteLine("upload...");
                     return Upload(targetArgs, paramArgs);
                 case "upload_watch":
+                    CheckMasterPassword();
                     Console.Error.WriteLine("upload watch...");
                     return Upload(targetArgs, paramArgs, true);
             }
             return 0;
+        }
+
+        static void CheckMasterPassword()
+        {
+            if (!Config.IsMasterPasswordCorrect)
+            {
+                Thread t = new Thread(new ThreadStart(() =>
+                {
+                    using(var f = new FormMasterPass())
+                    {
+                        f.ShowDialog();
+                    }
+                }));
+                t.SetApartmentState(System.Threading.ApartmentState.STA);
+                t.Start();
+                t.Join();
+
+                if (!Config.IsMasterPasswordCorrect)
+                {
+                    Console.Error.Write("Master Password Incorrect.");
+                    Environment.Exit(1);
+                }
+            }
         }
 
         async protected static void CtrlC_Handler(object sender, ConsoleCancelEventArgs args)
