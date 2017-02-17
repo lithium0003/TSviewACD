@@ -18,6 +18,7 @@ namespace TSviewACD
         public const int slotnearby = 3;
         public const int slotkeepold = slotbacklog / 2;
         public const int shortbuflen = slotsize;
+        public const int extraslot = 10;
     }
 
     class MemoryStreamSlot : IDisposable
@@ -146,7 +147,7 @@ namespace TSviewACD
             CancellationTokenSource cancel_cts = new CancellationTokenSource();
             var cts_1 = CancellationTokenSource.CreateLinkedTokenSource(cts.Token, cancel_cts.Token);
 
-            //Config.Log.LogOut(string.Format("AmazonDriveStream : start to download {0:#,0} - ", start));
+            //Config.Log.LogOut(string.Format("AmazonDriveStream : start to download slot {0} offset {1:#,0} - ", slotno, start));
 
             Drive.downloadFile(targetItem, start, ct: cts_1.Token)
             .ContinueWith(task =>
@@ -154,7 +155,7 @@ namespace TSviewACD
                 if (!task.Wait(timeout, cts_1.Token))
                 {
                     cts_1.Token.ThrowIfCancellationRequested();
-                    Config.Log.LogOut(string.Format("AmazonDriveStream : wait timeout slot {0}", slotno));
+                    //Config.Log.LogOut(string.Format("AmazonDriveStream : wait timeout slot {0}", slotno));
                     throw new IOException("transfer timeout0");
                 }
                 using (var stream = task.Result)
@@ -208,7 +209,14 @@ namespace TSviewACD
                         }
                         cts_1.Token.ThrowIfCancellationRequested();
                         if (leadThread)
-                            SlotBuffer.TryAdd(new KeyValuePair<long, MemoryStreamSlot>(slotno, new MemoryStreamSlot(mem, start)), -1, cts_1.Token);
+                        {
+                            while (leadThread)
+                            {
+                                if (SlotBuffer.TryAdd(new KeyValuePair<long, MemoryStreamSlot>(slotno, new MemoryStreamSlot(mem, start)), 500, cts_1.Token))
+                                    break;
+                            }
+                            if (!leadThread) slot[slotno] = new MemoryStreamSlot(mem, start);
+                        }
                         else
                             slot[slotno] = new MemoryStreamSlot(mem, start);
 
@@ -299,7 +307,7 @@ namespace TSviewACD
         ConcurrentDictionary<long, DateTime> accesslog = new ConcurrentDictionary<long, DateTime>();
         ConcurrentDictionary<long, MemoryStreamSlot> slot = new ConcurrentDictionary<long, MemoryStreamSlot>();
         BlockingCollection<SlotTask> Tasks = new BlockingCollection<SlotTask>();
-        BlockingCollection<KeyValuePair<long, MemoryStreamSlot>> SlotBuffer = new BlockingCollection<KeyValuePair<long, MemoryStreamSlot>>(10);
+        BlockingCollection<KeyValuePair<long, MemoryStreamSlot>> SlotBuffer = new BlockingCollection<KeyValuePair<long, MemoryStreamSlot>>(AmazonDriveStreamConfig.extraslot);
         CancellationTokenSource cts_internal = new CancellationTokenSource();
         CancellationTokenSource cts;
 
@@ -324,6 +332,7 @@ namespace TSviewACD
             {
                 lockslot2 = lockslot1;
             }
+            int extraslot = 0;
             Task.Run(() => {
                 foreach(var newitem in SlotBuffer.GetConsumingEnumerable(cts.Token))
                 {
@@ -331,7 +340,7 @@ namespace TSviewACD
                     {
                         slot[newitem.Key] = newitem.Value;
 
-                        while (slot.Count > AmazonDriveStreamConfig.slotbacklog + 1)
+                        while (slot.Count > AmazonDriveStreamConfig.slotbacklog + extraslot)
                             Task.Delay(100, cts.Token).Wait(cts.Token);
                         if (cts.Token.IsCancellationRequested) return;
                     }
@@ -375,10 +384,11 @@ namespace TSviewACD
                                 MemoryStreamSlot o;
                                 if (slot.TryRemove(item.Key, out o))
                                 {
-                                    //Config.Log.LogOut(string.Format("AmazonDriveStream : Remove slot pos {0:#,0} len {1:#,0}", o.Offset, o.Length));
+                                    //Config.Log.LogOut(string.Format("AmazonDriveStream : Remove slot {0} pos {1:#,0} len {2:#,0}", item.Key, o.Offset, o.Length));
                                     o.Dispose();
                                 }
                             }
+                            extraslot = slot.Count - slotnumc;
                         }
                         // 終了したタスクを除去する
                         if (Tasks.Any(x => x.Done))
@@ -424,7 +434,6 @@ namespace TSviewACD
                             if (Tasks.Count == 1)
                             {
                                 Tasks.First().leadThread = true;
-                                //Config.Log.LogOut(string.Format("AmazonDriveStream : set lead thread"));
                             }
                             else
                             {
@@ -441,9 +450,18 @@ namespace TSviewACD
                                 {
                                     if (deleteitem.Contains(o))
                                     {
-                                        //Config.Log.LogOut(string.Format("AmazonDriveStream : Remove2 Task slot {0} too far({1})", o.ReadingSlotno, min_point));
-                                        deleteitem.Remove(o);
-                                        o.Dispose();
+                                        if (o.leadThread)
+                                        {
+                                            //Config.Log.LogOut(string.Format("AmazonDriveStream : LeadThread Task slot {0} too far({1})", o.ReadingSlotno, min_point));
+                                            deleteitem.Remove(o);
+                                            Tasks.Add(o);
+                                        }
+                                        else
+                                        {
+                                            //Config.Log.LogOut(string.Format("AmazonDriveStream : Remove2 Task slot {0} too far({1})", o.ReadingSlotno, min_point));
+                                            deleteitem.Remove(o);
+                                            o.Dispose();
+                                        }
                                     }
                                     else
                                     {
@@ -455,8 +473,7 @@ namespace TSviewACD
                     }
                     catch { }
                     //Config.Log.LogOut(string.Format("AmazonDriveStream : Tasks {0} slots {1}", Tasks.Count, slot.Count));
-                    //foreach (var item in Tasks)
-                    //    Config.Log.LogOut(string.Format("AmazonDriveStream : slot {0}", item.ReadingSlotno));
+                    //Config.Log.LogOut(string.Format("AmazonDriveStream : slot {0}", string.Join(",",Tasks.Select(x=>x.ReadingSlotno.ToString()))));
                     Task.Delay(500, cts.Token).Wait(cts.Token);
                 }
             }, cts.Token);
@@ -485,11 +502,13 @@ namespace TSviewACD
             var slotnos = Tasks.Select(x => x.ReadingSlotno).ToArray();
             foreach (var sno in slotnos)
             {
-                if (sno >= Slotno - AmazonDriveStreamConfig.slotnearby && sno <= Slotno)
+                if (sno >= Slotno - AmazonDriveStreamConfig.slotnearby && sno <= Slotno + AmazonDriveStreamConfig.extraslot)
                 {
                     return;
                 }
             }
+            //Config.Log.LogOut(string.Format("AmazonDriveStream : CreateTask {0}->{1}", org_slotno, Slotno));
+            //Config.Log.LogOut(string.Format("AmazonDriveStream : CreateTask sno {0}", string.Join(",", slotnos.Select(x=>x.ToString()))));
 
             var t = new SlotTask(Drive, targetItem, cts.Token);
             Tasks.Add(t);
@@ -728,7 +747,7 @@ namespace TSviewACD
 
         private bool EnsurePosition(long Offset, int length)
         {
-            if (Offset < 0 || Offset + length >= FileSize) return false;
+            if (Offset < 0 || Offset + length > FileSize) return false;
             var LastOffset = Offset + length - 1;
             var s = Offset / AmazonDriveStreamConfig.slotsize;
             var e = LastOffset / AmazonDriveStreamConfig.slotsize;
@@ -746,12 +765,12 @@ namespace TSviewACD
                     MemoryStreamSlot o;
                     while (!slots.TryGetSlot(s, out o))
                     {
-                        if ((DateTime.Now - stime).TotalSeconds > 60*60)
+                        if ((DateTime.Now - stime).TotalSeconds > 20)
                         {
                             Config.Log.LogOut(string.Format("AmazonDriveStream : ERROR timeout Ensure pos {0:#,0}({2}) end {1:#,0}({3})", Offset, LastOffset, s, e));
                             return false;
                         }
-                        if (slots.ThreadCount < 1 || ++count > 20)
+                        if (slots.ThreadCount < 1 || ++count > 5)
                         {
                             count = 0;
                             slots.CreateTask(s);

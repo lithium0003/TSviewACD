@@ -55,7 +55,7 @@ namespace TSviewACD
         };
         public static string FontFilepath = "ipaexg.ttf";
         public static int FontPtSize = 48;
-        public static double FFmodule_TransferLimit = 512;
+        public static double FFmodule_TransferLimit = 128;
         public static bool FFmodule_AutoResize = true;
         public static string DrivePassword = "";
         public static bool LockPassword = false;

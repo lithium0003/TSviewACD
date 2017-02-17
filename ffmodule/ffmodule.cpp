@@ -8,6 +8,7 @@
 
 extern AVPacket flush_pkt;
 extern AVPacket eof_pkt;
+extern AVPacket abort_pkt;
 
 extern HANDLE hPlayEvent;
 extern unsigned int PlayerCount;
@@ -21,12 +22,12 @@ namespace ffmodule {
 	SDLScreen::SDLScreen()
 	{
 		SetScreenSize(640, 480, 0, 0);
-		show = true;
+		show = false;
 	}
 	SDLScreen::SDLScreen(int width, int height)
 	{
 		SetScreenSize(width, height, 0, 0);
-		show = true;
+		show = false;
 	}
 
 	bool SDLScreen::SetScreenSize()
@@ -175,6 +176,15 @@ namespace ffmodule {
 		return WindowID;
 	}
 
+	void SDLScreen::ShowWindow()
+	{
+		if (!show) {
+			show = true;
+			SDL_ShowWindow(window.get());
+			SDL_RaiseWindow(window.get());
+		}
+	}
+
 //////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	PacketQueue::PacketQueue(_FFplayer *parent) : mutex(SDL_CreateMutex(), SDL_DestroyMutex),
@@ -188,14 +198,14 @@ namespace ffmodule {
 		clear();
 	}
 
-	void PacketQueue::QuitQueue()
+	void PacketQueue::AbortQueue()
 	{
-		AVPacketList *pkteof;
-		pkteof = (AVPacketList *)av_mallocz(sizeof(AVPacketList));
-		if (!pkteof)
+		AVPacketList *pktabort;
+		pktabort = (AVPacketList *)av_mallocz(sizeof(AVPacketList));
+		if (!pktabort)
 			return;
-		pkteof->pkt = eof_pkt;
-		pkteof->next = NULL;
+		pktabort->pkt = abort_pkt;
+		pktabort->next = NULL;
 
 
 		SDL_LockMutex(mutex.get());
@@ -204,7 +214,8 @@ namespace ffmodule {
 		for (auto pkt = first_pkt; pkt != NULL; pkt = pkt1) {
 			pkt1 = pkt->next;
 			if ((pkt->pkt.data != flush_pkt.data) &&
-				(pkt->pkt.data != eof_pkt.data)) {
+				(pkt->pkt.data != eof_pkt.data) &&
+				(pkt->pkt.data != abort_pkt.data)) {
 
 				av_packet_unref(&pkt->pkt);
 			}
@@ -215,9 +226,10 @@ namespace ffmodule {
 		nb_packets = 0;
 		size = 0;
 
-		first_pkt = pkteof;
+		first_pkt = pktabort;
+		last_pkt = pktabort;
 		nb_packets++;
-		size += pkteof->pkt.size;
+		size += pktabort->pkt.size;
 		SDL_CondSignal(cond.get());
 
 		SDL_UnlockMutex(mutex.get());
@@ -317,27 +329,20 @@ namespace ffmodule {
 	void PacketQueue::flush()
 	{
 		AVPacketList *pktflush;
-		AVPacketList *pktflush2;
 
 		pktflush = (AVPacketList *)av_mallocz(sizeof(AVPacketList));
 		if (!pktflush)
 			return;
-		pktflush2 = (AVPacketList *)av_mallocz(sizeof(AVPacketList));
-		if (!pktflush2) {
-			av_free(pktflush);
-			return;
-		}
 		pktflush->pkt = flush_pkt;
-		pktflush->next = pktflush2;
-		pktflush2->pkt = flush_pkt;
-		pktflush2->next = NULL;
+		pktflush->next = NULL;
 
 		SDL_LockMutex(mutex.get());
 		AVPacketList *pkt1;
 		for (auto pkt = first_pkt; pkt != NULL; pkt = pkt1) {
 			pkt1 = pkt->next;
 			if ((pkt->pkt.data != flush_pkt.data) &&
-				(pkt->pkt.data != eof_pkt.data)) {
+				(pkt->pkt.data != eof_pkt.data) &&
+				(pkt->pkt.data != abort_pkt.data)) {
 
 				av_packet_unref(&pkt->pkt);
 			}
@@ -349,11 +354,9 @@ namespace ffmodule {
 		size = 0;
 
 		first_pkt = pktflush;
+		last_pkt = pktflush;
 		nb_packets++;
 		size += pktflush->pkt.size;
-		last_pkt = pktflush2;
-		nb_packets++;
-		size += pktflush2->pkt.size;
 		SDL_CondSignal(cond.get());
 
 		SDL_UnlockMutex(mutex.get());
@@ -368,7 +371,8 @@ namespace ffmodule {
 		for (auto pkt = first_pkt; pkt != NULL; pkt = pkt1) {
 			pkt1 = pkt->next;
 			if ((pkt->pkt.data != flush_pkt.data) &&
-				(pkt->pkt.data != eof_pkt.data)) {
+				(pkt->pkt.data != eof_pkt.data) &&
+				(pkt->pkt.data != abort_pkt.data)) {
 
 				av_packet_unref(&pkt->pkt);
 			}
@@ -597,13 +601,13 @@ namespace ffmodule {
 
 		// avtivate threads for exit
 		if (audioStream >= 0) {
-			audioq.QuitQueue();
+			audioq.AbortQueue();
 		}
 		if (videoStream >= 0) {
-			videoq.QuitQueue();
+			videoq.AbortQueue();
 		}
 		if (subtitleStream >= 0) {
-			subtitleq.QuitQueue();
+			subtitleq.AbortQueue();
 		}
 		if (pictq)
 			SDL_CondSignal(pictq_cond.get());
@@ -624,7 +628,7 @@ namespace ffmodule {
 			SDL_CloseAudioDevice(audio_deviceID);
 		audio_deviceID = 0;
 
-		destory_pictures();
+		destory_all_pictures();
 		audioq.clear();
 		videoq.clear();
 
@@ -702,6 +706,16 @@ namespace ffmodule {
 		SDL_Event event;
 		memset(&event, 0, sizeof(event));
 		event.type = FF_REFRESH_EVENT;
+		event.user.data1 = opaque;
+		SDL_PushEvent(&event);
+		return 0; /* 0 means stop timer */
+	}
+
+	Uint32 _FFplayer::sdl_internal_refresh_timer_cb(Uint32 interval, void *opaque)
+	{
+		SDL_Event event;
+		memset(&event, 0, sizeof(event));
+		event.type = FF_INTERNAL_REFRESH_EVENT;
 		event.user.data1 = opaque;
 		SDL_PushEvent(&event);
 		return 0; /* 0 means stop timer */
@@ -878,6 +892,11 @@ namespace ffmodule {
 
 		while(true) {
 			int ret;
+			if (seek_req) {
+				audio_clock = NAN;
+				av_log(NULL, AV_LOG_INFO, "seeking audio mute\n");
+				goto quit_audio;
+			}
 			if (inpkt) {
 				if ((ret = audioq.get(inpkt, 0)) < 0) {
 					av_log(NULL, AV_LOG_INFO, "audio Quit\n");
@@ -886,9 +905,7 @@ namespace ffmodule {
 				}
 				if (audio_eof == audio_eof_enum::playing && ret == 0) {
 					av_log(NULL, AV_LOG_INFO, "audio queue empty\n");
-					SDL_PauseAudioDevice(audio_deviceID, 1);
-					audio_pause = true;
-					return -1;
+					goto quit_audio;
 				}
 				if (inpkt->data == flush_pkt.data) {
 					av_log(NULL, AV_LOG_INFO, "audio buffer flush\n");
@@ -903,11 +920,17 @@ namespace ffmodule {
 					av_log(NULL, AV_LOG_INFO, "audio buffer EOF\n");
 					audio_eof = audio_eof_enum::input_eof;
 				}
+				if (inpkt->data == abort_pkt.data) {
+					av_log(NULL, AV_LOG_INFO, "audio buffer ABORT\n");
+					audio_eof = audio_eof_enum::eof;
+					goto quit_audio;
+				}
 			}
 			if (audio_eof >= audio_eof_enum::input_eof) {
 				inpkt = NULL;
 				if (audio_eof == audio_eof_enum::output_eof) {
 					audio_eof = audio_eof_enum::eof;
+					av_log(NULL, AV_LOG_INFO, "audio EOF\n");
 					goto quit_audio;
 				}
 			}
@@ -967,8 +990,10 @@ namespace ffmodule {
 					if (inframe) av_frame_unref(inframe);
 					while (buf_size > buf_limit && (ret = av_buffersink_get_frame(afilt_out, &audio_frame_out)) >= 0) {
 
-						if (av_frame_get_best_effort_timestamp(&audio_frame_out) != AV_NOPTS_VALUE) {
-							audio_clock = av_q2d(audio_st->time_base)*av_frame_get_best_effort_timestamp(&audio_frame_out);
+						int64_t pts_t;
+						if ((pts_t = av_frame_get_best_effort_timestamp(&audio_frame_out)) != AV_NOPTS_VALUE) {
+							audio_clock = av_q2d(audio_st->time_base)*pts_t;
+							//av_log(NULL, AV_LOG_INFO, "audio clock %f\n", audio_clock);
 							if (isnan(audio_clock_start)) {
 								audio_clock_start = audio_clock;
 							}
@@ -996,6 +1021,7 @@ namespace ffmodule {
 
 					if (ret == AVERROR_EOF) {
 						audio_eof = audio_eof_enum::output_eof;
+						av_log(NULL, AV_LOG_INFO, "audio output EOF\n");
 					}
 
 					if (!inframe) break;
@@ -1124,6 +1150,19 @@ namespace ffmodule {
 	{
 		SDL_LockMutex(pictq_mutex.get());
 		for (VideoPicture *p = pictq; p < &pictq[VIDEO_PICTURE_QUEUE_SIZE]; p++) {
+			if (p == &pictq[pictq_windex]) continue;
+			p->Free();
+			p->pts = 0;
+		}
+		pictq_size = 1;
+		SDL_CondSignal(pictq_cond.get());
+		SDL_UnlockMutex(pictq_mutex.get());
+	}
+
+	void _FFplayer::destory_all_pictures()
+	{
+		SDL_LockMutex(pictq_mutex.get());
+		for (VideoPicture *p = pictq; p < &pictq[VIDEO_PICTURE_QUEUE_SIZE]; p++) {
 			p->Free();
 			p->pts = 0;
 		}
@@ -1201,7 +1240,7 @@ namespace ffmodule {
 		/* if we are repeating a frame, adjust clock accordingly */
 		frame_delay += src_frame->repeat_pict * (frame_delay * 0.5);
 		video_clock += frame_delay;
-		return pts;
+		return video_clock;
 	}
 
 	bool _FFplayer::Configure_VideoFilter(AVFilterContext **filt_in, AVFilterContext **filt_out, AVFrame *frame, AVFilterGraph *graph)
@@ -1272,6 +1311,7 @@ namespace ffmodule {
 		int last_h = 0;
 		AVPixelFormat last_format = (AVPixelFormat)-2;
 		int64_t last_serial = 0, serial = 0;
+		is->pictq_active_serial = 0;
 		AVRational frame_rate = av_guess_frame_rate(is->pFormatCtx.get(), is->video_st, NULL);
 
 		switch (is->video_ctx->codec_id)
@@ -1306,20 +1346,26 @@ namespace ffmodule {
 			if (is->IsQuit()) break;
 
 			if (packet.data == flush_pkt.data) {
-				is->pictq_active_serial = av_gettime();
 				av_log(NULL, AV_LOG_INFO, "video buffer flush\n");
-				avcodec_flush_buffers(is->video_ctx.get());
+				avcodec_flush_buffers(video_ctx);
 				packet = { 0 };
 				inpkt = &packet;
 				inframe = &frame;
 				is->video_eof = false;
 				serial = av_gettime();
+				is->pictq_active_serial = serial;
 				continue;
 			}
 			if (packet.data == eof_pkt.data) {
 				av_log(NULL, AV_LOG_INFO, "video buffer EOF\n");
 				packet = { 0 };
 				inpkt = NULL;
+			}
+			if (packet.data == abort_pkt.data) {
+				av_log(NULL, AV_LOG_INFO, "video buffer ABORT\n");
+				is->video_eof = true;
+				packet = { 0 };
+				break;
 			}
 			// send packet to codec context
 			if (avcodec_send_packet(video_ctx, inpkt) >= 0) {
@@ -1345,7 +1391,9 @@ namespace ffmodule {
 							last_format = (AVPixelFormat)frame.format;
 							last_serial = serial;
 						}
+						int repeat = inframe->repeat_pict;
 					}
+					
 
 					if (av_buffersrc_write_frame(filt_in, inframe) < 0)
 						return 1;
@@ -1356,6 +1404,7 @@ namespace ffmodule {
 						if (frame.width != is->video_srcwidth || frame.height != is->video_srcheight
 							|| frame.sample_aspect_ratio.den != is->video_SAR.den || frame.sample_aspect_ratio.num != is->video_SAR.num)
 						{
+							is->sws_ctx = NULL;
 							is->video_SAR = frame.sample_aspect_ratio;
 							double aspect_ratio = 0;
 							if (video_ctx->sample_aspect_ratio.num == 0) {
@@ -1409,6 +1458,7 @@ namespace ffmodule {
 						int64_t pts_t;
 						if ((pts_t = av_frame_get_best_effort_timestamp(&frame)) != AV_NOPTS_VALUE) {
 							pts = pts_t * av_q2d(is->video_st->time_base);
+							//av_log(NULL, AV_LOG_INFO, "video clock %f\n", pts);
 
 							if (isnan(is->video_clock_start)) {
 								is->video_clock_start = pts;
@@ -1468,29 +1518,41 @@ namespace ffmodule {
 		_FFplayer *is = (_FFplayer *)arg;
 		AVPacket packet = { 0 };
 		std::shared_ptr<SwsContext> sub_convert_ctx;
+		int64_t old_serial = 0;
 
-		while(!is->IsQuit()) {
+		is->subpictq_active_serial = av_gettime();
+		av_log(NULL, AV_LOG_INFO, "subtitle thread start\n");
+		while (!is->IsQuit()) {
 			AVCodecContext *subtitle_ctx = is->subtitle_ctx.get();
 			if (is->subtitleq.get(&packet, 1) < 0) {
 				// means we quit getting packets
 				av_log(NULL, AV_LOG_INFO, "subtitle Quit\n");
 				break;
 			}
+		retry:
 			if (packet.data == flush_pkt.data) {
 				av_log(NULL, AV_LOG_INFO, "subtitle buffer flush\n");
-				avcodec_flush_buffers(is->subtitle_ctx.get());
+				avcodec_flush_buffers(subtitle_ctx);
 				packet = { 0 };
+				is->subpictq_active_serial = av_gettime();
 				continue;
 			}
 			if (packet.data == eof_pkt.data) {
 				av_log(NULL, AV_LOG_INFO, "subtitle buffer EOF\n");
+				packet = { 0 };
+				while (!is->IsQuit() && is->subtitleq.get(&packet, 0) == 0)
+					SDL_Delay(100);
+				if (is->IsQuit()) break;
+				goto retry;
+			}
+			if (packet.data == abort_pkt.data) {
+				av_log(NULL, AV_LOG_INFO, "subtitle buffer ABORT\n");
 				packet = { 0 };
 				break;
 			}
 			int got_frame = 0;
 			int ret;
 			AVSubtitle sub;
-			std::shared_ptr<SubtitlePicture> sp(new SubtitlePicture);
 			if ((ret = avcodec_decode_subtitle2(subtitle_ctx, &sub, &got_frame, &packet)) < 0) {
 				av_packet_unref(&packet);
 				char buf[AV_ERROR_MAX_STRING_SIZE];
@@ -1505,8 +1567,11 @@ namespace ffmodule {
 
 			if (sub.pts != AV_NOPTS_VALUE)
 				pts = sub.pts / (double)AV_TIME_BASE;
+			std::shared_ptr<SubtitlePicture> sp(new SubtitlePicture);
 			sp->pts = pts;
 			sp->serial = av_gettime();
+			while (old_serial >= sp->serial) sp->serial++;
+			old_serial = sp->serial;
 			sp->start_display_time = sub.start_display_time;
 			sp->end_display_time = sub.end_display_time;
 			sp->numrects = sub.num_rects;
@@ -1524,7 +1589,7 @@ namespace ffmodule {
 						av_free(p->text);
 					if (p->ass)
 						av_free(p->ass);
-					if(p->data[0])
+					if (p->data[0])
 						av_free(p->data[0]);
 					av_free(p);
 				})) == NULL)) {
@@ -1533,7 +1598,7 @@ namespace ffmodule {
 				}
 
 				sp->subrects[i]->type = sub.rects[i]->type;
-				if(sub.rects[i]->ass)
+				if (sub.rects[i]->ass)
 					sp->subrects[i]->ass = av_strdup(sub.rects[i]->ass);
 				if (sub.rects[i]->text)
 					sp->subrects[i]->text = av_strdup(sub.rects[i]->text);
@@ -1674,11 +1739,13 @@ namespace ffmodule {
 			audio_buf_size = 0;
 			audio_buf_index = 0;
 			audio_clock_start = NAN;
+			audio_clock = NAN;
 
 			audio_out_sample_rate = spec.freq;
 			audio_out_channels = spec.channels;
 
 			audio_callback_time = (double)av_gettime() / 1000000.0;
+			audio_eof = audio_eof_enum::playing;
 			break;
 		case AVMEDIA_TYPE_VIDEO:
 			videoStream = stream_index;
@@ -1729,6 +1796,7 @@ namespace ffmodule {
 				video_srcheight = codecCtx->height;
 				video_srcwidth = codecCtx->width;
 			}
+			video_eof = false;
 			video_tid = SDL_CreateThread(video_thread, "video", this);
 			break;
 		case AVMEDIA_TYPE_SUBTITLE:
@@ -1758,10 +1826,10 @@ namespace ffmodule {
 			if (audio_deviceID > 0)
 				SDL_CloseAudioDevice(audio_deviceID);
 			audio_deviceID = 0;
-			audioq.QuitQueue();
+			audioq.AbortQueue();
 			break;
 		case AVMEDIA_TYPE_VIDEO:
-			videoq.QuitQueue();
+			videoq.AbortQueue();
 			destory_pictures();
 			if (video_tid > 0) {
 				SDL_WaitThread(video_tid, NULL);
@@ -1770,13 +1838,11 @@ namespace ffmodule {
 			destory_pictures();
 			break;
 		case AVMEDIA_TYPE_SUBTITLE:
-			subtitleq.QuitQueue();
-			subpictq.clear();
+			subtitleq.AbortQueue();
 			if (subtitle_tid > 0) {
 				SDL_WaitThread(subtitle_tid, NULL);
 				subtitle_tid = 0;
 			}
-			subpictq.clear();
 			break;
 		default:
 			break;
@@ -1916,7 +1982,6 @@ namespace ffmodule {
 		}
 
 		// main decode loop
-
 		av_log(NULL, AV_LOG_INFO, "decode_thread read loop\n");
 		bool error = false;
 		is->startskip_internal = NAN;
@@ -1967,6 +2032,7 @@ namespace ffmodule {
 					error = true;
 				}
 				if (ret1 >=0) {
+					is->pictq_active_serial = is->subpictq_active_serial = av_gettime();
 					if (is->audioStream >= 0) {
 						is->audio_eof = audio_eof_enum::playing;
 						av_log(NULL, AV_LOG_INFO, "audio flush request\n");
@@ -1991,7 +2057,8 @@ namespace ffmodule {
 				else {
 					is->seek_req = false;
 				}
-				is->overlay_text.erase();
+				if(is->overlay_remove_time == 0)
+					is->overlay_remove_time = av_gettime();
 			}
 
 			if ((is->audioStream < 0 && is->videoq.size > MAX_VIDEOQ_SIZE) ||
@@ -2191,6 +2258,8 @@ namespace ffmodule {
 		overlay_text = strbuf;
 		Redraw();
 		overlay_remove_time = av_gettime() + 3 * 1000 * 1000;
+		
+		stream_seek((int64_t)((get_master_clock() - 0.5) * AV_TIME_BASE), 0);
 	}
 
 	void _FFplayer::stream_seek(int64_t pos, int rel)
@@ -2207,6 +2276,7 @@ namespace ffmodule {
 			seek_rel_backorder = rel;
 			seek_req_backorder = 1;
 		}
+		schedule_refresh(1);
 	}
 
 	void _FFplayer::SeekExternal(double pos) 
@@ -2272,6 +2342,7 @@ namespace ffmodule {
 	void _FFplayer::overlay_txt(double pts)
 	{
 		if (!display_on && overlay_text.empty()) return;
+		if (isnan(pts)) return;
 
 		char out_text[1024];
 		if (overlay_text.empty()) {
@@ -2368,7 +2439,7 @@ namespace ffmodule {
 		bmask = 0x00ff0000;
 		amask = 0xff000000;
 		std::shared_ptr<SDL_Surface> textSurface(SDL_CreateRGBSurface(0, w, h, 32, rmask, gmask, bmask, amask), &SDL_FreeSurface);
-		//SDL_FillRect(textSurface.get(), NULL, SDL_MapRGBA(textSurface->format, 0, 0, 0, 0));
+		SDL_FillRect(textSurface.get(), NULL, SDL_MapRGBA(textSurface->format, 0, 0, 0, 128));
 		int xx = 0, yy = 0;
 		for each (auto t in txtSurfacelist) {
 			SDL_Rect rect = { xx, yy, t->w, t->h };
@@ -2383,15 +2454,17 @@ namespace ffmodule {
 		std::shared_ptr<SubtitlePicture> sp;
 		if (subpictq.peek(sp) == 0) {
 
-			if (sp->serial < pictq_active_serial ||
-				pts > sp->pts + (double)sp->end_display_time / 1000) {
+			while (sp->serial < subpictq_active_serial && subpictq.get(sp) == 0)
+				;
+			if (sp->serial < subpictq_active_serial)
+				return;
 
+			if (pts > sp->pts + (double)sp->end_display_time / 1000)
 				subpictq.get(sp);
-			}
-			else if (pts < sp->pts + (double)sp->start_display_time / 1000) {
-				// skip this time
-			}
-			else {
+
+			if (pts <= sp->pts + (double)sp->end_display_time / 1000 && 
+				pts >= sp->pts + (double)sp->start_display_time / 1000) {
+
 				if (sp->type == 0) {
 					if (sp->serial != screen->subserial || screen->subwidth != screen->GetWidth()) {
 						if (screen->subtitlelen != sp->numrects) {
@@ -2464,10 +2537,10 @@ namespace ffmodule {
 						screen->subtitlelen = sp->numrects;
 					}
 					if (sp->serial != screen->subserial || screen->subwidth != screen->GetWidth()) {
+						screen->subserial = sp->serial;
+						screen->subwidth = screen->GetWidth();
 						int x = 0, y = 0;
 						for (int i = 0; i < sp->numrects; i++) {
-							screen->subserial = sp->serial;
-							screen->subwidth = screen->GetWidth();
 							if (sp->subrects[i]->text) {
 								SDL_Color textColor = { 255, 255, 255, 0 };
 								char *t = sp->subrects[i]->text;
@@ -2530,6 +2603,7 @@ namespace ffmodule {
 			}
 			SDL_LockMutex(screen_mutex.get());
 			{
+				screen->ShowWindow();
 				h = screen->GetHight();
 				w = ((int)rint(h * aspect_ratio)) & ~1;
 				if (w > screen->GetWidth()) {
@@ -2625,6 +2699,7 @@ namespace ffmodule {
 		}
 		SDL_LockMutex(screen_mutex.get());
 		{
+			screen->ShowWindow();
 			SDL_RenderClear(screen->renderer.get());
 			if (screen->statictexture != NULL)
 				SDL_RenderCopy(screen->renderer.get(), screen->statictexture, NULL, &rect);
@@ -2675,7 +2750,7 @@ namespace ffmodule {
 			return;
 		}
 		if (!video_st) {
-			schedule_refresh(100);
+			schedule_refresh(250);
 			return;
 		}
 
@@ -2683,6 +2758,19 @@ namespace ffmodule {
 		while (vp->serial < pictq_active_serial && pictq_size > 0) {
 			vp = next_picture_queue();
 			frame_last_pts = 0;
+		}
+
+		if (seek_req) {
+			schedule_refresh(250);
+			pict_seek_after = true;
+			frame_timer = av_gettime() / 1000000.0;
+			return;
+		}
+
+		if (isnan(audio_clock)) {
+			schedule_refresh(250);
+			frame_timer = av_gettime() / 1000000.0;
+			return;
 		}
 
 		if (pictq_size == 0) {
@@ -2694,14 +2782,18 @@ namespace ffmodule {
 			return;
 		}
 
-		if (isnan(audio_clock_start)) {
-			frame_timer = av_gettime() / 1000000.0;
-			schedule_refresh(100);
-			return;
-		}
-
 		while (pictq_size > 0)
 		{
+			if (pict_seek_after && av_sync_type != AV_SYNC_VIDEO_MASTER) {
+				double ref_clock = get_master_clock();
+				double diff = vp->pts - ref_clock;
+				if (diff < 0) {
+					vp = next_picture_queue();
+					continue;
+				}
+			}
+
+			pict_seek_after = false;
 			video_current_pts = vp->pts;
 			video_current_pts_time = av_gettime();
 			set_clockduration(vp->pts);
@@ -2731,7 +2823,7 @@ namespace ffmodule {
 				double ref_clock = get_master_clock();
 				double diff = vp->pts - ref_clock;
 
-				//diff += (audio_callback_time - av_gettime() / 1000000.0);
+				diff += (audio_callback_time - av_gettime() / 1000000.0);
 				video_delay_to_audio = diff;
 				/* Skip or repeat the frame. Take delay into account
 				FFPlay still doesn't "know if this is the best guess." */
@@ -2756,14 +2848,14 @@ namespace ffmodule {
 
 
 			frame_timer += delay;
-			const double skepdelay = 0;
+			const double skepdelay = 0.010;
 			/* computer the REAL delay */
 			double actual_delay = frame_timer - av_gettime() / 1000000.0;
 
 			if (actual_delay > AV_SYNC_THRESHOLD) {
 				schedule_refresh((int)(actual_delay * 1000 + 0.5));
 			}
-			else if (actual_delay > skepdelay || pictq_size < 1) {
+			else if (actual_delay > skepdelay) {
 				schedule_refresh(1);
 			}
 			/* show the picture! */
@@ -2854,22 +2946,6 @@ namespace ffmodule {
 		screen->GetPosition(&screenxpos, &screenypos);
 	}
 
-	void _FFplayer::refresh_loop_wait_event(SDL_Event *event) {
-		double remaining_time = 0.0;
-		SDL_PumpEvents();
-		while (!SDL_PeepEvents(event, 1, SDL_GETEVENT, SDL_FIRSTEVENT, SDL_LASTEVENT)) {
-			if (!cursor_hidden && av_gettime() - cursor_last_shown > CURSOR_HIDE_DELAY) {
-				SDL_ShowCursor(0);
-				cursor_hidden = true;
-			}
-			if (overlay_remove_time > 0 && overlay_remove_time < av_gettime()) {
-				overlay_remove_time = 0;
-				overlay_text.erase();
-			}
-			SDL_PumpEvents();
-		}
-	}
-
 	void _FFplayer::EventOnVolumeChange()
 	{
 		if (audio_volume > 100) audio_volume = 100;
@@ -2884,6 +2960,12 @@ namespace ffmodule {
 	void _FFplayer::EventOnSeek(double value, bool frac, bool pre) 
 	{
 		double pos = get_master_clock();
+		
+		if (isnan(pos)) 
+			pos = prev_pos;
+		else 
+			prev_pos = pos;
+
 		int tns, thh, tmm, tss;
 		int ns, hh, mm, ss;
 		tns = 1;
@@ -2916,6 +2998,7 @@ namespace ffmodule {
 				hh, mm, ss, thh, tmm, tss);
 		}
 		overlay_text = strbuf;
+		overlay_remove_time = av_gettime() + 2 * 1000 * 1000;
 		Redraw();
 		if (pre) {
 			if (frac) {
@@ -2955,7 +3038,6 @@ namespace ffmodule {
 		if (parent->cursor_hidden) {
 			SDL_ShowCursor(1);
 			parent->cursor_hidden = false;
-
 		}
 		parent->cursor_last_shown = av_gettime();
 		if (!(evnt.motion.state & SDL_BUTTON_RMASK))
@@ -3194,6 +3276,7 @@ namespace ffmodule {
 		MessageProcessor.insert(std::make_pair(SDL_QUIT, &_FFplayer::_FFplayerFuncs::QuitTrueFunction));
 		MessageProcessor.insert(std::make_pair(FF_QUIT_EVENT, &_FFplayer::_FFplayerFuncs::QuitFalseFunction));
 		MessageProcessor.insert(std::make_pair(FF_REFRESH_EVENT, &_FFplayer::_FFplayerFuncs::RefreshFunction));
+		MessageProcessor.insert(std::make_pair(FF_INTERNAL_REFRESH_EVENT, &_FFplayer::_FFplayerFuncs::VoidFunction));
 		MessageProcessor.insert(std::make_pair(SDL_MOUSEMOTION, &_FFplayer::_FFplayerFuncs::MouseMotionFunction));
 		MessageProcessor.insert(std::make_pair(SDL_MOUSEBUTTONUP, &_FFplayer::_FFplayerFuncs::MouseButtonUpFunction));
 		MessageProcessor.insert(std::make_pair(SDL_KEYUP, &_FFplayer::_FFplayerFuncs::KeyUpFunction));
@@ -3218,7 +3301,27 @@ namespace ffmodule {
 			SDL_Event event;
 			int ret;
 
-			refresh_loop_wait_event(&event);
+			if (!cursor_hidden || overlay_remove_time > 0) {
+				double delay1 = ((cursor_hidden)? 0: CURSOR_HIDE_DELAY - (av_gettime() - cursor_last_shown)) / 1000.0;
+				delay1 = (delay1 < 0) ? 0 : delay1;
+				double delay2 = ((overlay_remove_time > 0) ? overlay_remove_time - av_gettime() : 0) / 1000.0;
+				delay2 = (delay2 < 0) ? 0 : delay2;
+				double delay = (delay1 > delay2) ? delay2 : delay1;
+
+				SDL_AddTimer(int(delay), sdl_internal_refresh_timer_cb, this);
+			}
+
+			SDL_WaitEvent(&event);
+
+			if (!cursor_hidden && av_gettime() - cursor_last_shown > CURSOR_HIDE_DELAY) {
+				SDL_ShowCursor(0);
+				cursor_hidden = true;
+			}
+			if (overlay_remove_time > 0 && overlay_remove_time < av_gettime()) {
+				overlay_remove_time = 0;
+				overlay_text.erase();
+			}
+
 			auto f = MessageProcessor.find(event.type);
 			if (f == MessageProcessor.end()) continue;
 			ret = funcs.invoke(f->second, event);

@@ -49,7 +49,8 @@ extern "C" {
 #define MAX_AUDIO_FRAME_SIZE 192000
 
 #define FF_REFRESH_EVENT (SDL_USEREVENT)
-#define FF_QUIT_EVENT (SDL_USEREVENT + 1)
+#define FF_INTERNAL_REFRESH_EVENT (SDL_USEREVENT + 1)
+#define FF_QUIT_EVENT (SDL_USEREVENT + 2)
 
 #define VIDEO_PICTURE_QUEUE_SIZE 10
 
@@ -92,7 +93,7 @@ namespace ffmodule {
 
 		PacketQueue(_FFplayer *parent);
 		~PacketQueue();
-		void QuitQueue();
+		void AbortQueue();
 		int putEOF();
 		int put(AVPacket *pkt);
 		int get(AVPacket *pkt, int block);
@@ -221,6 +222,7 @@ namespace ffmodule {
 		int GetWidth();
 		int GetHight();
 		UInt32 GetWindowID();
+		void ShowWindow();
 	};
 
 	class _FFplayer {
@@ -253,6 +255,7 @@ namespace ffmodule {
 		int             seek_flags;
 		int64_t         seek_pos;
 		int64_t         seek_rel;
+		double          prev_pos;
 
 		bool            seek_req_backorder;
 		int             seek_flags_backorder;
@@ -309,6 +312,7 @@ namespace ffmodule {
 		std::shared_ptr<AVCodecContext> subtitle_ctx;
 		PacketQueue     subtitleq;
 		SubtitlePictureQueue subpictq;
+		int64_t         subpictq_active_serial;
 		double          frame_timer;
 		double          frame_last_pts;
 		std::deque<double> frame_last_delay;
@@ -337,6 +341,7 @@ namespace ffmodule {
 		int             pictq_size, pictq_rindex, pictq_windex;
 		VideoPicture*   pictq_prev;
 		int64_t         pictq_active_serial;
+		bool            pict_seek_after;
 		const std::shared_ptr<SDL_mutex> pictq_mutex;
 		const std::shared_ptr<SDL_cond>  pictq_cond;
 
@@ -351,7 +356,7 @@ namespace ffmodule {
 		class _FFplayerFuncs {
 			_FFplayer	*parent;
 
-			double incr, pos;
+			double incr;
 			double frac;
 
 			std::map<SDL_Keycode, int(_FFplayer::_FFplayerFuncs::*)(SDL_Event &evnt)> KeyUpFuncs;
@@ -518,6 +523,7 @@ namespace ffmodule {
 		bool IsQuit();
 		static int decode_interrupt_cb(void *ctx);
 		static Uint32 sdl_refresh_timer_cb(Uint32 interval, void *opaque);
+		static Uint32 sdl_internal_refresh_timer_cb(Uint32 interval, void *opaque);
 		void schedule_refresh(int delay);
 		double get_audio_clock();
 		double get_video_clock();
@@ -530,6 +536,7 @@ namespace ffmodule {
 		int synchronize_audio(short *samples, int samples_size, double pts);
 		static void audio_callback(void *userdata, Uint8 *stream, int len);
 		void destory_pictures();
+		void destory_all_pictures();
 		int queue_picture(AVFrame *pFrame, double pts);
 		double synchronize_video(AVFrame *src_frame, double pts, double framerate);
 		bool Configure_VideoFilter(AVFilterContext ** filt_in, AVFilterContext ** filt_out, AVFrame * frame, AVFilterGraph * graph);
@@ -559,7 +566,6 @@ namespace ffmodule {
 		void ToggleFullscreen();
 		void ToggleFullscreen(bool fullscreen);
 		void ResizeOriginal();
-		void refresh_loop_wait_event(SDL_Event * event);
 		void EventOnVolumeChange();
 		void EventOnSeek(double value, bool frac, bool pre);
 		void EventOnSrcVolumeChange();
