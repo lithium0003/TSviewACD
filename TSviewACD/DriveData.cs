@@ -192,7 +192,6 @@ namespace TSviewACD
                     DriveTree.Clear();
                 }
                 historydata.Clear();
-                bool updated = false;
                 while (!ct.IsCancellationRequested)
                 {
                     Changes_Info[] history = null;
@@ -216,7 +215,6 @@ namespace TSviewACD
                         {
                             if (h.nodes.Count() > 0)
                             {
-                                updated = true;
                                 ConstructDriveTree(h.nodes);
                                 ret.AddRange(h.nodes);
                                 historydata.AddRange(h.nodes);

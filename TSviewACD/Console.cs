@@ -418,6 +418,7 @@ namespace TSviewACD
             catch (OperationCanceledException)
             {
             }
+            Config.IsClosing = true;
             Console.Out.Flush();
             return (job.Result as int?) ?? -1;
         }
@@ -639,6 +640,7 @@ namespace TSviewACD
             catch (OperationCanceledException)
             {
             }
+            Config.IsClosing = true;
             Console.Out.Flush();
             return (masterjob.Result as int?) ?? -1;
         }
@@ -991,6 +993,7 @@ namespace TSviewACD
             catch (OperationCanceledException)
             {
             }
+            Config.IsClosing = true;
             Console.Out.Flush();
             return (masterjob.Result as int?) ?? -1;
         }
