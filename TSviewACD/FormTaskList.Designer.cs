@@ -33,7 +33,7 @@
             this.panel1 = new System.Windows.Forms.Panel();
             this.label1 = new System.Windows.Forms.Label();
             this.button1 = new System.Windows.Forms.Button();
-            this.listView1 = new ListViewNF();
+            this.listView1 = new TSviewACD.ListViewNF();
             this.columnHeader1 = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.panel1.SuspendLayout();
             this.SuspendLayout();
@@ -103,6 +103,8 @@
             this.Name = "FormTaskList";
             this.Text = "FormTaskList";
             this.Load += new System.EventHandler(this.FormTaskList_Load);
+            this.ResizeBegin += new System.EventHandler(this.FormTaskList_ResizeBegin);
+            this.LocationChanged += new System.EventHandler(this.FormTaskList_LocationChanged);
             this.panel1.ResumeLayout(false);
             this.panel1.PerformLayout();
             this.ResumeLayout(false);

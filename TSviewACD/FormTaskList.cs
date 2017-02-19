@@ -7,6 +7,7 @@ using System.Data;
 using System.Drawing;
 using System.Drawing.Drawing2D;
 using System.Linq;
+using System.Security.Permissions;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -234,11 +235,7 @@ namespace TSviewACD
             var imlist = new ImageList();
             imlist.ImageSize = new Size(1, 35);
             listView1.SmallImageList = imlist;
-            if (Program.MainForm != null)
-            {
-                Point p = new Point(Program.MainForm.Left + Program.MainForm.Width, Program.MainForm.Top);
-                Location = p;
-            }
+            FixPosition();
         }
 
         private void button1_Click(object sender, EventArgs e)
@@ -252,6 +249,48 @@ namespace TSviewACD
             listView1.BeginUpdate();
             listView1.Columns[0].Width = listView1.ClientSize.Width;
             listView1.EndUpdate();
+        }
+
+        bool manualchange = false;
+        bool manuallocation = false;
+        public void FixPosition()
+        {
+            if (manuallocation) return;
+
+            if (Program.MainForm != null)
+            {
+                var s = Screen.FromControl(Program.MainForm);
+
+                Point p = new Point(Program.MainForm.Left + Program.MainForm.Width, Program.MainForm.Top);
+                Rectangle r = new Rectangle(p, Size);
+                if (s.WorkingArea.Contains(r))
+                {
+                    Location = p;
+                }
+                else
+                {
+                    Point p2 = new Point(Program.MainForm.Left - Width, Program.MainForm.Top);
+                    Rectangle r2 = new Rectangle(p2, Size);
+                    if (s.WorkingArea.Contains(r2))
+                    {
+                        Location = p2;
+                    }
+                    else
+                    {
+                        Location = p;
+                    }
+                }
+            }
+        }
+
+        private void FormTaskList_LocationChanged(object sender, EventArgs e)
+        {
+            if (manualchange) manuallocation = true;
+        }
+
+        private void FormTaskList_ResizeBegin(object sender, EventArgs e)
+        {
+            manualchange = true;
         }
     }
 

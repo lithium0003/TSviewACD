@@ -3025,6 +3025,16 @@ namespace TSviewACD
             using (var f = new FormMasterPass())
                 f.ShowDialog();
         }
+
+        private void Form1_LocationChanged(object sender, EventArgs e)
+        {
+            FormTaskList.Instance.FixPosition();
+        }
+
+        private void Form1_SizeChanged(object sender, EventArgs e)
+        {
+            FormTaskList.Instance.FixPosition();
+        }
     }
 
     static class Extensions
