@@ -124,7 +124,6 @@
     <Compile Include="CryptCarotDAV.cs" />
     <Compile Include="CryptStream.cs" />
     <Compile Include="DriveData.cs" />
-    <Compile Include="FFplay.cs" />
     <Compile Include="Form1.cs">
       <SubType>Form</SubType>
     </Compile>
