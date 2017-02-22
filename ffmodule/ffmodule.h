@@ -252,6 +252,7 @@ namespace ffmodule {
 		double          external_clock; /* external clock base */
 
 		double			pos_ratio;
+		bool            left_seek;
 
 		bool            seek_req;
 		int             seek_flags;

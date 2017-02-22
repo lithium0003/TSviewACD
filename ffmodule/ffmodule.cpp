@@ -3059,6 +3059,11 @@ namespace ffmodule {
 			parent->cursor_hidden = false;
 		}
 		parent->cursor_last_shown = av_gettime();
+		if ((evnt.motion.state & SDL_BUTTON_LMASK) && (parent->display_on && evnt.motion.y > parent->screen->GetHight() - 50)) {
+			frac = (double)evnt.motion.x / parent->screen->GetWidth();
+			parent->EventOnSeek(frac, true, false);
+			return 0;
+		}
 		if (!(evnt.motion.state & SDL_BUTTON_RMASK))
 			return 0;
 		if (parent->pFormatCtx->duration < 0) {
@@ -3076,6 +3081,13 @@ namespace ffmodule {
 		case SDL_BUTTON_LEFT:
 			if (evnt.button.clicks == 2)
 				parent->ToggleFullscreen();
+			else {
+				if (parent->display_on && evnt.button.y > parent->screen->GetHight() - 50) {
+					frac = (double)evnt.button.x / parent->screen->GetWidth();
+					parent->EventOnSeek(frac, true, true);
+					break;
+				}
+			}
 			parent->display_on = !parent->display_on;
 			break;
 		case SDL_BUTTON_RIGHT:
