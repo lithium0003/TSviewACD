@@ -73,11 +73,11 @@ namespace TSviewACD
                 try
                 {
                     var body = webBrowser1.DocumentText;
-                    var i = body.IndexOf('{');
-                    var j = body.IndexOf('}');
+                    var i = body.IndexOf("<PRE>");
+                    var j = body.IndexOf("</PRE>", i);
                     if (i < 0 || j < 0) return;
 
-                    key = ParseResponse(body.Substring(i, j - i + 1));
+                    key = ParseResponse(body.Substring(i + 5, j - i - 5));
                     // Save refresh_token
                     Config.refresh_token = key.refresh_token;
                     Config.Save();

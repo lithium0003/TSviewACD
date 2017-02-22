@@ -32,7 +32,7 @@ extern "C" {
 
 #include <SDL_ttf.h>
 
-#pragma comment(lib, "SDL2_ttf")
+#pragma comment(lib, "SDL2_ttf.lib")
 
 #include <assert.h>
 #include <string>
@@ -250,6 +250,9 @@ namespace ffmodule {
 
 		AV_SYNC_TYPE    av_sync_type;
 		double          external_clock; /* external clock base */
+
+		double			pos_ratio;
+		bool            left_seek;
 
 		bool            seek_req;
 		int             seek_flags;

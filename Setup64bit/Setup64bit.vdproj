@@ -51,13 +51,13 @@
         }
         "Entry"
         {
-        "MsmKey" = "8:_81A9D0128E1A5163C562043C4B894E9E"
+        "MsmKey" = "8:_926282CAA5DB6592B7BC07722A70EA4E"
         "OwnerKey" = "8:_9EF8E958004C4CB4B65E85A6A271BB16"
         "MsmSig" = "8:_UNDEFINED"
         }
         "Entry"
         {
-        "MsmKey" = "8:_81A9D0128E1A5163C562043C4B894E9E"
+        "MsmKey" = "8:_926282CAA5DB6592B7BC07722A70EA4E"
         "OwnerKey" = "8:_F2CC19CFEBF44648AEA35821DE165D77"
         "MsmSig" = "8:_UNDEFINED"
         }
@@ -166,13 +166,7 @@
         "Entry"
         {
         "MsmKey" = "8:_UNDEFINED"
-        "OwnerKey" = "8:_EE87D4693607DA830341F2EE0B71A64E"
-        "MsmSig" = "8:_UNDEFINED"
-        }
-        "Entry"
-        {
-        "MsmKey" = "8:_UNDEFINED"
-        "OwnerKey" = "8:_81A9D0128E1A5163C562043C4B894E9E"
+        "OwnerKey" = "8:_F2CC19CFEBF44648AEA35821DE165D77"
         "MsmSig" = "8:_UNDEFINED"
         }
         "Entry"
@@ -184,7 +178,13 @@
         "Entry"
         {
         "MsmKey" = "8:_UNDEFINED"
-        "OwnerKey" = "8:_F2CC19CFEBF44648AEA35821DE165D77"
+        "OwnerKey" = "8:_926282CAA5DB6592B7BC07722A70EA4E"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
+        "MsmKey" = "8:_UNDEFINED"
+        "OwnerKey" = "8:_EE87D4693607DA830341F2EE0B71A64E"
         "MsmSig" = "8:_UNDEFINED"
         }
     }
@@ -412,13 +412,18 @@
             "IsDependency" = "11:FALSE"
             "IsolateTo" = "8:"
             }
-            "{9F6F8455-1EF1-4B85-886A-4223BCC8E7F7}:_81A9D0128E1A5163C562043C4B894E9E"
+            "{9F6F8455-1EF1-4B85-886A-4223BCC8E7F7}:_926282CAA5DB6592B7BC07722A70EA4E"
             {
             "AssemblyRegister" = "3:1"
             "AssemblyIsInGAC" = "11:FALSE"
             "AssemblyAsmDisplayName" = "8:ffmodule_conf, Version=1.0.0.0, Culture=neutral, processorArchitecture=AMD64"
                 "ScatterAssemblies"
                 {
+                    "_926282CAA5DB6592B7BC07722A70EA4E"
+                    {
+                    "Name" = "8:ffmodule_conf.dll"
+                    "Attributes" = "3:512"
+                    }
                 }
             "SourcePath" = "8:ffmodule_conf.dll"
             "TargetName" = "8:"
@@ -665,6 +670,11 @@
             "AssemblyAsmDisplayName" = "8:System.Net.Http, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a"
                 "ScatterAssemblies"
                 {
+                    "_EE87D4693607DA830341F2EE0B71A64E"
+                    {
+                    "Name" = "8:System.Net.Http.dll"
+                    "Attributes" = "3:512"
+                    }
                 }
             "SourcePath" = "8:System.Net.Http.dll"
             "TargetName" = "8:"
@@ -802,15 +812,15 @@
         {
         "Name" = "8:Microsoft Visual Studio"
         "ProductName" = "8:TSviewACD"
-        "ProductCode" = "8:{3973CBA9-DFA9-4A9F-9EFF-9C2B06B4E52B}"
-        "PackageCode" = "8:{A64C19C1-9DEC-4DC2-8D3F-C9213CDD5208}"
+        "ProductCode" = "8:{862FDEFC-AC5C-48F2-A10D-8F1E3F1D7564}"
+        "PackageCode" = "8:{7CDC45D3-E0A3-4AF1-B824-2E775B76C496}"
         "UpgradeCode" = "8:{35BB5569-D1AC-4F9A-861C-2B676D50BCC7}"
         "AspNetVersion" = "8:4.0.30319.0"
         "RestartWWWService" = "11:FALSE"
         "RemovePreviousVersions" = "11:TRUE"
         "DetectNewerInstalledVersion" = "11:TRUE"
         "InstallAllUsers" = "11:FALSE"
-        "ProductVersion" = "8:5.3.0"
+        "ProductVersion" = "8:5.3.1"
         "Manufacturer" = "8:lithium03"
         "ARPHELPTELEPHONE" = "8:"
         "ARPHELPLINK" = "8:"
