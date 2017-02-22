@@ -2352,7 +2352,8 @@ namespace ffmodule {
 			double ns;
 			int hh, mm, ss;
 			int tns, thh, tmm, tss;
-			tns = (int)(get_duration());
+			pos_ratio = get_duration();
+			tns = (int)pos_ratio;
 			thh = tns / 3600;
 			tmm = (tns % 3600) / 60;
 			tss = (tns % 60);
@@ -2364,6 +2365,7 @@ namespace ffmodule {
 				ns -= video_clock_start / 1000000.0;
 			else if (!isnan(audio_clock_start))
 				ns -= audio_clock_start / 1000000.0;
+			pos_ratio = ns / pos_ratio;
 			hh = (int)(ns) / 3600;
 			mm = ((int)(ns) % 3600) / 60;
 			ss = ((int)(ns) % 60);
@@ -2377,11 +2379,23 @@ namespace ffmodule {
 					hh, mm, ss, (int)(ns * 1000), thh, tmm, tss, video_delay_to_audio * 1000);
 			}
 		}
+		SDL_SetRenderDrawColor(screen->renderer.get(), 32, 32, 255, 200);
+		SDL_SetRenderDrawBlendMode(screen->renderer.get(), SDL_BlendMode::SDL_BLENDMODE_BLEND);
+		SDL_Rect rect = { 0, screen->GetHight() - 50, screen->GetWidth() * pos_ratio, 50 };
+		SDL_RenderFillRect(screen->renderer.get(), &rect);
+		SDL_SetRenderDrawColor(screen->renderer.get(), 0, 0, 0, 255);
+		SDL_SetRenderDrawBlendMode(screen->renderer.get(), SDL_BlendMode::SDL_BLENDMODE_NONE);
+
 		SDL_Color textColor = { 0, 255, 0, 0 };
 		std::shared_ptr<SDL_Surface> textSurface(TTF_RenderText_Solid(font.get(), (overlay_text.empty()) ? out_text : overlay_text.c_str(), textColor), &SDL_FreeSurface);
 		std::shared_ptr<SDL_Texture> text(SDL_CreateTextureFromSurface(screen->renderer.get(), textSurface.get()), &SDL_DestroyTexture);
 		int text_width = textSurface->w;
 		int text_height = textSurface->h;
+		if (text_width > screen->GetWidth() / 2) {
+			double scale = screen->GetWidth() / 2.0 / text_width;
+			text_width = (int)(scale * text_width);
+			text_height = (int)(scale * text_height);
+		}
 		int x = (screen->GetWidth() - text_width) / 2;
 		int y = screen->GetHight() - 30 - text_height;
 		x -= x % 50;
@@ -2972,7 +2986,8 @@ namespace ffmodule {
 		int tns, thh, tmm, tss;
 		int ns, hh, mm, ss;
 		tns = 1;
-		tns = (int)(get_duration());
+		pos_ratio = get_duration();
+		tns = (int)(pos_ratio);
 		thh = tns / 3600;
 		tmm = (tns % 3600) / 60;
 		tss = (tns % 60);
@@ -2988,6 +3003,7 @@ namespace ffmodule {
 				tmpns -= (int64_t)(get_master_clock_start() / 1000000.0);
 			ns = (int)(tmpns);
 		}
+		pos_ratio = ns / pos_ratio;
 		hh = ns / 3600;
 		mm = (ns % 3600) / 60;
 		ss = (ns % 60);
@@ -3060,6 +3076,7 @@ namespace ffmodule {
 		case SDL_BUTTON_LEFT:
 			if (evnt.button.clicks == 2)
 				parent->ToggleFullscreen();
+			parent->display_on = !parent->display_on;
 			break;
 		case SDL_BUTTON_RIGHT:
 			frac = (double)evnt.button.x / parent->screen->GetWidth();
