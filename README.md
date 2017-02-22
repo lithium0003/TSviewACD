@@ -25,8 +25,8 @@ Visual Studio 2015 の Visual C++ 再頒布可能パッケージが必要にな�
 
 ## Install
 バイナリはサイトで配布しております<https://lithium03.info/product/TSvACD.html>
-* インストーラ版　<https://lithium03.info/product/TSviewACD/TSviewACD_20170218_installer.zip>
-* ポータブル版 <https://lithium03.info/product/TSviewACD/TSviewACD_20170218.zip>
+* インストーラ版　<https://lithium03.info/product/TSviewACD/TSviewACD_20170222_installer.zip>
+* ポータブル版 <https://lithium03.info/product/TSviewACD/TSviewACD_20170222.zip>
 
 ## Contribution
 1. Fork it ( http://github.com/lithium0003/TSviewACD/fork )
