@@ -45,6 +45,12 @@
         }
         "Entry"
         {
+        "MsmKey" = "8:_43579E4135CA42D19639E12DCC021092"
+        "OwnerKey" = "8:_UNDEFINED"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
         "MsmKey" = "8:_48486AC9275C4F0D8A2723FE55B9871A"
         "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
@@ -111,12 +117,6 @@
         }
         "Entry"
         {
-        "MsmKey" = "8:_9DA731390FE940AE8B16F2DEE4861FEF"
-        "OwnerKey" = "8:_UNDEFINED"
-        "MsmSig" = "8:_UNDEFINED"
-        }
-        "Entry"
-        {
         "MsmKey" = "8:_9DA7F93EA8C34345A3A44DD3870C5623"
         "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
@@ -160,7 +160,7 @@
         "Entry"
         {
         "MsmKey" = "8:_UNDEFINED"
-        "OwnerKey" = "8:_E482C4EEFCBC4DEE875B6EE2725D3410"
+        "OwnerKey" = "8:_9338F118CFD54DE90EA348A5383157E4"
         "MsmSig" = "8:_UNDEFINED"
         }
         "Entry"
@@ -172,7 +172,7 @@
         "Entry"
         {
         "MsmKey" = "8:_UNDEFINED"
-        "OwnerKey" = "8:_9338F118CFD54DE90EA348A5383157E4"
+        "OwnerKey" = "8:_E482C4EEFCBC4DEE875B6EE2725D3410"
         "MsmSig" = "8:_UNDEFINED"
         }
     }
@@ -347,11 +347,6 @@
             "AssemblyAsmDisplayName" = "8:ffmodule_conf, Version=1.0.0.0, Culture=neutral, processorArchitecture=AMD64"
                 "ScatterAssemblies"
                 {
-                    "_2C88F0C2CC423A49264726E684D846A0"
-                    {
-                    "Name" = "8:ffmodule_conf.dll"
-                    "Attributes" = "3:512"
-                    }
                 }
             "SourcePath" = "8:ffmodule_conf.dll"
             "TargetName" = "8:"
@@ -375,6 +370,26 @@
             {
             "SourcePath" = "8:..\\external\\bin32\\LICENSE.SDL2.txt"
             "TargetName" = "8:LICENSE.SDL2.txt"
+            "Tag" = "8:"
+            "Folder" = "8:_893A6354AC8049EF8592B19CE4F2EA43"
+            "Condition" = "8:"
+            "Transitive" = "11:FALSE"
+            "Vital" = "11:TRUE"
+            "ReadOnly" = "11:FALSE"
+            "Hidden" = "11:FALSE"
+            "System" = "11:FALSE"
+            "Permanent" = "11:FALSE"
+            "SharedLegacy" = "11:FALSE"
+            "PackageAs" = "3:1"
+            "Register" = "3:1"
+            "Exclude" = "11:FALSE"
+            "IsDependency" = "11:FALSE"
+            "IsolateTo" = "8:"
+            }
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_43579E4135CA42D19639E12DCC021092"
+            {
+            "SourcePath" = "8:..\\external\\bin32\\LICENSE.FFmpeg.LGPLv2.1.txt"
+            "TargetName" = "8:LICENSE.FFmpeg.LGPLv2.1.txt"
             "Tag" = "8:"
             "Folder" = "8:_893A6354AC8049EF8592B19CE4F2EA43"
             "Condition" = "8:"
@@ -584,11 +599,6 @@
             "AssemblyAsmDisplayName" = "8:System.Net.Http, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a"
                 "ScatterAssemblies"
                 {
-                    "_9338F118CFD54DE90EA348A5383157E4"
-                    {
-                    "Name" = "8:System.Net.Http.dll"
-                    "Attributes" = "3:512"
-                    }
                 }
             "SourcePath" = "8:System.Net.Http.dll"
             "TargetName" = "8:"
@@ -612,26 +622,6 @@
             {
             "SourcePath" = "8:..\\external\\bin32\\LICENSE.zlib.txt"
             "TargetName" = "8:LICENSE.zlib.txt"
-            "Tag" = "8:"
-            "Folder" = "8:_893A6354AC8049EF8592B19CE4F2EA43"
-            "Condition" = "8:"
-            "Transitive" = "11:FALSE"
-            "Vital" = "11:TRUE"
-            "ReadOnly" = "11:FALSE"
-            "Hidden" = "11:FALSE"
-            "System" = "11:FALSE"
-            "Permanent" = "11:FALSE"
-            "SharedLegacy" = "11:FALSE"
-            "PackageAs" = "3:1"
-            "Register" = "3:1"
-            "Exclude" = "11:FALSE"
-            "IsDependency" = "11:FALSE"
-            "IsolateTo" = "8:"
-            }
-            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_9DA731390FE940AE8B16F2DEE4861FEF"
-            {
-            "SourcePath" = "8:..\\external\\bin32\\LICENSE.FFmpeg.LGPLv2.1"
-            "TargetName" = "8:LICENSE.FFmpeg.LGPLv2.1"
             "Tag" = "8:"
             "Folder" = "8:_893A6354AC8049EF8592B19CE4F2EA43"
             "Condition" = "8:"
