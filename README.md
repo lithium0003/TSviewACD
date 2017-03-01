@@ -24,8 +24,10 @@ Visual Studio 2015 の Visual C++ 再頒布可能パッケージが必要にな�
 [NYSL 煮るなり焼くなり好きにしろライセンス](http://www.kmonos.net/nysl/index.ja.html "NYSL")
 
 ## Install
-バイナリはサイトで配布しております<https://lithium03.info/product/TSvACD.html>
-* インストーラ版　<https://lithium03.info/product/TSviewACD/TSviewACD_20170222_installer.zip>
+バイナリおよびソースは[最新版](../../releases/latest)のページからダウンロードしてください。
+
+もしくはサイトでも配布しております <https://lithium03.info/product/TSvACD.html>
+* インストーラ版 <https://lithium03.info/product/TSviewACD/TSviewACD_20170222_installer.zip>
 * ポータブル版 <https://lithium03.info/product/TSviewACD/TSviewACD_20170222.zip>
 
 ## Contribution
