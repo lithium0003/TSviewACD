@@ -367,7 +367,16 @@
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
-    <PostBuildEvent>copy $(TargetPath) $(SolutionDir)bin</PostBuildEvent>
+    <PostBuildEvent>if "$(Configuration)|$(Platform)" == "Release|x86" (
+mkdir $(SolutionDir)output\bin32
+copy $(TargetPath) $(SolutionDir)output\bin32
+xcopy $(TargetDir)*.dll $(SolutionDir)output\bin32 /sy
+)
+if "$(Configuration)|$(Platform)" == "Release|x64" (
+mkdir $(SolutionDir)output\bin
+copy $(TargetPath) $(SolutionDir)output\bin
+xcopy $(TargetDir)*.dll $(SolutionDir)output\bin /sy
+)</PostBuildEvent>
   </PropertyGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

@@ -108,7 +108,14 @@
       <GenerateDebugInformation>Debug</GenerateDebugInformation>
     </Link>
     <PostBuildEvent>
-      <Command>copy $(TargetPath) $(SolutionDir)bin</Command>
+      <Command>if "$(Configuration)|$(Platform)" == "Release|Win32" (
+mkdir $(SolutionDir)output\bin32
+copy $(TargetPath) $(SolutionDir)output\bin32
+);
+if "$(Configuration)|$(Platform)" == "Release|x64" (
+mkdir $(SolutionDir)output\bin
+copy $(TargetPath) $(SolutionDir)output\bin
+)</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -125,7 +132,14 @@
       <GenerateDebugInformation>Debug</GenerateDebugInformation>
     </Link>
     <PostBuildEvent>
-      <Command>copy $(TargetPath) $(SolutionDir)bin</Command>
+      <Command>if "$(Configuration)|$(Platform)" == "Release|Win32" (
+mkdir $(SolutionDir)output\bin32
+copy $(TargetPath) $(SolutionDir)output\bin32
+);
+if "$(Configuration)|$(Platform)" == "Release|x64" (
+mkdir $(SolutionDir)output\bin
+copy $(TargetPath) $(SolutionDir)output\bin
+)</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -146,7 +160,14 @@
       <GenerateDebugInformation>No</GenerateDebugInformation>
     </Link>
     <PostBuildEvent>
-      <Command>copy $(TargetPath) $(SolutionDir)bin</Command>
+      <Command>if "$(Configuration)|$(Platform)" == "Release|Win32" (
+mkdir $(SolutionDir)output\bin32
+copy $(TargetPath) $(SolutionDir)output\bin32
+);
+if "$(Configuration)|$(Platform)" == "Release|x64" (
+mkdir $(SolutionDir)output\bin
+copy $(TargetPath) $(SolutionDir)output\bin
+)</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -167,7 +188,14 @@
       <GenerateDebugInformation>No</GenerateDebugInformation>
     </Link>
     <PostBuildEvent>
-      <Command>copy $(TargetPath) $(SolutionDir)bin</Command>
+      <Command>if "$(Configuration)|$(Platform)" == "Release|Win32" (
+mkdir $(SolutionDir)output\bin32
+copy $(TargetPath) $(SolutionDir)output\bin32
+);
+if "$(Configuration)|$(Platform)" == "Release|x64" (
+mkdir $(SolutionDir)output\bin
+copy $(TargetPath) $(SolutionDir)output\bin
+)</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>

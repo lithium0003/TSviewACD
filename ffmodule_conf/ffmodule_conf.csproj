@@ -88,8 +88,14 @@
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
-    <PostBuildEvent>mkdir $(SolutionDir)bin
-copy $(TargetPath) $(SolutionDir)bin</PostBuildEvent>
+    <PostBuildEvent>if "$(Configuration)|$(Platform)" == "Release|x86" (
+mkdir $(SolutionDir)output\bin32
+copy $(TargetPath) $(SolutionDir)output\bin32
+)
+if "$(Configuration)|$(Platform)" == "Release|x64" (
+mkdir $(SolutionDir)output\bin
+copy $(TargetPath) $(SolutionDir)output\bin
+)</PostBuildEvent>
   </PropertyGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
