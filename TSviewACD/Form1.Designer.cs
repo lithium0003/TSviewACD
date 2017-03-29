@@ -1476,8 +1476,8 @@
             // Form1
             // 
             this.AllowDrop = true;
-            this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.None;
             resources.ApplyResources(this, "$this");
+            this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Dpi;
             this.Controls.Add(this.splitContainer1);
             this.DoubleBuffered = true;
             this.MainMenuStrip = this.menuStrip1;
