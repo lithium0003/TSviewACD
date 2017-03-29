@@ -48,7 +48,7 @@ namespace TSviewACD
 
         private async void webBrowser1_Navigated(object sender, WebBrowserNavigatedEventArgs e)
         {
-            Text = e.Url.ToString();
+            Text = e.Url.AbsoluteUri;
             var path = e.Url.AbsoluteUri;
             if (path.StartsWith(ConfigAPI.App_redirect))
             {
@@ -73,11 +73,16 @@ namespace TSviewACD
                 try
                 {
                     var body = webBrowser1.DocumentText;
-                    var i = body.IndexOf("<PRE>");
-                    var j = body.IndexOf("</PRE>", i);
+                    using (var f = File.OpenWrite(Path.Combine(Config.Config_BasePath,"test.log")))
+                    using (var sw = new StreamWriter(f))
+                    {
+                        sw.Write(body);
+                    }
+                    var i = body.IndexOf("{");
+                    var j = body.IndexOf("}");
                     if (i < 0 || j < 0) return;
 
-                    key = ParseResponse(body.Substring(i + 5, j - i - 5));
+                    key = ParseResponse(body.Substring(i, j - i));
                     // Save refresh_token
                     Config.refresh_token = key.refresh_token;
                     Config.Save();
