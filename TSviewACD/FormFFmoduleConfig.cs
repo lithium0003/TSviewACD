@@ -13,10 +13,169 @@ namespace TSviewACD
 {
     public partial class FormFFmoduleConfig : Form
     {
+        int oldDpi;
+        int currentDpi;
+
         public FormFFmoduleConfig()
         {
             InitializeComponent();
+            float dx, dy;
+            using (var g = CreateGraphics())
+            {
+                dx = g.DpiX;
+                dy = g.DpiY;
+
+            }
+            currentDpi = (int)dx;
+            HandleDpiChanged();
         }
+
+
+        const int WM_DPICHANGED = 0x02E0;
+
+        private bool needAdjust = false;
+        private bool isMoving = false;
+
+        protected override void OnResizeBegin(EventArgs e)
+        {
+            base.OnResizeBegin(e);
+            isMoving = true;
+        }
+
+        protected override void OnResizeEnd(EventArgs e)
+        {
+            base.OnResizeEnd(e);
+            isMoving = false;
+            if (needAdjust)
+            {
+                needAdjust = false;
+                HandleDpiChanged();
+            }
+        }
+
+        protected override void OnMove(EventArgs e)
+        {
+            base.OnMove(e);
+            if (needAdjust && IsLocationGood())
+            {
+                needAdjust = false;
+                HandleDpiChanged();
+            }
+        }
+
+        private bool IsLocationGood()
+        {
+            if (oldDpi == 0) return false;
+
+            float scaleFactor = (float)currentDpi / oldDpi;
+            Config.Log.LogOut(string.Format("c:{0} o:{1} scale{2}", currentDpi, oldDpi, scaleFactor));
+
+            int widthDiff = (int)(Bounds.Width * scaleFactor) - Bounds.Width;
+            int heightDiff = (int)(Bounds.Height * scaleFactor) - Bounds.Height;
+
+            var rect = new W32.RECT()
+            {
+                left = Bounds.Left,
+                top = Bounds.Top,
+                right = Bounds.Right + widthDiff,
+                bottom = Bounds.Bottom + heightDiff
+            };
+
+            var handleMonitor = W32.MonitorFromRect(ref rect, W32.MONITOR_DEFAULTTONULL);
+
+            if (handleMonitor != IntPtr.Zero)
+            {
+                if (W32.GetDpiForMonitor(handleMonitor, W32.Monitor_DPI_Type.MDT_Default, out uint dpiX, out uint dpiY) == 0)
+                {
+                    if (dpiX == currentDpi)
+                    {
+                        return true;
+                    }
+                }
+            }
+
+            return false;
+        }
+
+        protected override void WndProc(ref Message m)
+        {
+            switch (m.Msg)
+            {
+                case WM_DPICHANGED:
+                    oldDpi = currentDpi;
+                    currentDpi = m.WParam.ToInt32() & 0xFFFF;
+
+                    if (oldDpi != currentDpi)
+                    {
+                        if (isMoving)
+                        {
+                            needAdjust = true;
+                        }
+                        else
+                        {
+                            HandleDpiChanged();
+                        }
+                    }
+                    break;
+            }
+
+            base.WndProc(ref m);
+        }
+
+
+        const int designTimeDpi = 96;
+
+        private void HandleDpiChanged()
+        {
+            if (oldDpi != 0)
+            {
+                float scaleFactor = (float)currentDpi / oldDpi;
+                Config.Log.LogOut(string.Format("Dpi c:{0} o:{1} scale{2}", currentDpi, oldDpi, scaleFactor));
+
+                //the default scaling method of the framework
+                Scale(new SizeF(scaleFactor, scaleFactor));
+
+                //fonts are not scaled automatically so we need to handle this manually
+                ScaleFonts(scaleFactor);
+
+                //perform any other scaling different than font or size (e.g. ItemHeight)
+                PerformSpecialScaling(scaleFactor);
+            }
+            else
+            {
+                //the special scaling also needs to be done initially
+                PerformSpecialScaling((float)currentDpi / designTimeDpi);
+            }
+        }
+
+        protected virtual void PerformSpecialScaling(float scaleFactor)
+        {
+            foreach(ColumnHeader c in listView1.Columns)
+            {
+                c.Width = (int)(c.Width * scaleFactor);
+            }
+        }
+
+        protected virtual void ScaleFonts(float scaleFactor)
+        {
+            Font = new Font(Font.FontFamily,
+                   Font.Size * scaleFactor,
+                   Font.Style);
+            //ScaleFontForControl(this, scaleFactor);
+        }
+
+        private static void ScaleFontForControl(Control control, float factor)
+        {
+            control.Font = new Font(control.Font.FontFamily,
+                   control.Font.Size * factor,
+                   control.Font.Style);
+
+            foreach (Control child in control.Controls)
+            {
+                ScaleFontForControl(child, factor);
+            }
+        }
+
 
         private void LoadData()
         {

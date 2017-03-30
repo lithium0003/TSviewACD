@@ -256,8 +256,8 @@
             // 
             // FormFFmoduleConfig
             // 
+            this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.None;
             resources.ApplyResources(this, "$this");
-            this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.Controls.Add(this.groupBox_Screen);
             this.Controls.Add(this.groupBox_speed);
             this.Controls.Add(this.groupBox_font);
