@@ -55,27 +55,6 @@ namespace TSviewACD
             Login();
         }
 
-        const int WM_DPICHANGED = 0x02E0;
-
-        protected override void WndProc(ref Message m)
-        {
-            switch (m.Msg)
-            {
-                case WM_DPICHANGED:
-                    oldDpi = currentDpi;
-                    currentDpi = m.WParam.ToInt32() & 0xFFFF;
-
-                    if (oldDpi != currentDpi)
-                    {
-                        MoveWindow();
-                        HandleDpiChanged();
-                    }
-                    break;
-            }
-
-            base.WndProc(ref m);
-        }
-
         class W32
         {
             [StructLayout(LayoutKind.Sequential)]
@@ -147,9 +126,41 @@ namespace TSviewACD
             return dpiX;
         }
 
-        private void MoveWindow()
+        const int WM_DPICHANGED = 0x02E0;
+
+        private bool needAdjust = false;
+        private bool isMoving = false;
+
+        protected override void OnResizeBegin(EventArgs e)
         {
-            if (oldDpi == 0) return;
+            base.OnResizeBegin(e);
+            isMoving = true;
+        }
+
+        protected override void OnResizeEnd(EventArgs e)
+        {
+            base.OnResizeEnd(e);
+            isMoving = false;
+            if (needAdjust)
+            {
+                needAdjust = false;
+                HandleDpiChanged();
+            }
+        }
+
+        protected override void OnMove(EventArgs e)
+        {
+            base.OnMove(e);
+            if(needAdjust && IsLocationGood())
+            {
+                needAdjust = false;
+                HandleDpiChanged();
+            }
+        }
+
+        private bool IsLocationGood()
+        {
+            if (oldDpi == 0) return false;
 
             float scaleFactor = (float)currentDpi / oldDpi;
             Config.Log.LogOut(string.Format("c:{0} o:{1} scale{2}", currentDpi, oldDpi, scaleFactor));
@@ -157,70 +168,58 @@ namespace TSviewACD
             int widthDiff = (int)(ClientSize.Width * scaleFactor) - ClientSize.Width;
             int heightDiff = (int)(ClientSize.Height * scaleFactor) - ClientSize.Height;
 
-            List<W32.RECT> rectList = new List<W32.RECT>();
-
-            // Left-Top corner
-            rectList.Add(new W32.RECT
-            {
+            var rect = new W32.RECT() {
                 left = Bounds.Left,
                 top = Bounds.Top,
                 right = Bounds.Right + widthDiff,
                 bottom = Bounds.Bottom + heightDiff
-            });
+            };
 
-            // Right-Top corner
-            rectList.Add(new W32.RECT
+            var handleMonitor = W32.MonitorFromRect(ref rect, W32.MONITOR_DEFAULTTONULL);
+
+            if(handleMonitor != IntPtr.Zero)
             {
-                left = Bounds.Left - widthDiff,
-                top = Bounds.Top,
-                right = Bounds.Right,
-                bottom = Bounds.Bottom + heightDiff
-            });
-
-            // Left-Bottom corner
-            rectList.Add(new W32.RECT
-            {
-                left = Bounds.Left,
-                top = Bounds.Top - heightDiff,
-                right = Bounds.Right + widthDiff,
-                bottom = Bounds.Bottom
-            });
-
-            // Right-Bottom corner
-            rectList.Add(new W32.RECT
-            {
-                left = Bounds.Left - widthDiff,
-                top = Bounds.Top - heightDiff,
-                right = Bounds.Right,
-                bottom = Bounds.Bottom
-            });
-
-            // Get handle to monitor that has the largest intersection with each rectangle.
-            for (int i = 0; i < rectList.Count; i++)
-            {
-                W32.RECT rectBuf = rectList[i];
-
-                IntPtr handleMonitor = W32.MonitorFromRect(ref rectBuf, W32.MONITOR_DEFAULTTONULL);
-
-                if (handleMonitor != IntPtr.Zero)
+                if (W32.GetDpiForMonitor(handleMonitor, W32.Monitor_DPI_Type.MDT_Default, out uint dpiX, out uint dpiY) == 0)
                 {
-                    // Check if at least Left-Top corner or Right-Top corner is inside monitors.
-                    IntPtr handleLeftTop = W32.MonitorFromPoint(new W32.POINT(rectBuf.left, rectBuf.top), W32.MONITOR_DEFAULTTONULL);
-                    IntPtr handleRightTop = W32.MonitorFromPoint(new W32.POINT(rectBuf.right, rectBuf.top), W32.MONITOR_DEFAULTTONULL);
-
-                    if ((handleLeftTop != IntPtr.Zero) || (handleRightTop != IntPtr.Zero))
+                    if (dpiX == currentDpi)
                     {
-                        // Check if DPI of the monitor matches.
-                        if (GetDpiSpecifiedMonitor(handleMonitor) == currentDpi)
-                        {
-                            // Move this window.
-                            Location = new Point(rectBuf.left, rectBuf.top);
-                            break;
-                        }
+                        return true;
                     }
                 }
             }
+
+            return false;
         }
+
+        protected override void WndProc(ref Message m)
+        {
+            switch (m.Msg)
+            {
+                case WM_DPICHANGED:
+                    oldDpi = currentDpi;
+                    currentDpi = m.WParam.ToInt32() & 0xFFFF;
+
+                    if (oldDpi != currentDpi)
+                    {
+                        if (isMoving)
+                        {
+                            needAdjust = true;
+                        }
+                        else
+                        {
+                            HandleDpiChanged();
+                        }
+                    }
+                    else
+                    {
+                        needAdjust = false;
+                    }
+                    break;
+            }
+
+            base.WndProc(ref m);
+        }
+
 
         const int designTimeDpi = 96;
 
@@ -249,15 +248,18 @@ namespace TSviewACD
 
         protected virtual void PerformSpecialScaling(float scaleFactor)
         {
-
+            foreach(ColumnHeader c in listView1.Columns)
+            {
+                c.Width = (int)(c.Width * scaleFactor);
+            }
         }
 
         protected virtual void ScaleFonts(float scaleFactor)
         {
-            //Go through all controls in the control tree and set their Font property
-            //Note that this might not work with some RadElements which have the Font property
-            //set via theme or a local setting and they need to be handled separately (e.g. TreeNodeElement)
-            ScaleFontForControl(this, scaleFactor);
+            Font = new Font(Font.FontFamily,
+                   Font.Size * scaleFactor,
+                   Font.Style);
+            //ScaleFontForControl(this, scaleFactor);
         }
 
         private static void ScaleFontForControl(Control control, float factor)
@@ -265,8 +267,6 @@ namespace TSviewACD
             control.Font = new Font(control.Font.FontFamily,
                    control.Font.Size * factor,
                    control.Font.Style);
-
-            return;
 
             foreach (Control child in control.Controls)
             {
