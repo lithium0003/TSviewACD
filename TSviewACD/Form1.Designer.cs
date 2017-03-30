@@ -195,7 +195,7 @@
             this.label27 = new System.Windows.Forms.Label();
             this.checkBox_LockPassword = new System.Windows.Forms.CheckBox();
             this.textBox_Password = new System.Windows.Forms.TextBox();
-            this.tableLayoutPanel12 = new System.Windows.Forms.TableLayoutPanel();
+            this.tableLayoutPanel_password2 = new System.Windows.Forms.TableLayoutPanel();
             this.label30 = new System.Windows.Forms.Label();
             this.checkBox_LockPassword2 = new System.Windows.Forms.CheckBox();
             this.textBox_Password2 = new System.Windows.Forms.TextBox();
@@ -308,7 +308,7 @@
             this.flowLayoutPanel34.SuspendLayout();
             this.flowLayoutPanel35.SuspendLayout();
             this.tableLayoutPanel11.SuspendLayout();
-            this.tableLayoutPanel12.SuspendLayout();
+            this.tableLayoutPanel_password2.SuspendLayout();
             this.groupBox1.SuspendLayout();
             this.tableLayoutPanel13.SuspendLayout();
             this.flowLayoutPanel36.SuspendLayout();
@@ -1545,7 +1545,7 @@
             // 
             resources.ApplyResources(this.flowLayoutPanel35, "flowLayoutPanel35");
             this.flowLayoutPanel35.Controls.Add(this.tableLayoutPanel11);
-            this.flowLayoutPanel35.Controls.Add(this.tableLayoutPanel12);
+            this.flowLayoutPanel35.Controls.Add(this.tableLayoutPanel_password2);
             this.flowLayoutPanel35.Name = "flowLayoutPanel35";
             // 
             // tableLayoutPanel11
@@ -1577,13 +1577,13 @@
             this.textBox_Password.TextChanged += new System.EventHandler(this.textBox_Password_TextChanged);
             this.textBox_Password.Leave += new System.EventHandler(this.textBox_Password_Leave);
             // 
-            // tableLayoutPanel12
+            // tableLayoutPanel_password2
             // 
-            resources.ApplyResources(this.tableLayoutPanel12, "tableLayoutPanel12");
-            this.tableLayoutPanel12.Controls.Add(this.label30, 0, 0);
-            this.tableLayoutPanel12.Controls.Add(this.checkBox_LockPassword2, 1, 0);
-            this.tableLayoutPanel12.Controls.Add(this.textBox_Password2, 0, 1);
-            this.tableLayoutPanel12.Name = "tableLayoutPanel12";
+            resources.ApplyResources(this.tableLayoutPanel_password2, "tableLayoutPanel_password2");
+            this.tableLayoutPanel_password2.Controls.Add(this.label30, 0, 0);
+            this.tableLayoutPanel_password2.Controls.Add(this.checkBox_LockPassword2, 1, 0);
+            this.tableLayoutPanel_password2.Controls.Add(this.textBox_Password2, 0, 1);
+            this.tableLayoutPanel_password2.Name = "tableLayoutPanel_password2";
             // 
             // label30
             // 
@@ -1599,7 +1599,7 @@
             // 
             // textBox_Password2
             // 
-            this.tableLayoutPanel12.SetColumnSpan(this.textBox_Password2, 2);
+            this.tableLayoutPanel_password2.SetColumnSpan(this.textBox_Password2, 2);
             resources.ApplyResources(this.textBox_Password2, "textBox_Password2");
             this.textBox_Password2.Name = "textBox_Password2";
             // 
@@ -2014,8 +2014,8 @@
             this.flowLayoutPanel35.PerformLayout();
             this.tableLayoutPanel11.ResumeLayout(false);
             this.tableLayoutPanel11.PerformLayout();
-            this.tableLayoutPanel12.ResumeLayout(false);
-            this.tableLayoutPanel12.PerformLayout();
+            this.tableLayoutPanel_password2.ResumeLayout(false);
+            this.tableLayoutPanel_password2.PerformLayout();
             this.groupBox1.ResumeLayout(false);
             this.groupBox1.PerformLayout();
             this.tableLayoutPanel13.ResumeLayout(false);
@@ -2240,7 +2240,7 @@
         private System.Windows.Forms.FlowLayoutPanel flowLayoutPanel34;
         private System.Windows.Forms.FlowLayoutPanel flowLayoutPanel37;
         private System.Windows.Forms.FlowLayoutPanel flowLayoutPanel35;
-        private System.Windows.Forms.TableLayoutPanel tableLayoutPanel12;
+        private System.Windows.Forms.TableLayoutPanel tableLayoutPanel_password2;
         private System.Windows.Forms.Label label30;
         private System.Windows.Forms.CheckBox checkBox_LockPassword2;
         private System.Windows.Forms.TextBox textBox_Password2;

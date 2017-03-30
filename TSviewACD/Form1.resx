@@ -123,7 +123,7 @@
   </data>
   <assembly alias="System.Drawing" name="System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" />
   <data name="splitContainer2.Location" type="System.Drawing.Point, System.Drawing">
-    <value>4, 188</value>
+    <value>4, 178</value>
   </data>
   <data name="splitContainer2.Margin" type="System.Windows.Forms.Padding, System.Windows.Forms">
     <value>4, 4, 4, 4</value>
@@ -138,7 +138,7 @@
     <value>4, 4, 4, 4</value>
   </data>
   <data name="treeView1.Size" type="System.Drawing.Size, System.Drawing">
-    <value>257, 541</value>
+    <value>257, 551</value>
   </data>
   <assembly alias="mscorlib" name="mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" />
   <data name="treeView1.TabIndex" type="System.Int32, mscorlib">
@@ -256,7 +256,7 @@
     <value>4, 4, 4, 4</value>
   </data>
   <data name="listView1.Size" type="System.Drawing.Size, System.Drawing">
-    <value>776, 541</value>
+    <value>776, 551</value>
   </data>
   <data name="listView1.TabIndex" type="System.Int32, mscorlib">
     <value>0</value>
@@ -286,7 +286,7 @@
     <value>1</value>
   </data>
   <data name="splitContainer2.Size" type="System.Drawing.Size, System.Drawing">
-    <value>1038, 541</value>
+    <value>1038, 551</value>
   </data>
   <data name="splitContainer2.SplitterDistance" type="System.Int32, mscorlib">
     <value>257</value>
@@ -700,7 +700,7 @@
     <value>4, 4</value>
   </data>
   <data name="flowLayoutPanel1.Size" type="System.Drawing.Size, System.Drawing">
-    <value>1022, 118</value>
+    <value>1022, 108</value>
   </data>
   <data name="flowLayoutPanel1.TabIndex" type="System.Int32, mscorlib">
     <value>12</value>
@@ -727,7 +727,7 @@
     <value>4, 4, 4, 4</value>
   </data>
   <data name="tabPage_Navigation.Size" type="System.Drawing.Size, System.Drawing">
-    <value>1030, 126</value>
+    <value>1030, 116</value>
   </data>
   <data name="tabPage_Navigation.TabIndex" type="System.Int32, mscorlib">
     <value>0</value>
@@ -1728,7 +1728,7 @@ Not cheched, find items with partial match retrieval.
     <value>4, 4</value>
   </data>
   <data name="flowLayoutPanel15.Size" type="System.Drawing.Size, System.Drawing">
-    <value>1022, 118</value>
+    <value>1022, 108</value>
   </data>
   <data name="flowLayoutPanel15.TabIndex" type="System.Int32, mscorlib">
     <value>25</value>
@@ -1755,7 +1755,7 @@ Not cheched, find items with partial match retrieval.
     <value>4, 4, 4, 4</value>
   </data>
   <data name="tabPage_Find.Size" type="System.Drawing.Size, System.Drawing">
-    <value>1030, 126</value>
+    <value>1030, 116</value>
   </data>
   <data name="tabPage_Find.TabIndex" type="System.Int32, mscorlib">
     <value>1</value>
@@ -1995,7 +1995,7 @@ Not cheched, find items with partial match retrieval.
     <value>0, 0</value>
   </data>
   <data name="flowLayoutPanel18.Size" type="System.Drawing.Size, System.Drawing">
-    <value>1030, 126</value>
+    <value>1030, 116</value>
   </data>
   <data name="flowLayoutPanel18.TabIndex" type="System.Int32, mscorlib">
     <value>6</value>
@@ -2019,7 +2019,7 @@ Not cheched, find items with partial match retrieval.
     <value>4, 4, 4, 4</value>
   </data>
   <data name="tabPage_Folder.Size" type="System.Drawing.Size, System.Drawing">
-    <value>1030, 126</value>
+    <value>1030, 116</value>
   </data>
   <data name="tabPage_Folder.TabIndex" type="System.Int32, mscorlib">
     <value>2</value>
@@ -2058,7 +2058,7 @@ Not cheched, find items with partial match retrieval.
     <value>4, 0, 4, 0</value>
   </data>
   <data name="label_stream.Size" type="System.Drawing.Size, System.Drawing">
-    <value>576, 36</value>
+    <value>576, 26</value>
   </data>
   <data name="label_stream.TabIndex" type="System.Int32, mscorlib">
     <value>13</value>
@@ -2179,7 +2179,7 @@ Seeking is possible but not accurate.</value>
     <value>3</value>
   </data>
   <data name="tableLayoutPanel5.Size" type="System.Drawing.Size, System.Drawing">
-    <value>584, 126</value>
+    <value>584, 116</value>
   </data>
   <data name="tableLayoutPanel5.TabIndex" type="System.Int32, mscorlib">
     <value>17</value>
@@ -2658,7 +2658,7 @@ When the absolute time selected, the format is normal datetime.</value>
     <value>0, 0</value>
   </data>
   <data name="flowLayoutPanel19.Size" type="System.Drawing.Size, System.Drawing">
-    <value>446, 126</value>
+    <value>446, 116</value>
   </data>
   <data name="flowLayoutPanel19.TabIndex" type="System.Int32, mscorlib">
     <value>18</value>
@@ -2682,7 +2682,7 @@ When the absolute time selected, the format is normal datetime.</value>
     <value>4, 4, 4, 4</value>
   </data>
   <data name="tabPage_SendUDP.Size" type="System.Drawing.Size, System.Drawing">
-    <value>1030, 126</value>
+    <value>1030, 116</value>
   </data>
   <data name="tabPage_SendUDP.TabIndex" type="System.Int32, mscorlib">
     <value>3</value>
@@ -3670,7 +3670,7 @@ for example, use to clear the buffer of the other software.</value>
     <value>0, 0</value>
   </data>
   <data name="flowLayoutPanel30.Size" type="System.Drawing.Size, System.Drawing">
-    <value>1030, 126</value>
+    <value>1030, 116</value>
   </data>
   <data name="flowLayoutPanel30.TabIndex" type="System.Int32, mscorlib">
     <value>26</value>
@@ -3694,7 +3694,7 @@ for example, use to clear the buffer of the other software.</value>
     <value>4, 4, 4, 4</value>
   </data>
   <data name="tabPage_UDPConfig.Size" type="System.Drawing.Size, System.Drawing">
-    <value>1030, 126</value>
+    <value>1030, 116</value>
   </data>
   <data name="tabPage_UDPConfig.TabIndex" type="System.Int32, mscorlib">
     <value>4</value>
@@ -3727,7 +3727,7 @@ for example, use to clear the buffer of the other software.</value>
     <value>Fill</value>
   </data>
   <data name="label_FFplay_stream.Location" type="System.Drawing.Point, System.Drawing">
-    <value>4, 98</value>
+    <value>4, 88</value>
   </data>
   <data name="label_FFplay_stream.Margin" type="System.Windows.Forms.Padding, System.Windows.Forms">
     <value>4, 0, 4, 0</value>
@@ -3817,13 +3817,13 @@ for example, use to clear the buffer of the other software.</value>
     <value>Top, Left, Right</value>
   </data>
   <data name="trackBar_FFplay_pos.Location" type="System.Drawing.Point, System.Drawing">
-    <value>4, 53</value>
+    <value>4, 48</value>
   </data>
   <data name="trackBar_FFplay_pos.Margin" type="System.Windows.Forms.Padding, System.Windows.Forms">
     <value>4, 4, 4, 4</value>
   </data>
   <data name="trackBar_FFplay_pos.Size" type="System.Drawing.Size, System.Drawing">
-    <value>659, 41</value>
+    <value>659, 36</value>
   </data>
   <data name="trackBar_FFplay_pos.TabIndex" type="System.Int32, mscorlib">
     <value>14</value>
@@ -3853,7 +3853,7 @@ for example, use to clear the buffer of the other software.</value>
     <value>3</value>
   </data>
   <data name="tableLayoutPanel8.Size" type="System.Drawing.Size, System.Drawing">
-    <value>667, 118</value>
+    <value>667, 108</value>
   </data>
   <data name="tableLayoutPanel8.TabIndex" type="System.Int32, mscorlib">
     <value>25</value>
@@ -4203,7 +4203,7 @@ If empty, play whole file.</value>
     <value>4, 4</value>
   </data>
   <data name="flowLayoutPanel32.Size" type="System.Drawing.Size, System.Drawing">
-    <value>355, 118</value>
+    <value>355, 108</value>
   </data>
   <data name="flowLayoutPanel32.TabIndex" type="System.Int32, mscorlib">
     <value>26</value>
@@ -4230,7 +4230,7 @@ If empty, play whole file.</value>
     <value>4, 4, 4, 4</value>
   </data>
   <data name="tabPage_FFmpeg.Size" type="System.Drawing.Size, System.Drawing">
-    <value>1030, 126</value>
+    <value>1030, 116</value>
   </data>
   <data name="tabPage_FFmpeg.TabIndex" type="System.Int32, mscorlib">
     <value>5</value>
@@ -4716,7 +4716,7 @@ If empty, play whole file.</value>
     <value>0, 0</value>
   </data>
   <data name="flowLayoutPanel33.Size" type="System.Drawing.Size, System.Drawing">
-    <value>1030, 126</value>
+    <value>1030, 116</value>
   </data>
   <data name="flowLayoutPanel33.TabIndex" type="System.Int32, mscorlib">
     <value>13</value>
@@ -4740,7 +4740,7 @@ If empty, play whole file.</value>
     <value>4, 4, 4, 4</value>
   </data>
   <data name="tabPage_Bandwidth.Size" type="System.Drawing.Size, System.Drawing">
-    <value>1030, 126</value>
+    <value>1030, 116</value>
   </data>
   <data name="tabPage_Bandwidth.TabIndex" type="System.Int32, mscorlib">
     <value>6</value>
@@ -4917,7 +4917,7 @@ If empty, play whole file.</value>
     <value>Right</value>
   </data>
   <data name="checkBox_LockPassword.Location" type="System.Drawing.Point, System.Drawing">
-    <value>139, 4</value>
+    <value>107, 4</value>
   </data>
   <data name="checkBox_LockPassword.Margin" type="System.Windows.Forms.Padding, System.Windows.Forms">
     <value>4, 4, 4, 4</value>
@@ -4956,7 +4956,7 @@ If empty, play whole file.</value>
     <value>4, 4, 4, 4</value>
   </data>
   <data name="textBox_Password.Size" type="System.Drawing.Size, System.Drawing">
-    <value>235, 19</value>
+    <value>203, 19</value>
   </data>
   <data name="textBox_Password.TabIndex" type="System.Int32, mscorlib">
     <value>2</value>
@@ -4983,7 +4983,7 @@ If empty, play whole file.</value>
     <value>2</value>
   </data>
   <data name="tableLayoutPanel11.Size" type="System.Drawing.Size, System.Drawing">
-    <value>243, 51</value>
+    <value>211, 51</value>
   </data>
   <data name="tableLayoutPanel11.TabIndex" type="System.Int32, mscorlib">
     <value>9</value>
@@ -5003,13 +5003,13 @@ If empty, play whole file.</value>
   <data name="tableLayoutPanel11.LayoutSettings" type="System.Windows.Forms.TableLayoutSettings, System.Windows.Forms">
     <value>&lt;?xml version="1.0" encoding="utf-16"?&gt;&lt;TableLayoutSettings&gt;&lt;Controls&gt;&lt;Control Name="label27" Row="0" RowSpan="1" Column="0" ColumnSpan="1" /&gt;&lt;Control Name="checkBox_LockPassword" Row="0" RowSpan="1" Column="1" ColumnSpan="1" /&gt;&lt;Control Name="textBox_Password" Row="1" RowSpan="1" Column="0" ColumnSpan="2" /&gt;&lt;/Controls&gt;&lt;Columns Styles="AutoSize,0,AutoSize,0" /&gt;&lt;Rows Styles="AutoSize,0,AutoSize,0,Absolute,20" /&gt;&lt;/TableLayoutSettings&gt;</value>
   </data>
-  <data name="tableLayoutPanel12.AutoSize" type="System.Boolean, mscorlib">
+  <data name="tableLayoutPanel_password2.AutoSize" type="System.Boolean, mscorlib">
     <value>True</value>
   </data>
-  <data name="tableLayoutPanel12.AutoSizeMode" type="System.Windows.Forms.AutoSizeMode, System.Windows.Forms">
+  <data name="tableLayoutPanel_password2.AutoSizeMode" type="System.Windows.Forms.AutoSizeMode, System.Windows.Forms">
     <value>GrowAndShrink</value>
   </data>
-  <data name="tableLayoutPanel12.ColumnCount" type="System.Int32, mscorlib">
+  <data name="tableLayoutPanel_password2.ColumnCount" type="System.Int32, mscorlib">
     <value>2</value>
   </data>
   <data name="label30.AutoSize" type="System.Boolean, mscorlib">
@@ -5040,7 +5040,7 @@ If empty, play whole file.</value>
     <value>System.Windows.Forms.Label, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </data>
   <data name="&gt;&gt;label30.Parent" xml:space="preserve">
-    <value>tableLayoutPanel12</value>
+    <value>tableLayoutPanel_password2</value>
   </data>
   <data name="&gt;&gt;label30.ZOrder" xml:space="preserve">
     <value>0</value>
@@ -5055,7 +5055,7 @@ If empty, play whole file.</value>
     <value>NoControl</value>
   </data>
   <data name="checkBox_LockPassword2.Location" type="System.Drawing.Point, System.Drawing">
-    <value>133, 4</value>
+    <value>100, 4</value>
   </data>
   <data name="checkBox_LockPassword2.Margin" type="System.Windows.Forms.Padding, System.Windows.Forms">
     <value>4, 4, 4, 4</value>
@@ -5079,7 +5079,7 @@ If empty, play whole file.</value>
     <value>System.Windows.Forms.CheckBox, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </data>
   <data name="&gt;&gt;checkBox_LockPassword2.Parent" xml:space="preserve">
-    <value>tableLayoutPanel12</value>
+    <value>tableLayoutPanel_password2</value>
   </data>
   <data name="&gt;&gt;checkBox_LockPassword2.ZOrder" xml:space="preserve">
     <value>1</value>
@@ -5094,7 +5094,7 @@ If empty, play whole file.</value>
     <value>4, 4, 4, 4</value>
   </data>
   <data name="textBox_Password2.Size" type="System.Drawing.Size, System.Drawing">
-    <value>235, 19</value>
+    <value>202, 19</value>
   </data>
   <data name="textBox_Password2.TabIndex" type="System.Int32, mscorlib">
     <value>2</value>
@@ -5106,49 +5106,49 @@ If empty, play whole file.</value>
     <value>System.Windows.Forms.TextBox, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </data>
   <data name="&gt;&gt;textBox_Password2.Parent" xml:space="preserve">
-    <value>tableLayoutPanel12</value>
+    <value>tableLayoutPanel_password2</value>
   </data>
   <data name="&gt;&gt;textBox_Password2.ZOrder" xml:space="preserve">
     <value>2</value>
   </data>
-  <data name="tableLayoutPanel12.Dock" type="System.Windows.Forms.DockStyle, System.Windows.Forms">
+  <data name="tableLayoutPanel_password2.Dock" type="System.Windows.Forms.DockStyle, System.Windows.Forms">
     <value>Fill</value>
   </data>
-  <data name="tableLayoutPanel12.Location" type="System.Drawing.Point, System.Drawing">
-    <value>3, 60</value>
+  <data name="tableLayoutPanel_password2.Location" type="System.Drawing.Point, System.Drawing">
+    <value>220, 3</value>
   </data>
-  <data name="tableLayoutPanel12.RowCount" type="System.Int32, mscorlib">
+  <data name="tableLayoutPanel_password2.RowCount" type="System.Int32, mscorlib">
     <value>2</value>
   </data>
-  <data name="tableLayoutPanel12.Size" type="System.Drawing.Size, System.Drawing">
-    <value>243, 51</value>
+  <data name="tableLayoutPanel_password2.Size" type="System.Drawing.Size, System.Drawing">
+    <value>210, 51</value>
   </data>
-  <data name="tableLayoutPanel12.TabIndex" type="System.Int32, mscorlib">
+  <data name="tableLayoutPanel_password2.TabIndex" type="System.Int32, mscorlib">
     <value>10</value>
   </data>
-  <data name="&gt;&gt;tableLayoutPanel12.Name" xml:space="preserve">
-    <value>tableLayoutPanel12</value>
+  <data name="tableLayoutPanel_password2.Visible" type="System.Boolean, mscorlib">
+    <value>False</value>
   </data>
-  <data name="&gt;&gt;tableLayoutPanel12.Type" xml:space="preserve">
+  <data name="&gt;&gt;tableLayoutPanel_password2.Name" xml:space="preserve">
+    <value>tableLayoutPanel_password2</value>
+  </data>
+  <data name="&gt;&gt;tableLayoutPanel_password2.Type" xml:space="preserve">
     <value>System.Windows.Forms.TableLayoutPanel, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </data>
-  <data name="&gt;&gt;tableLayoutPanel12.Parent" xml:space="preserve">
+  <data name="&gt;&gt;tableLayoutPanel_password2.Parent" xml:space="preserve">
     <value>flowLayoutPanel35</value>
   </data>
-  <data name="&gt;&gt;tableLayoutPanel12.ZOrder" xml:space="preserve">
+  <data name="&gt;&gt;tableLayoutPanel_password2.ZOrder" xml:space="preserve">
     <value>1</value>
   </data>
-  <data name="tableLayoutPanel12.LayoutSettings" type="System.Windows.Forms.TableLayoutSettings, System.Windows.Forms">
+  <data name="tableLayoutPanel_password2.LayoutSettings" type="System.Windows.Forms.TableLayoutSettings, System.Windows.Forms">
     <value>&lt;?xml version="1.0" encoding="utf-16"?&gt;&lt;TableLayoutSettings&gt;&lt;Controls&gt;&lt;Control Name="label30" Row="0" RowSpan="1" Column="0" ColumnSpan="1" /&gt;&lt;Control Name="checkBox_LockPassword2" Row="0" RowSpan="1" Column="1" ColumnSpan="1" /&gt;&lt;Control Name="textBox_Password2" Row="1" RowSpan="1" Column="0" ColumnSpan="2" /&gt;&lt;/Controls&gt;&lt;Columns Styles="AutoSize,0,AutoSize,0" /&gt;&lt;Rows Styles="AutoSize,0,AutoSize,0" /&gt;&lt;/TableLayoutSettings&gt;</value>
-  </data>
-  <data name="flowLayoutPanel35.FlowDirection" type="System.Windows.Forms.FlowDirection, System.Windows.Forms">
-    <value>TopDown</value>
   </data>
   <data name="flowLayoutPanel35.Location" type="System.Drawing.Point, System.Drawing">
     <value>130, 3</value>
   </data>
   <data name="flowLayoutPanel35.Size" type="System.Drawing.Size, System.Drawing">
-    <value>249, 114</value>
+    <value>433, 57</value>
   </data>
   <data name="flowLayoutPanel35.TabIndex" type="System.Int32, mscorlib">
     <value>11</value>
@@ -5298,7 +5298,7 @@ If empty, play whole file.</value>
     <value>&lt;?xml version="1.0" encoding="utf-16"?&gt;&lt;TableLayoutSettings&gt;&lt;Controls&gt;&lt;Control Name="radioButton_crypt_1_CTR" Row="0" RowSpan="1" Column="0" ColumnSpan="1" /&gt;&lt;Control Name="comboBox_CarotDAV_Escape" Row="1" RowSpan="1" Column="1" ColumnSpan="1" /&gt;&lt;Control Name="radioButton_crypt_2_CBC" Row="1" RowSpan="1" Column="0" ColumnSpan="1" /&gt;&lt;/Controls&gt;&lt;Columns Styles="AutoSize,0,AutoSize,0" /&gt;&lt;Rows Styles="AutoSize,0,AutoSize,0" /&gt;&lt;/TableLayoutSettings&gt;</value>
   </data>
   <data name="groupBox1.Location" type="System.Drawing.Point, System.Drawing">
-    <value>386, 4</value>
+    <value>570, 4</value>
   </data>
   <data name="groupBox1.Margin" type="System.Windows.Forms.Padding, System.Windows.Forms">
     <value>4, 4, 4, 4</value>
@@ -5394,7 +5394,7 @@ If empty, play whole file.</value>
     <value>TopDown</value>
   </data>
   <data name="flowLayoutPanel36.Location" type="System.Drawing.Point, System.Drawing">
-    <value>655, 3</value>
+    <value>839, 3</value>
   </data>
   <data name="flowLayoutPanel36.Size" type="System.Drawing.Size, System.Drawing">
     <value>117, 61</value>
@@ -5421,7 +5421,7 @@ If empty, play whole file.</value>
     <value>0, 0</value>
   </data>
   <data name="flowLayoutPanel37.Size" type="System.Drawing.Size, System.Drawing">
-    <value>1030, 126</value>
+    <value>1030, 116</value>
   </data>
   <data name="flowLayoutPanel37.TabIndex" type="System.Int32, mscorlib">
     <value>13</value>
@@ -5445,7 +5445,7 @@ If empty, play whole file.</value>
     <value>4, 4, 4, 4</value>
   </data>
   <data name="tabPage_Crypt.Size" type="System.Drawing.Size, System.Drawing">
-    <value>1030, 126</value>
+    <value>1030, 116</value>
   </data>
   <data name="tabPage_Crypt.TabIndex" type="System.Int32, mscorlib">
     <value>7</value>
@@ -5481,7 +5481,7 @@ If empty, play whole file.</value>
     <value>True</value>
   </data>
   <data name="tabControl1.Size" type="System.Drawing.Size, System.Drawing">
-    <value>1038, 152</value>
+    <value>1038, 142</value>
   </data>
   <data name="tabControl1.TabIndex" type="System.Int32, mscorlib">
     <value>6</value>
@@ -5727,7 +5727,7 @@ If empty, play whole file.</value>
     <value>1</value>
   </data>
   <data name="tableLayoutPanel6.LayoutSettings" type="System.Windows.Forms.TableLayoutSettings, System.Windows.Forms">
-    <value>&lt;?xml version="1.0" encoding="utf-16"?&gt;&lt;TableLayoutSettings&gt;&lt;Controls&gt;&lt;Control Name="menuStrip1" Row="0" RowSpan="1" Column="0" ColumnSpan="1" /&gt;&lt;Control Name="tabControl1" Row="1" RowSpan="1" Column="0" ColumnSpan="1" /&gt;&lt;Control Name="splitContainer2" Row="2" RowSpan="1" Column="0" ColumnSpan="1" /&gt;&lt;/Controls&gt;&lt;Columns Styles="Percent,100" /&gt;&lt;Rows Styles="AutoSize,0,Absolute,160,Percent,100" /&gt;&lt;/TableLayoutSettings&gt;</value>
+    <value>&lt;?xml version="1.0" encoding="utf-16"?&gt;&lt;TableLayoutSettings&gt;&lt;Controls&gt;&lt;Control Name="menuStrip1" Row="0" RowSpan="1" Column="0" ColumnSpan="1" /&gt;&lt;Control Name="tabControl1" Row="1" RowSpan="1" Column="0" ColumnSpan="1" /&gt;&lt;Control Name="splitContainer2" Row="2" RowSpan="1" Column="0" ColumnSpan="1" /&gt;&lt;/Controls&gt;&lt;Columns Styles="Percent,100" /&gt;&lt;Rows Styles="AutoSize,0,Absolute,150,Percent,100" /&gt;&lt;/TableLayoutSettings&gt;</value>
   </data>
   <metadata name="timer2.TrayLocation" type="System.Drawing.Point, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
     <value>17, 56</value>
