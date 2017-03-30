@@ -73,11 +73,11 @@ namespace TSviewACD
                 try
                 {
                     var body = webBrowser1.DocumentText;
-                    using (var f = File.OpenWrite(Path.Combine(Config.Config_BasePath,"test.log")))
-                    using (var sw = new StreamWriter(f))
-                    {
-                        sw.Write(body);
-                    }
+                    //using (var f = File.OpenWrite(Path.Combine(Config.Config_BasePath,"test.log")))
+                    //using (var sw = new StreamWriter(f))
+                    //{
+                    //    sw.Write(body);
+                    //}
                     var i = body.IndexOf("{");
                     var j = body.IndexOf("}");
                     if (i < 0 || j < 0) return;
