@@ -2502,6 +2502,7 @@ namespace TSviewACD
             Player.SetKeyFunctions(Config.FFmoduleKeybinds.Cast<dynamic>().ToDictionary(entry => (ffmodule.FFplayerKeymapFunction)entry.Key, entry => ((FFmoduleKeysClass)entry.Value).Cast<Keys>().ToArray()));
             Player.SetLogger(logwriter);
             var job = PlayFiles(new PlayOneFileDelegate(PlayOneFFmpegPlayer), "FFmpeg", data: Player);
+            if (job == null) return;
             (job as JobControler.Job).DoAlways = true;
             JobControler.Run(job as JobControler.Job, (j) =>
             {
