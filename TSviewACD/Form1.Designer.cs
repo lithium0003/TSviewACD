@@ -1422,7 +1422,6 @@
             // 
             // comboBox_UploadLimitUnit
             // 
-            resources.ApplyResources(this.comboBox_UploadLimitUnit, "comboBox_UploadLimitUnit");
             this.comboBox_UploadLimitUnit.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
             this.comboBox_UploadLimitUnit.FormattingEnabled = true;
             this.comboBox_UploadLimitUnit.Items.AddRange(new object[] {
@@ -1434,6 +1433,7 @@
             resources.GetString("comboBox_UploadLimitUnit.Items5"),
             resources.GetString("comboBox_UploadLimitUnit.Items6"),
             resources.GetString("comboBox_UploadLimitUnit.Items7")});
+            resources.ApplyResources(this.comboBox_UploadLimitUnit, "comboBox_UploadLimitUnit");
             this.comboBox_UploadLimitUnit.Name = "comboBox_UploadLimitUnit";
             this.comboBox_UploadLimitUnit.SelectedIndexChanged += new System.EventHandler(this.comboBox_UploadLimitUnit_SelectedIndexChanged);
             // 
@@ -1452,7 +1452,6 @@
             // 
             // comboBox_DownloadLimitUnit
             // 
-            resources.ApplyResources(this.comboBox_DownloadLimitUnit, "comboBox_DownloadLimitUnit");
             this.comboBox_DownloadLimitUnit.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
             this.comboBox_DownloadLimitUnit.FormattingEnabled = true;
             this.comboBox_DownloadLimitUnit.Items.AddRange(new object[] {
@@ -1464,6 +1463,7 @@
             resources.GetString("comboBox_DownloadLimitUnit.Items5"),
             resources.GetString("comboBox_DownloadLimitUnit.Items6"),
             resources.GetString("comboBox_DownloadLimitUnit.Items7")});
+            resources.ApplyResources(this.comboBox_DownloadLimitUnit, "comboBox_DownloadLimitUnit");
             this.comboBox_DownloadLimitUnit.Name = "comboBox_DownloadLimitUnit";
             this.comboBox_DownloadLimitUnit.SelectedIndexChanged += new System.EventHandler(this.comboBox_DownloadLimitUnit_SelectedIndexChanged);
             // 

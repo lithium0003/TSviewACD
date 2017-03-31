@@ -40,13 +40,12 @@ namespace TSviewACD
 
             }
             currentDpi = (int)dx;
+            HandleDpiChanged();
 
             toolStripMenuItem_Logout.Enabled = false;
             synchronizationContext = SynchronizationContext.Current;
             treeView1.Sorted = true;
             InitializeListView();
-
-            HandleDpiChanged();
             Config.Log.LogOut("Application Start.");
         }
 
@@ -725,8 +724,8 @@ namespace TSviewACD
             // 列（コラム）ヘッダの作成
             listView1.Columns.Add("Name", 200);
             listView1.Columns.Add("Size", 90);
-            listView1.Columns.Add("modifiedDate", 130);
-            listView1.Columns.Add("createdDate", 130);
+            listView1.Columns.Add("modifiedDate", 120);
+            listView1.Columns.Add("createdDate", 120);
             listView1.Columns.Add("path", 100);
             listView1.Columns.Add("id");
             listView1.Columns.Add("MD5");
@@ -3198,7 +3197,6 @@ namespace TSviewACD
         {
             FormTaskList.Instance.FixPosition();
         }
-
     }
 
     static class Extensions
