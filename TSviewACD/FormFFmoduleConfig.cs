@@ -123,7 +123,7 @@ namespace TSviewACD
         }
 
 
-        const int designTimeDpi = 96;
+        const int designTimeDpi = 120;
 
         private void HandleDpiChanged()
         {
