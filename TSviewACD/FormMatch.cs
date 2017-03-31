@@ -432,14 +432,22 @@ namespace TSviewACD
 
         private void button_AddRemote_Click(object sender, EventArgs e)
         {
-            var items = SelectedRemoteFiles.ToList();
-            items.AddRange(Program.MainForm.GetSeletctedRemoteFiles());
-            SelectedRemoteFiles = items;
+            var items = SelectedRemoteFiles?.ToList();
+            if (items == null)
+            {
+                SelectedRemoteFiles = Program.MainForm.GetSeletctedRemoteFiles();
+            }
+            else
+            {
+                items.AddRange(Program.MainForm.GetSeletctedRemoteFiles());
+                SelectedRemoteFiles = items;
+            }
         }
 
         private void toolStripMenuItem1_Click(object sender, EventArgs e)
         {
-            var items = SelectedRemoteFiles.ToList();
+            var items = SelectedRemoteFiles?.ToList();
+            if (items == null) return;
             foreach (var i in listBox_remote.SelectedIndices.OfType<int>().Reverse())
             {
                 items.RemoveAt(i);
