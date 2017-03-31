@@ -1070,11 +1070,14 @@ Not cheched, find items with partial match retrieval.
   <data name="&gt;&gt;flowLayoutPanel9.ZOrder" xml:space="preserve">
     <value>1</value>
   </data>
-  <data name="flowLayoutPanel10.AutoSize" type="System.Boolean, mscorlib">
+  <data name="tableLayoutPanel1.AutoSize" type="System.Boolean, mscorlib">
     <value>True</value>
   </data>
-  <data name="flowLayoutPanel10.AutoSizeMode" type="System.Windows.Forms.AutoSizeMode, System.Windows.Forms">
+  <data name="tableLayoutPanel1.AutoSizeMode" type="System.Windows.Forms.AutoSizeMode, System.Windows.Forms">
     <value>GrowAndShrink</value>
+  </data>
+  <data name="tableLayoutPanel1.ColumnCount" type="System.Int32, mscorlib">
+    <value>2</value>
   </data>
   <data name="label28.AutoSize" type="System.Boolean, mscorlib">
     <value>True</value>
@@ -1110,88 +1113,16 @@ Not cheched, find items with partial match retrieval.
     <value>System.Windows.Forms.Label, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </data>
   <data name="&gt;&gt;label28.Parent" xml:space="preserve">
-    <value>flowLayoutPanel10</value>
+    <value>tableLayoutPanel1</value>
   </data>
   <data name="&gt;&gt;label28.ZOrder" xml:space="preserve">
     <value>0</value>
   </data>
-  <data name="flowLayoutPanel12.AutoSize" type="System.Boolean, mscorlib">
-    <value>True</value>
-  </data>
-  <data name="flowLayoutPanel12.AutoSizeMode" type="System.Windows.Forms.AutoSizeMode, System.Windows.Forms">
-    <value>GrowAndShrink</value>
-  </data>
-  <data name="flowLayoutPanel12.Dock" type="System.Windows.Forms.DockStyle, System.Windows.Forms">
-    <value>Fill</value>
-  </data>
-  <data name="flowLayoutPanel12.FlowDirection" type="System.Windows.Forms.FlowDirection, System.Windows.Forms">
-    <value>TopDown</value>
-  </data>
-  <data name="flowLayoutPanel12.Location" type="System.Drawing.Point, System.Drawing">
-    <value>3, 15</value>
-  </data>
-  <data name="flowLayoutPanel12.Size" type="System.Drawing.Size, System.Drawing">
-    <value>242, 0</value>
-  </data>
-  <data name="flowLayoutPanel12.TabIndex" type="System.Int32, mscorlib">
-    <value>22</value>
-  </data>
-  <data name="&gt;&gt;flowLayoutPanel12.Name" xml:space="preserve">
-    <value>flowLayoutPanel12</value>
-  </data>
-  <data name="&gt;&gt;flowLayoutPanel12.Type" xml:space="preserve">
-    <value>System.Windows.Forms.FlowLayoutPanel, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
-  </data>
-  <data name="&gt;&gt;flowLayoutPanel12.Parent" xml:space="preserve">
-    <value>flowLayoutPanel10</value>
-  </data>
-  <data name="&gt;&gt;flowLayoutPanel12.ZOrder" xml:space="preserve">
-    <value>1</value>
-  </data>
-  <data name="flowLayoutPanel11.AutoSize" type="System.Boolean, mscorlib">
-    <value>True</value>
-  </data>
-  <data name="flowLayoutPanel11.AutoSizeMode" type="System.Windows.Forms.AutoSizeMode, System.Windows.Forms">
-    <value>GrowAndShrink</value>
-  </data>
-  <data name="flowLayoutPanel11.Dock" type="System.Windows.Forms.DockStyle, System.Windows.Forms">
-    <value>Fill</value>
-  </data>
-  <data name="flowLayoutPanel11.Location" type="System.Drawing.Point, System.Drawing">
-    <value>3, 21</value>
-  </data>
-  <data name="flowLayoutPanel11.Size" type="System.Drawing.Size, System.Drawing">
-    <value>242, 0</value>
-  </data>
-  <data name="flowLayoutPanel11.TabIndex" type="System.Int32, mscorlib">
-    <value>15</value>
-  </data>
-  <data name="&gt;&gt;flowLayoutPanel11.Name" xml:space="preserve">
-    <value>flowLayoutPanel11</value>
-  </data>
-  <data name="&gt;&gt;flowLayoutPanel11.Type" xml:space="preserve">
-    <value>System.Windows.Forms.FlowLayoutPanel, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
-  </data>
-  <data name="&gt;&gt;flowLayoutPanel11.Parent" xml:space="preserve">
-    <value>flowLayoutPanel10</value>
-  </data>
-  <data name="&gt;&gt;flowLayoutPanel11.ZOrder" xml:space="preserve">
-    <value>2</value>
-  </data>
-  <data name="tableLayoutPanel1.AutoSize" type="System.Boolean, mscorlib">
-    <value>True</value>
-  </data>
-  <data name="tableLayoutPanel1.AutoSizeMode" type="System.Windows.Forms.AutoSizeMode, System.Windows.Forms">
-    <value>GrowAndShrink</value>
-  </data>
-  <data name="tableLayoutPanel1.ColumnCount" type="System.Int32, mscorlib">
-    <value>2</value>
-  </data>
   <data name="numericUpDown_sizeUnder.Anchor" type="System.Windows.Forms.AnchorStyles, System.Windows.Forms">
-    <value>Top, Right</value>
+    <value>Left, Right</value>
   </data>
   <data name="numericUpDown_sizeUnder.Location" type="System.Drawing.Point, System.Drawing">
-    <value>66, 31</value>
+    <value>66, 43</value>
   </data>
   <data name="numericUpDown_sizeUnder.Margin" type="System.Windows.Forms.Padding, System.Windows.Forms">
     <value>4, 4, 4, 4</value>
@@ -1218,13 +1149,13 @@ Not cheched, find items with partial match retrieval.
     <value>tableLayoutPanel1</value>
   </data>
   <data name="&gt;&gt;numericUpDown_sizeUnder.ZOrder" xml:space="preserve">
-    <value>0</value>
+    <value>1</value>
   </data>
   <data name="numericUpDown_sizeOver.Anchor" type="System.Windows.Forms.AnchorStyles, System.Windows.Forms">
-    <value>Top, Right</value>
+    <value>Left, Right</value>
   </data>
   <data name="numericUpDown_sizeOver.Location" type="System.Drawing.Point, System.Drawing">
-    <value>66, 4</value>
+    <value>66, 16</value>
   </data>
   <data name="numericUpDown_sizeOver.Margin" type="System.Windows.Forms.Padding, System.Windows.Forms">
     <value>4, 4, 4, 4</value>
@@ -1251,25 +1182,25 @@ Not cheched, find items with partial match retrieval.
     <value>tableLayoutPanel1</value>
   </data>
   <data name="&gt;&gt;numericUpDown_sizeOver.ZOrder" xml:space="preserve">
-    <value>1</value>
+    <value>2</value>
+  </data>
+  <data name="checkBox_sizeUnder.Anchor" type="System.Windows.Forms.AnchorStyles, System.Windows.Forms">
+    <value>Left</value>
   </data>
   <data name="checkBox_sizeUnder.AutoSize" type="System.Boolean, mscorlib">
     <value>True</value>
-  </data>
-  <data name="checkBox_sizeUnder.Dock" type="System.Windows.Forms.DockStyle, System.Windows.Forms">
-    <value>Left</value>
   </data>
   <data name="checkBox_sizeUnder.ImeMode" type="System.Windows.Forms.ImeMode, System.Windows.Forms">
     <value>NoControl</value>
   </data>
   <data name="checkBox_sizeUnder.Location" type="System.Drawing.Point, System.Drawing">
-    <value>4, 31</value>
+    <value>4, 44</value>
   </data>
   <data name="checkBox_sizeUnder.Margin" type="System.Windows.Forms.Padding, System.Windows.Forms">
     <value>4, 4, 4, 4</value>
   </data>
   <data name="checkBox_sizeUnder.Size" type="System.Drawing.Size, System.Drawing">
-    <value>54, 19</value>
+    <value>54, 16</value>
   </data>
   <data name="checkBox_sizeUnder.TabIndex" type="System.Int32, mscorlib">
     <value>16</value>
@@ -1290,25 +1221,25 @@ Not cheched, find items with partial match retrieval.
     <value>tableLayoutPanel1</value>
   </data>
   <data name="&gt;&gt;checkBox_sizeUnder.ZOrder" xml:space="preserve">
-    <value>2</value>
+    <value>3</value>
+  </data>
+  <data name="checkBox_sizeOver.Anchor" type="System.Windows.Forms.AnchorStyles, System.Windows.Forms">
+    <value>Left</value>
   </data>
   <data name="checkBox_sizeOver.AutoSize" type="System.Boolean, mscorlib">
     <value>True</value>
-  </data>
-  <data name="checkBox_sizeOver.Dock" type="System.Windows.Forms.DockStyle, System.Windows.Forms">
-    <value>Left</value>
   </data>
   <data name="checkBox_sizeOver.ImeMode" type="System.Windows.Forms.ImeMode, System.Windows.Forms">
     <value>NoControl</value>
   </data>
   <data name="checkBox_sizeOver.Location" type="System.Drawing.Point, System.Drawing">
-    <value>4, 4</value>
+    <value>4, 17</value>
   </data>
   <data name="checkBox_sizeOver.Margin" type="System.Windows.Forms.Padding, System.Windows.Forms">
     <value>4, 4, 4, 4</value>
   </data>
   <data name="checkBox_sizeOver.Size" type="System.Drawing.Size, System.Drawing">
-    <value>48, 19</value>
+    <value>48, 16</value>
   </data>
   <data name="checkBox_sizeOver.TabIndex" type="System.Int32, mscorlib">
     <value>15</value>
@@ -1329,16 +1260,16 @@ Not cheched, find items with partial match retrieval.
     <value>tableLayoutPanel1</value>
   </data>
   <data name="&gt;&gt;checkBox_sizeOver.ZOrder" xml:space="preserve">
-    <value>3</value>
+    <value>4</value>
   </data>
   <data name="tableLayoutPanel1.Location" type="System.Drawing.Point, System.Drawing">
-    <value>3, 27</value>
+    <value>301, 3</value>
   </data>
   <data name="tableLayoutPanel1.RowCount" type="System.Int32, mscorlib">
-    <value>2</value>
+    <value>3</value>
   </data>
   <data name="tableLayoutPanel1.Size" type="System.Drawing.Size, System.Drawing">
-    <value>242, 54</value>
+    <value>242, 66</value>
   </data>
   <data name="tableLayoutPanel1.TabIndex" type="System.Int32, mscorlib">
     <value>23</value>
@@ -1350,37 +1281,13 @@ Not cheched, find items with partial match retrieval.
     <value>System.Windows.Forms.TableLayoutPanel, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </data>
   <data name="&gt;&gt;tableLayoutPanel1.Parent" xml:space="preserve">
-    <value>flowLayoutPanel10</value>
-  </data>
-  <data name="&gt;&gt;tableLayoutPanel1.ZOrder" xml:space="preserve">
-    <value>3</value>
-  </data>
-  <data name="tableLayoutPanel1.LayoutSettings" type="System.Windows.Forms.TableLayoutSettings, System.Windows.Forms">
-    <value>&lt;?xml version="1.0" encoding="utf-16"?&gt;&lt;TableLayoutSettings&gt;&lt;Controls&gt;&lt;Control Name="numericUpDown_sizeUnder" Row="1" RowSpan="1" Column="1" ColumnSpan="1" /&gt;&lt;Control Name="numericUpDown_sizeOver" Row="0" RowSpan="1" Column="1" ColumnSpan="1" /&gt;&lt;Control Name="checkBox_sizeUnder" Row="1" RowSpan="1" Column="0" ColumnSpan="1" /&gt;&lt;Control Name="checkBox_sizeOver" Row="0" RowSpan="1" Column="0" ColumnSpan="1" /&gt;&lt;/Controls&gt;&lt;Columns Styles="AutoSize,0,AutoSize,0" /&gt;&lt;Rows Styles="Percent,50,Percent,50" /&gt;&lt;/TableLayoutSettings&gt;</value>
-  </data>
-  <data name="flowLayoutPanel10.FlowDirection" type="System.Windows.Forms.FlowDirection, System.Windows.Forms">
-    <value>TopDown</value>
-  </data>
-  <data name="flowLayoutPanel10.Location" type="System.Drawing.Point, System.Drawing">
-    <value>301, 3</value>
-  </data>
-  <data name="flowLayoutPanel10.Size" type="System.Drawing.Size, System.Drawing">
-    <value>248, 84</value>
-  </data>
-  <data name="flowLayoutPanel10.TabIndex" type="System.Int32, mscorlib">
-    <value>21</value>
-  </data>
-  <data name="&gt;&gt;flowLayoutPanel10.Name" xml:space="preserve">
-    <value>flowLayoutPanel10</value>
-  </data>
-  <data name="&gt;&gt;flowLayoutPanel10.Type" xml:space="preserve">
-    <value>System.Windows.Forms.FlowLayoutPanel, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
-  </data>
-  <data name="&gt;&gt;flowLayoutPanel10.Parent" xml:space="preserve">
     <value>flowLayoutPanel15</value>
   </data>
-  <data name="&gt;&gt;flowLayoutPanel10.ZOrder" xml:space="preserve">
+  <data name="&gt;&gt;tableLayoutPanel1.ZOrder" xml:space="preserve">
     <value>2</value>
+  </data>
+  <data name="tableLayoutPanel1.LayoutSettings" type="System.Windows.Forms.TableLayoutSettings, System.Windows.Forms">
+    <value>&lt;?xml version="1.0" encoding="utf-16"?&gt;&lt;TableLayoutSettings&gt;&lt;Controls&gt;&lt;Control Name="label28" Row="0" RowSpan="1" Column="0" ColumnSpan="2" /&gt;&lt;Control Name="numericUpDown_sizeUnder" Row="2" RowSpan="1" Column="1" ColumnSpan="1" /&gt;&lt;Control Name="numericUpDown_sizeOver" Row="1" RowSpan="1" Column="1" ColumnSpan="1" /&gt;&lt;Control Name="checkBox_sizeUnder" Row="2" RowSpan="1" Column="0" ColumnSpan="1" /&gt;&lt;Control Name="checkBox_sizeOver" Row="1" RowSpan="1" Column="0" ColumnSpan="1" /&gt;&lt;/Controls&gt;&lt;Columns Styles="AutoSize,0,AutoSize,0" /&gt;&lt;Rows Styles="AutoSize,0,Percent,50,Percent,50" /&gt;&lt;/TableLayoutSettings&gt;</value>
   </data>
   <data name="flowLayoutPanel14.AutoSize" type="System.Boolean, mscorlib">
     <value>True</value>
@@ -1532,20 +1439,20 @@ Not cheched, find items with partial match retrieval.
   <data name="tableLayoutPanel2.ColumnCount" type="System.Int32, mscorlib">
     <value>2</value>
   </data>
+  <data name="checkBox_dateFrom.Anchor" type="System.Windows.Forms.AnchorStyles, System.Windows.Forms">
+    <value>Left</value>
+  </data>
   <data name="checkBox_dateFrom.AutoSize" type="System.Boolean, mscorlib">
     <value>True</value>
   </data>
-  <data name="checkBox_dateFrom.Dock" type="System.Windows.Forms.DockStyle, System.Windows.Forms">
-    <value>Left</value>
-  </data>
   <data name="checkBox_dateFrom.Location" type="System.Drawing.Point, System.Drawing">
-    <value>4, 4</value>
+    <value>4, 5</value>
   </data>
   <data name="checkBox_dateFrom.Margin" type="System.Windows.Forms.Padding, System.Windows.Forms">
     <value>4, 4, 4, 4</value>
   </data>
   <data name="checkBox_dateFrom.Size" type="System.Drawing.Size, System.Drawing">
-    <value>50, 19</value>
+    <value>50, 16</value>
   </data>
   <data name="checkBox_dateFrom.TabIndex" type="System.Int32, mscorlib">
     <value>8</value>
@@ -1568,20 +1475,20 @@ Not cheched, find items with partial match retrieval.
   <data name="&gt;&gt;checkBox_dateFrom.ZOrder" xml:space="preserve">
     <value>0</value>
   </data>
+  <data name="checkBox_dateTo.Anchor" type="System.Windows.Forms.AnchorStyles, System.Windows.Forms">
+    <value>Left</value>
+  </data>
   <data name="checkBox_dateTo.AutoSize" type="System.Boolean, mscorlib">
     <value>True</value>
   </data>
-  <data name="checkBox_dateTo.Dock" type="System.Windows.Forms.DockStyle, System.Windows.Forms">
-    <value>Fill</value>
-  </data>
   <data name="checkBox_dateTo.Location" type="System.Drawing.Point, System.Drawing">
-    <value>4, 31</value>
+    <value>4, 32</value>
   </data>
   <data name="checkBox_dateTo.Margin" type="System.Windows.Forms.Padding, System.Windows.Forms">
     <value>4, 4, 4, 4</value>
   </data>
   <data name="checkBox_dateTo.Size" type="System.Drawing.Size, System.Drawing">
-    <value>50, 19</value>
+    <value>37, 16</value>
   </data>
   <data name="checkBox_dateTo.TabIndex" type="System.Int32, mscorlib">
     <value>9</value>
@@ -1604,11 +1511,11 @@ Not cheched, find items with partial match retrieval.
   <data name="&gt;&gt;checkBox_dateTo.ZOrder" xml:space="preserve">
     <value>1</value>
   </data>
+  <data name="dateTimePicker_from.Anchor" type="System.Windows.Forms.AnchorStyles, System.Windows.Forms">
+    <value>Left</value>
+  </data>
   <data name="dateTimePicker_from.CustomFormat" xml:space="preserve">
     <value>yyyy-MM-dd (dddd) hh:mm:ss</value>
-  </data>
-  <data name="dateTimePicker_from.Dock" type="System.Windows.Forms.DockStyle, System.Windows.Forms">
-    <value>Fill</value>
   </data>
   <data name="dateTimePicker_from.ImeMode" type="System.Windows.Forms.ImeMode, System.Windows.Forms">
     <value>Off</value>
@@ -1637,11 +1544,11 @@ Not cheched, find items with partial match retrieval.
   <data name="&gt;&gt;dateTimePicker_from.ZOrder" xml:space="preserve">
     <value>2</value>
   </data>
+  <data name="dateTimePicker_to.Anchor" type="System.Windows.Forms.AnchorStyles, System.Windows.Forms">
+    <value>Left</value>
+  </data>
   <data name="dateTimePicker_to.CustomFormat" xml:space="preserve">
     <value>yyyy-MM-dd (dddd) hh:mm:ss</value>
-  </data>
-  <data name="dateTimePicker_to.Dock" type="System.Windows.Forms.DockStyle, System.Windows.Forms">
-    <value>Fill</value>
   </data>
   <data name="dateTimePicker_to.ImeMode" type="System.Windows.Forms.ImeMode, System.Windows.Forms">
     <value>Off</value>
@@ -1701,7 +1608,7 @@ Not cheched, find items with partial match retrieval.
     <value>TopDown</value>
   </data>
   <data name="flowLayoutPanel14.Location" type="System.Drawing.Point, System.Drawing">
-    <value>555, 3</value>
+    <value>549, 3</value>
   </data>
   <data name="flowLayoutPanel14.Size" type="System.Drawing.Size, System.Drawing">
     <value>349, 90</value>
@@ -2214,11 +2121,14 @@ Seeking is possible but not accurate.</value>
   <data name="tableLayoutPanel3.ColumnCount" type="System.Int32, mscorlib">
     <value>2</value>
   </data>
+  <data name="label4.Anchor" type="System.Windows.Forms.AnchorStyles, System.Windows.Forms">
+    <value>Left</value>
+  </data>
   <data name="label4.AutoSize" type="System.Boolean, mscorlib">
     <value>True</value>
   </data>
   <data name="label4.Location" type="System.Drawing.Point, System.Drawing">
-    <value>4, 0</value>
+    <value>4, 7</value>
   </data>
   <data name="label4.Margin" type="System.Windows.Forms.Padding, System.Windows.Forms">
     <value>4, 0, 4, 0</value>
@@ -2274,11 +2184,14 @@ Seeking is possible but not accurate.</value>
   <data name="&gt;&gt;textBox_HostName.ZOrder" xml:space="preserve">
     <value>1</value>
   </data>
+  <data name="label5.Anchor" type="System.Windows.Forms.AnchorStyles, System.Windows.Forms">
+    <value>Left</value>
+  </data>
   <data name="label5.AutoSize" type="System.Boolean, mscorlib">
     <value>True</value>
   </data>
   <data name="label5.Location" type="System.Drawing.Point, System.Drawing">
-    <value>4, 27</value>
+    <value>4, 34</value>
   </data>
   <data name="label5.Margin" type="System.Windows.Forms.Padding, System.Windows.Forms">
     <value>4, 0, 4, 0</value>
@@ -2466,11 +2379,14 @@ Seeking is possible but not accurate.</value>
   <data name="&gt;&gt;label6.ZOrder" xml:space="preserve">
     <value>2</value>
   </data>
+  <data name="label7.Anchor" type="System.Windows.Forms.AnchorStyles, System.Windows.Forms">
+    <value>Left</value>
+  </data>
   <data name="label7.AutoSize" type="System.Boolean, mscorlib">
     <value>True</value>
   </data>
   <data name="label7.Location" type="System.Drawing.Point, System.Drawing">
-    <value>81, 51</value>
+    <value>81, 63</value>
   </data>
   <data name="label7.Margin" type="System.Windows.Forms.Padding, System.Windows.Forms">
     <value>4, 0, 4, 0</value>
@@ -2496,11 +2412,14 @@ Seeking is possible but not accurate.</value>
   <data name="&gt;&gt;label7.ZOrder" xml:space="preserve">
     <value>3</value>
   </data>
+  <data name="textBox_Duration.Anchor" type="System.Windows.Forms.AnchorStyles, System.Windows.Forms">
+    <value>Left</value>
+  </data>
   <data name="textBox_Duration.ImeMode" type="System.Windows.Forms.ImeMode, System.Windows.Forms">
     <value>Off</value>
   </data>
   <data name="textBox_Duration.Location" type="System.Drawing.Point, System.Drawing">
-    <value>137, 55</value>
+    <value>137, 60</value>
   </data>
   <data name="textBox_Duration.Margin" type="System.Windows.Forms.Padding, System.Windows.Forms">
     <value>4, 4, 4, 4</value>
@@ -2723,20 +2642,20 @@ When the absolute time selected, the format is normal datetime.</value>
   <data name="flowLayoutPanel20.AutoSizeMode" type="System.Windows.Forms.AutoSizeMode, System.Windows.Forms">
     <value>GrowAndShrink</value>
   </data>
+  <data name="label8.Anchor" type="System.Windows.Forms.AnchorStyles, System.Windows.Forms">
+    <value>Left</value>
+  </data>
   <data name="label8.AutoSize" type="System.Boolean, mscorlib">
     <value>True</value>
   </data>
-  <data name="label8.Dock" type="System.Windows.Forms.DockStyle, System.Windows.Forms">
-    <value>Fill</value>
-  </data>
   <data name="label8.Location" type="System.Drawing.Point, System.Drawing">
-    <value>4, 0</value>
+    <value>4, 7</value>
   </data>
   <data name="label8.Margin" type="System.Windows.Forms.Padding, System.Windows.Forms">
     <value>4, 0, 4, 0</value>
   </data>
   <data name="label8.Size" type="System.Drawing.Size, System.Drawing">
-    <value>160, 27</value>
+    <value>160, 12</value>
   </data>
   <data name="label8.TabIndex" type="System.Int32, mscorlib">
     <value>0</value>
@@ -2816,20 +2735,20 @@ When the absolute time selected, the format is normal datetime.</value>
   <data name="flowLayoutPanel21.AutoSizeMode" type="System.Windows.Forms.AutoSizeMode, System.Windows.Forms">
     <value>GrowAndShrink</value>
   </data>
+  <data name="label9.Anchor" type="System.Windows.Forms.AnchorStyles, System.Windows.Forms">
+    <value>Left</value>
+  </data>
   <data name="label9.AutoSize" type="System.Boolean, mscorlib">
     <value>True</value>
   </data>
-  <data name="label9.Dock" type="System.Windows.Forms.DockStyle, System.Windows.Forms">
-    <value>Fill</value>
-  </data>
   <data name="label9.Location" type="System.Drawing.Point, System.Drawing">
-    <value>4, 0</value>
+    <value>4, 7</value>
   </data>
   <data name="label9.Margin" type="System.Windows.Forms.Padding, System.Windows.Forms">
     <value>4, 0, 4, 0</value>
   </data>
   <data name="label9.Size" type="System.Drawing.Size, System.Drawing">
-    <value>109, 27</value>
+    <value>109, 12</value>
   </data>
   <data name="label9.TabIndex" type="System.Int32, mscorlib">
     <value>2</value>
@@ -2882,20 +2801,20 @@ When the absolute time selected, the format is normal datetime.</value>
   <data name="&gt;&gt;textBox_SendDelay.ZOrder" xml:space="preserve">
     <value>1</value>
   </data>
+  <data name="label10.Anchor" type="System.Windows.Forms.AnchorStyles, System.Windows.Forms">
+    <value>Left</value>
+  </data>
   <data name="label10.AutoSize" type="System.Boolean, mscorlib">
     <value>True</value>
   </data>
-  <data name="label10.Dock" type="System.Windows.Forms.DockStyle, System.Windows.Forms">
-    <value>Fill</value>
-  </data>
   <data name="label10.Location" type="System.Drawing.Point, System.Drawing">
-    <value>188, 0</value>
+    <value>188, 7</value>
   </data>
   <data name="label10.Margin" type="System.Windows.Forms.Padding, System.Windows.Forms">
     <value>4, 0, 4, 0</value>
   </data>
   <data name="label10.Size" type="System.Drawing.Size, System.Drawing">
-    <value>20, 27</value>
+    <value>20, 12</value>
   </data>
   <data name="label10.TabIndex" type="System.Int32, mscorlib">
     <value>4</value>
@@ -2945,20 +2864,20 @@ When the absolute time selected, the format is normal datetime.</value>
   <data name="flowLayoutPanel22.AutoSizeMode" type="System.Windows.Forms.AutoSizeMode, System.Windows.Forms">
     <value>GrowAndShrink</value>
   </data>
+  <data name="label20.Anchor" type="System.Windows.Forms.AnchorStyles, System.Windows.Forms">
+    <value>Left</value>
+  </data>
   <data name="label20.AutoSize" type="System.Boolean, mscorlib">
     <value>True</value>
   </data>
-  <data name="label20.Dock" type="System.Windows.Forms.DockStyle, System.Windows.Forms">
-    <value>Fill</value>
-  </data>
   <data name="label20.Location" type="System.Drawing.Point, System.Drawing">
-    <value>4, 0</value>
+    <value>4, 7</value>
   </data>
   <data name="label20.Margin" type="System.Windows.Forms.Padding, System.Windows.Forms">
     <value>4, 0, 4, 0</value>
   </data>
   <data name="label20.Size" type="System.Drawing.Size, System.Drawing">
-    <value>166, 27</value>
+    <value>166, 12</value>
   </data>
   <data name="label20.TabIndex" type="System.Int32, mscorlib">
     <value>17</value>
@@ -3011,20 +2930,20 @@ When the absolute time selected, the format is normal datetime.</value>
   <data name="&gt;&gt;textBox_SendLongOffset.ZOrder" xml:space="preserve">
     <value>1</value>
   </data>
+  <data name="label19.Anchor" type="System.Windows.Forms.AnchorStyles, System.Windows.Forms">
+    <value>Left</value>
+  </data>
   <data name="label19.AutoSize" type="System.Boolean, mscorlib">
     <value>True</value>
   </data>
-  <data name="label19.Dock" type="System.Windows.Forms.DockStyle, System.Windows.Forms">
-    <value>Fill</value>
-  </data>
   <data name="label19.Location" type="System.Drawing.Point, System.Drawing">
-    <value>245, 0</value>
+    <value>245, 7</value>
   </data>
   <data name="label19.Margin" type="System.Windows.Forms.Padding, System.Windows.Forms">
     <value>4, 0, 4, 0</value>
   </data>
   <data name="label19.Size" type="System.Drawing.Size, System.Drawing">
-    <value>20, 27</value>
+    <value>20, 12</value>
   </data>
   <data name="label19.TabIndex" type="System.Int32, mscorlib">
     <value>19</value>
@@ -3134,20 +3053,20 @@ When the absolute time selected, the format is normal datetime.</value>
   <data name="flowLayoutPanel25.AutoSizeMode" type="System.Windows.Forms.AutoSizeMode, System.Windows.Forms">
     <value>GrowAndShrink</value>
   </data>
+  <data name="label12.Anchor" type="System.Windows.Forms.AnchorStyles, System.Windows.Forms">
+    <value>Left</value>
+  </data>
   <data name="label12.AutoSize" type="System.Boolean, mscorlib">
     <value>True</value>
   </data>
-  <data name="label12.Dock" type="System.Windows.Forms.DockStyle, System.Windows.Forms">
-    <value>Fill</value>
-  </data>
   <data name="label12.Location" type="System.Drawing.Point, System.Drawing">
-    <value>4, 0</value>
+    <value>4, 7</value>
   </data>
   <data name="label12.Margin" type="System.Windows.Forms.Padding, System.Windows.Forms">
     <value>4, 0, 4, 0</value>
   </data>
   <data name="label12.Size" type="System.Drawing.Size, System.Drawing">
-    <value>52, 27</value>
+    <value>52, 12</value>
   </data>
   <data name="label12.TabIndex" type="System.Int32, mscorlib">
     <value>6</value>
@@ -3200,20 +3119,20 @@ When the absolute time selected, the format is normal datetime.</value>
   <data name="&gt;&gt;textBox_SendRatebySendCount.ZOrder" xml:space="preserve">
     <value>1</value>
   </data>
+  <data name="label13.Anchor" type="System.Windows.Forms.AnchorStyles, System.Windows.Forms">
+    <value>Left</value>
+  </data>
   <data name="label13.AutoSize" type="System.Boolean, mscorlib">
     <value>True</value>
   </data>
-  <data name="label13.Dock" type="System.Windows.Forms.DockStyle, System.Windows.Forms">
-    <value>Fill</value>
-  </data>
   <data name="label13.Location" type="System.Drawing.Point, System.Drawing">
-    <value>135, 0</value>
+    <value>135, 7</value>
   </data>
   <data name="label13.Margin" type="System.Windows.Forms.Padding, System.Windows.Forms">
     <value>4, 0, 4, 0</value>
   </data>
   <data name="label13.Size" type="System.Drawing.Size, System.Drawing">
-    <value>77, 27</value>
+    <value>77, 12</value>
   </data>
   <data name="label13.TabIndex" type="System.Int32, mscorlib">
     <value>8</value>
@@ -3263,20 +3182,20 @@ When the absolute time selected, the format is normal datetime.</value>
   <data name="flowLayoutPanel26.AutoSizeMode" type="System.Windows.Forms.AutoSizeMode, System.Windows.Forms">
     <value>GrowAndShrink</value>
   </data>
+  <data name="label14.Anchor" type="System.Windows.Forms.AnchorStyles, System.Windows.Forms">
+    <value>Left</value>
+  </data>
   <data name="label14.AutoSize" type="System.Boolean, mscorlib">
     <value>True</value>
   </data>
-  <data name="label14.Dock" type="System.Windows.Forms.DockStyle, System.Windows.Forms">
-    <value>Fill</value>
-  </data>
   <data name="label14.Location" type="System.Drawing.Point, System.Drawing">
-    <value>4, 0</value>
+    <value>4, 7</value>
   </data>
   <data name="label14.Margin" type="System.Windows.Forms.Padding, System.Windows.Forms">
     <value>4, 0, 4, 0</value>
   </data>
   <data name="label14.Size" type="System.Drawing.Size, System.Drawing">
-    <value>75, 27</value>
+    <value>75, 12</value>
   </data>
   <data name="label14.TabIndex" type="System.Int32, mscorlib">
     <value>9</value>
@@ -3329,20 +3248,20 @@ When the absolute time selected, the format is normal datetime.</value>
   <data name="&gt;&gt;textBox_SendRatebyTOTCount.ZOrder" xml:space="preserve">
     <value>1</value>
   </data>
+  <data name="label15.Anchor" type="System.Windows.Forms.AnchorStyles, System.Windows.Forms">
+    <value>Left</value>
+  </data>
   <data name="label15.AutoSize" type="System.Boolean, mscorlib">
     <value>True</value>
   </data>
-  <data name="label15.Dock" type="System.Windows.Forms.DockStyle, System.Windows.Forms">
-    <value>Fill</value>
-  </data>
   <data name="label15.Location" type="System.Drawing.Point, System.Drawing">
-    <value>155, 0</value>
+    <value>155, 7</value>
   </data>
   <data name="label15.Margin" type="System.Windows.Forms.Padding, System.Windows.Forms">
     <value>4, 0, 4, 0</value>
   </data>
   <data name="label15.Size" type="System.Drawing.Size, System.Drawing">
-    <value>45, 27</value>
+    <value>45, 12</value>
   </data>
   <data name="label15.TabIndex" type="System.Int32, mscorlib">
     <value>11</value>
@@ -3456,20 +3375,20 @@ for example, use to clear the buffer of the other software.</value>
   <data name="flowLayoutPanel28.AutoSizeMode" type="System.Windows.Forms.AutoSizeMode, System.Windows.Forms">
     <value>GrowAndShrink</value>
   </data>
+  <data name="label17.Anchor" type="System.Windows.Forms.AnchorStyles, System.Windows.Forms">
+    <value>Left</value>
+  </data>
   <data name="label17.AutoSize" type="System.Boolean, mscorlib">
     <value>True</value>
   </data>
-  <data name="label17.Dock" type="System.Windows.Forms.DockStyle, System.Windows.Forms">
-    <value>Fill</value>
-  </data>
   <data name="label17.Location" type="System.Drawing.Point, System.Drawing">
-    <value>4, 0</value>
+    <value>4, 7</value>
   </data>
   <data name="label17.Margin" type="System.Windows.Forms.Padding, System.Windows.Forms">
     <value>4, 0, 4, 0</value>
   </data>
   <data name="label17.Size" type="System.Drawing.Size, System.Drawing">
-    <value>23, 27</value>
+    <value>23, 12</value>
   </data>
   <data name="label17.TabIndex" type="System.Int32, mscorlib">
     <value>14</value>
@@ -3552,20 +3471,20 @@ for example, use to clear the buffer of the other software.</value>
   <data name="flowLayoutPanel29.AutoSizeMode" type="System.Windows.Forms.AutoSizeMode, System.Windows.Forms">
     <value>GrowAndShrink</value>
   </data>
+  <data name="label18.Anchor" type="System.Windows.Forms.AnchorStyles, System.Windows.Forms">
+    <value>Left</value>
+  </data>
   <data name="label18.AutoSize" type="System.Boolean, mscorlib">
     <value>True</value>
   </data>
-  <data name="label18.Dock" type="System.Windows.Forms.DockStyle, System.Windows.Forms">
-    <value>Fill</value>
-  </data>
   <data name="label18.Location" type="System.Drawing.Point, System.Drawing">
-    <value>4, 0</value>
+    <value>4, 7</value>
   </data>
   <data name="label18.Margin" type="System.Windows.Forms.Padding, System.Windows.Forms">
     <value>4, 0, 4, 0</value>
   </data>
   <data name="label18.Size" type="System.Drawing.Size, System.Drawing">
-    <value>95, 27</value>
+    <value>95, 12</value>
   </data>
   <data name="label18.TabIndex" type="System.Int32, mscorlib">
     <value>15</value>
@@ -3982,11 +3901,14 @@ Player window</value>
   <data name="tableLayoutPanel7.ColumnCount" type="System.Int32, mscorlib">
     <value>4</value>
   </data>
+  <data name="label24.Anchor" type="System.Windows.Forms.AnchorStyles, System.Windows.Forms">
+    <value>Left</value>
+  </data>
   <data name="label24.AutoSize" type="System.Boolean, mscorlib">
     <value>True</value>
   </data>
   <data name="label24.Location" type="System.Drawing.Point, System.Drawing">
-    <value>4, 0</value>
+    <value>4, 7</value>
   </data>
   <data name="label24.Margin" type="System.Windows.Forms.Padding, System.Windows.Forms">
     <value>4, 0, 4, 0</value>
@@ -4048,11 +3970,14 @@ The format is seconds or HH:MM, HH:MM:SS.
   <data name="&gt;&gt;textBox_FFplayStart.ZOrder" xml:space="preserve">
     <value>1</value>
   </data>
+  <data name="textBox_FFplayDuration.Anchor" type="System.Windows.Forms.AnchorStyles, System.Windows.Forms">
+    <value>Left</value>
+  </data>
   <data name="textBox_FFplayDuration.ImeMode" type="System.Windows.Forms.ImeMode, System.Windows.Forms">
     <value>Off</value>
   </data>
   <data name="textBox_FFplayDuration.Location" type="System.Drawing.Point, System.Drawing">
-    <value>60, 31</value>
+    <value>60, 36</value>
   </data>
   <data name="textBox_FFplayDuration.Margin" type="System.Windows.Forms.Padding, System.Windows.Forms">
     <value>4, 4, 4, 4</value>
@@ -4079,11 +4004,14 @@ If empty, play whole file.</value>
   <data name="&gt;&gt;textBox_FFplayDuration.ZOrder" xml:space="preserve">
     <value>2</value>
   </data>
+  <data name="label25.Anchor" type="System.Windows.Forms.AnchorStyles, System.Windows.Forms">
+    <value>Left</value>
+  </data>
   <data name="label25.AutoSize" type="System.Boolean, mscorlib">
     <value>True</value>
   </data>
   <data name="label25.Location" type="System.Drawing.Point, System.Drawing">
-    <value>4, 27</value>
+    <value>4, 39</value>
   </data>
   <data name="label25.Margin" type="System.Windows.Forms.Padding, System.Windows.Forms">
     <value>4, 0, 4, 0</value>
@@ -4266,22 +4194,97 @@ If empty, play whole file.</value>
     <value>GrowAndShrink</value>
   </data>
   <data name="tableLayoutPanel9.ColumnCount" type="System.Int32, mscorlib">
-    <value>4</value>
+    <value>6</value>
+  </data>
+  <data name="label29.Anchor" type="System.Windows.Forms.AnchorStyles, System.Windows.Forms">
+    <value>Left</value>
+  </data>
+  <data name="label29.AutoSize" type="System.Boolean, mscorlib">
+    <value>True</value>
+  </data>
+  <data name="label29.ImeMode" type="System.Windows.Forms.ImeMode, System.Windows.Forms">
+    <value>NoControl</value>
+  </data>
+  <data name="label29.Location" type="System.Drawing.Point, System.Drawing">
+    <value>513, 36</value>
+  </data>
+  <data name="label29.Margin" type="System.Windows.Forms.Padding, System.Windows.Forms">
+    <value>4, 0, 4, 0</value>
+  </data>
+  <data name="label29.Size" type="System.Drawing.Size, System.Drawing">
+    <value>94, 12</value>
+  </data>
+  <data name="label29.TabIndex" type="System.Int32, mscorlib">
+    <value>9</value>
+  </data>
+  <data name="label29.Text" xml:space="preserve">
+    <value>Parallel download</value>
+  </data>
+  <data name="label29.TextAlign" type="System.Drawing.ContentAlignment, System.Drawing">
+    <value>MiddleLeft</value>
+  </data>
+  <data name="&gt;&gt;label29.Name" xml:space="preserve">
+    <value>label29</value>
+  </data>
+  <data name="&gt;&gt;label29.Type" xml:space="preserve">
+    <value>System.Windows.Forms.Label, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;label29.Parent" xml:space="preserve">
+    <value>tableLayoutPanel9</value>
+  </data>
+  <data name="&gt;&gt;label29.ZOrder" xml:space="preserve">
+    <value>0</value>
+  </data>
+  <data name="label23.Anchor" type="System.Windows.Forms.AnchorStyles, System.Windows.Forms">
+    <value>Left</value>
+  </data>
+  <data name="label23.AutoSize" type="System.Boolean, mscorlib">
+    <value>True</value>
+  </data>
+  <data name="label23.Location" type="System.Drawing.Point, System.Drawing">
+    <value>513, 8</value>
+  </data>
+  <data name="label23.Margin" type="System.Windows.Forms.Padding, System.Windows.Forms">
+    <value>4, 0, 4, 0</value>
+  </data>
+  <data name="label23.Size" type="System.Drawing.Size, System.Drawing">
+    <value>80, 12</value>
+  </data>
+  <data name="label23.TabIndex" type="System.Int32, mscorlib">
+    <value>7</value>
+  </data>
+  <data name="label23.Text" xml:space="preserve">
+    <value>Parallel upload</value>
+  </data>
+  <data name="label23.TextAlign" type="System.Drawing.ContentAlignment, System.Drawing">
+    <value>MiddleLeft</value>
+  </data>
+  <data name="&gt;&gt;label23.Name" xml:space="preserve">
+    <value>label23</value>
+  </data>
+  <data name="&gt;&gt;label23.Type" xml:space="preserve">
+    <value>System.Windows.Forms.Label, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;label23.Parent" xml:space="preserve">
+    <value>tableLayoutPanel9</value>
+  </data>
+  <data name="&gt;&gt;label23.ZOrder" xml:space="preserve">
+    <value>1</value>
+  </data>
+  <data name="label21.Anchor" type="System.Windows.Forms.AnchorStyles, System.Windows.Forms">
+    <value>Left</value>
   </data>
   <data name="label21.AutoSize" type="System.Boolean, mscorlib">
     <value>True</value>
   </data>
-  <data name="label21.Dock" type="System.Windows.Forms.DockStyle, System.Windows.Forms">
-    <value>Fill</value>
-  </data>
   <data name="label21.Location" type="System.Drawing.Point, System.Drawing">
-    <value>4, 0</value>
+    <value>4, 8</value>
   </data>
   <data name="label21.Margin" type="System.Windows.Forms.Padding, System.Windows.Forms">
     <value>4, 0, 4, 0</value>
   </data>
   <data name="label21.Size" type="System.Drawing.Size, System.Drawing">
-    <value>140, 28</value>
+    <value>126, 12</value>
   </data>
   <data name="label21.TabIndex" type="System.Int32, mscorlib">
     <value>0</value>
@@ -4302,7 +4305,34 @@ If empty, play whole file.</value>
     <value>tableLayoutPanel9</value>
   </data>
   <data name="&gt;&gt;label21.ZOrder" xml:space="preserve">
-    <value>0</value>
+    <value>2</value>
+  </data>
+  <data name="numericUpDown_ParallelUpload.Location" type="System.Drawing.Point, System.Drawing">
+    <value>615, 4</value>
+  </data>
+  <data name="numericUpDown_ParallelUpload.Margin" type="System.Windows.Forms.Padding, System.Windows.Forms">
+    <value>4, 4, 4, 4</value>
+  </data>
+  <data name="numericUpDown_ParallelUpload.Size" type="System.Drawing.Size, System.Drawing">
+    <value>63, 19</value>
+  </data>
+  <data name="numericUpDown_ParallelUpload.TabIndex" type="System.Int32, mscorlib">
+    <value>8</value>
+  </data>
+  <data name="&gt;&gt;numericUpDown_ParallelUpload.Name" xml:space="preserve">
+    <value>numericUpDown_ParallelUpload</value>
+  </data>
+  <data name="&gt;&gt;numericUpDown_ParallelUpload.Type" xml:space="preserve">
+    <value>System.Windows.Forms.NumericUpDown, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;numericUpDown_ParallelUpload.Parent" xml:space="preserve">
+    <value>tableLayoutPanel9</value>
+  </data>
+  <data name="&gt;&gt;numericUpDown_ParallelUpload.ZOrder" xml:space="preserve">
+    <value>3</value>
+  </data>
+  <data name="textBox_UploadBandwidthLimit.Anchor" type="System.Windows.Forms.AnchorStyles, System.Windows.Forms">
+    <value>Left</value>
   </data>
   <data name="textBox_UploadBandwidthLimit.ImeMode" type="System.Windows.Forms.ImeMode, System.Windows.Forms">
     <value>Disable</value>
@@ -4329,7 +4359,34 @@ If empty, play whole file.</value>
     <value>tableLayoutPanel9</value>
   </data>
   <data name="&gt;&gt;textBox_UploadBandwidthLimit.ZOrder" xml:space="preserve">
-    <value>1</value>
+    <value>4</value>
+  </data>
+  <data name="numericUpDown_ParallelDownload.Location" type="System.Drawing.Point, System.Drawing">
+    <value>615, 32</value>
+  </data>
+  <data name="numericUpDown_ParallelDownload.Margin" type="System.Windows.Forms.Padding, System.Windows.Forms">
+    <value>4, 4, 4, 4</value>
+  </data>
+  <data name="numericUpDown_ParallelDownload.Size" type="System.Drawing.Size, System.Drawing">
+    <value>63, 19</value>
+  </data>
+  <data name="numericUpDown_ParallelDownload.TabIndex" type="System.Int32, mscorlib">
+    <value>10</value>
+  </data>
+  <data name="&gt;&gt;numericUpDown_ParallelDownload.Name" xml:space="preserve">
+    <value>numericUpDown_ParallelDownload</value>
+  </data>
+  <data name="&gt;&gt;numericUpDown_ParallelDownload.Type" xml:space="preserve">
+    <value>System.Windows.Forms.NumericUpDown, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;numericUpDown_ParallelDownload.Parent" xml:space="preserve">
+    <value>tableLayoutPanel9</value>
+  </data>
+  <data name="&gt;&gt;numericUpDown_ParallelDownload.ZOrder" xml:space="preserve">
+    <value>5</value>
+  </data>
+  <data name="comboBox_UploadLimitUnit.Anchor" type="System.Windows.Forms.AnchorStyles, System.Windows.Forms">
+    <value>Left</value>
   </data>
   <data name="comboBox_UploadLimitUnit.Items" xml:space="preserve">
     <value>Infinity</value>
@@ -4377,7 +4434,7 @@ If empty, play whole file.</value>
     <value>tableLayoutPanel9</value>
   </data>
   <data name="&gt;&gt;comboBox_UploadLimitUnit.ZOrder" xml:space="preserve">
-    <value>2</value>
+    <value>6</value>
   </data>
   <data name="checkBox_UploadTrick.AutoSize" type="System.Boolean, mscorlib">
     <value>True</value>
@@ -4410,22 +4467,22 @@ If empty, play whole file.</value>
     <value>tableLayoutPanel9</value>
   </data>
   <data name="&gt;&gt;checkBox_UploadTrick.ZOrder" xml:space="preserve">
-    <value>3</value>
+    <value>7</value>
+  </data>
+  <data name="label22.Anchor" type="System.Windows.Forms.AnchorStyles, System.Windows.Forms">
+    <value>Left</value>
   </data>
   <data name="label22.AutoSize" type="System.Boolean, mscorlib">
     <value>True</value>
   </data>
-  <data name="label22.Dock" type="System.Windows.Forms.DockStyle, System.Windows.Forms">
-    <value>Fill</value>
-  </data>
   <data name="label22.Location" type="System.Drawing.Point, System.Drawing">
-    <value>4, 28</value>
+    <value>4, 36</value>
   </data>
   <data name="label22.Margin" type="System.Windows.Forms.Padding, System.Windows.Forms">
     <value>4, 0, 4, 0</value>
   </data>
   <data name="label22.Size" type="System.Drawing.Size, System.Drawing">
-    <value>140, 28</value>
+    <value>140, 12</value>
   </data>
   <data name="label22.TabIndex" type="System.Int32, mscorlib">
     <value>1</value>
@@ -4446,7 +4503,10 @@ If empty, play whole file.</value>
     <value>tableLayoutPanel9</value>
   </data>
   <data name="&gt;&gt;label22.ZOrder" xml:space="preserve">
-    <value>4</value>
+    <value>8</value>
+  </data>
+  <data name="comboBox_DownloadLimitUnit.Anchor" type="System.Windows.Forms.AnchorStyles, System.Windows.Forms">
+    <value>Left</value>
   </data>
   <data name="comboBox_DownloadLimitUnit.Items" xml:space="preserve">
     <value>Infinity</value>
@@ -4494,7 +4554,10 @@ If empty, play whole file.</value>
     <value>tableLayoutPanel9</value>
   </data>
   <data name="&gt;&gt;comboBox_DownloadLimitUnit.ZOrder" xml:space="preserve">
-    <value>5</value>
+    <value>9</value>
+  </data>
+  <data name="textBox_DownloadBandwidthLimit.Anchor" type="System.Windows.Forms.AnchorStyles, System.Windows.Forms">
+    <value>Left</value>
   </data>
   <data name="textBox_DownloadBandwidthLimit.ImeMode" type="System.Windows.Forms.ImeMode, System.Windows.Forms">
     <value>Disable</value>
@@ -4521,7 +4584,7 @@ If empty, play whole file.</value>
     <value>tableLayoutPanel9</value>
   </data>
   <data name="&gt;&gt;textBox_DownloadBandwidthLimit.ZOrder" xml:space="preserve">
-    <value>6</value>
+    <value>10</value>
   </data>
   <data name="tableLayoutPanel9.Location" type="System.Drawing.Point, System.Drawing">
     <value>3, 3</value>
@@ -4530,7 +4593,7 @@ If empty, play whole file.</value>
     <value>2</value>
   </data>
   <data name="tableLayoutPanel9.Size" type="System.Drawing.Size, System.Drawing">
-    <value>509, 56</value>
+    <value>682, 56</value>
   </data>
   <data name="tableLayoutPanel9.TabIndex" type="System.Int32, mscorlib">
     <value>11</value>
@@ -4548,166 +4611,7 @@ If empty, play whole file.</value>
     <value>0</value>
   </data>
   <data name="tableLayoutPanel9.LayoutSettings" type="System.Windows.Forms.TableLayoutSettings, System.Windows.Forms">
-    <value>&lt;?xml version="1.0" encoding="utf-16"?&gt;&lt;TableLayoutSettings&gt;&lt;Controls&gt;&lt;Control Name="label21" Row="0" RowSpan="1" Column="0" ColumnSpan="1" /&gt;&lt;Control Name="textBox_UploadBandwidthLimit" Row="0" RowSpan="1" Column="1" ColumnSpan="1" /&gt;&lt;Control Name="comboBox_UploadLimitUnit" Row="0" RowSpan="1" Column="2" ColumnSpan="1" /&gt;&lt;Control Name="checkBox_UploadTrick" Row="0" RowSpan="1" Column="3" ColumnSpan="1" /&gt;&lt;Control Name="label22" Row="1" RowSpan="1" Column="0" ColumnSpan="1" /&gt;&lt;Control Name="comboBox_DownloadLimitUnit" Row="1" RowSpan="1" Column="2" ColumnSpan="1" /&gt;&lt;Control Name="textBox_DownloadBandwidthLimit" Row="1" RowSpan="1" Column="1" ColumnSpan="1" /&gt;&lt;/Controls&gt;&lt;Columns Styles="AutoSize,0,AutoSize,0,AutoSize,0,AutoSize,0" /&gt;&lt;Rows Styles="Percent,50,Percent,50" /&gt;&lt;/TableLayoutSettings&gt;</value>
-  </data>
-  <data name="tableLayoutPanel10.AutoSize" type="System.Boolean, mscorlib">
-    <value>True</value>
-  </data>
-  <data name="tableLayoutPanel10.AutoSizeMode" type="System.Windows.Forms.AutoSizeMode, System.Windows.Forms">
-    <value>GrowAndShrink</value>
-  </data>
-  <data name="tableLayoutPanel10.ColumnCount" type="System.Int32, mscorlib">
-    <value>2</value>
-  </data>
-  <data name="label23.AutoSize" type="System.Boolean, mscorlib">
-    <value>True</value>
-  </data>
-  <data name="label23.Dock" type="System.Windows.Forms.DockStyle, System.Windows.Forms">
-    <value>Fill</value>
-  </data>
-  <data name="label23.Location" type="System.Drawing.Point, System.Drawing">
-    <value>4, 0</value>
-  </data>
-  <data name="label23.Margin" type="System.Windows.Forms.Padding, System.Windows.Forms">
-    <value>4, 0, 4, 0</value>
-  </data>
-  <data name="label23.Size" type="System.Drawing.Size, System.Drawing">
-    <value>94, 27</value>
-  </data>
-  <data name="label23.TabIndex" type="System.Int32, mscorlib">
-    <value>7</value>
-  </data>
-  <data name="label23.Text" xml:space="preserve">
-    <value>Parallel upload</value>
-  </data>
-  <data name="label23.TextAlign" type="System.Drawing.ContentAlignment, System.Drawing">
-    <value>MiddleLeft</value>
-  </data>
-  <data name="&gt;&gt;label23.Name" xml:space="preserve">
-    <value>label23</value>
-  </data>
-  <data name="&gt;&gt;label23.Type" xml:space="preserve">
-    <value>System.Windows.Forms.Label, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
-  </data>
-  <data name="&gt;&gt;label23.Parent" xml:space="preserve">
-    <value>tableLayoutPanel10</value>
-  </data>
-  <data name="&gt;&gt;label23.ZOrder" xml:space="preserve">
-    <value>0</value>
-  </data>
-  <data name="numericUpDown_ParallelUpload.Location" type="System.Drawing.Point, System.Drawing">
-    <value>106, 4</value>
-  </data>
-  <data name="numericUpDown_ParallelUpload.Margin" type="System.Windows.Forms.Padding, System.Windows.Forms">
-    <value>4, 4, 4, 4</value>
-  </data>
-  <data name="numericUpDown_ParallelUpload.Size" type="System.Drawing.Size, System.Drawing">
-    <value>63, 19</value>
-  </data>
-  <data name="numericUpDown_ParallelUpload.TabIndex" type="System.Int32, mscorlib">
-    <value>8</value>
-  </data>
-  <data name="&gt;&gt;numericUpDown_ParallelUpload.Name" xml:space="preserve">
-    <value>numericUpDown_ParallelUpload</value>
-  </data>
-  <data name="&gt;&gt;numericUpDown_ParallelUpload.Type" xml:space="preserve">
-    <value>System.Windows.Forms.NumericUpDown, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
-  </data>
-  <data name="&gt;&gt;numericUpDown_ParallelUpload.Parent" xml:space="preserve">
-    <value>tableLayoutPanel10</value>
-  </data>
-  <data name="&gt;&gt;numericUpDown_ParallelUpload.ZOrder" xml:space="preserve">
-    <value>1</value>
-  </data>
-  <data name="numericUpDown_ParallelDownload.Location" type="System.Drawing.Point, System.Drawing">
-    <value>106, 31</value>
-  </data>
-  <data name="numericUpDown_ParallelDownload.Margin" type="System.Windows.Forms.Padding, System.Windows.Forms">
-    <value>4, 4, 4, 4</value>
-  </data>
-  <data name="numericUpDown_ParallelDownload.Size" type="System.Drawing.Size, System.Drawing">
-    <value>63, 19</value>
-  </data>
-  <data name="numericUpDown_ParallelDownload.TabIndex" type="System.Int32, mscorlib">
-    <value>10</value>
-  </data>
-  <data name="&gt;&gt;numericUpDown_ParallelDownload.Name" xml:space="preserve">
-    <value>numericUpDown_ParallelDownload</value>
-  </data>
-  <data name="&gt;&gt;numericUpDown_ParallelDownload.Type" xml:space="preserve">
-    <value>System.Windows.Forms.NumericUpDown, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
-  </data>
-  <data name="&gt;&gt;numericUpDown_ParallelDownload.Parent" xml:space="preserve">
-    <value>tableLayoutPanel10</value>
-  </data>
-  <data name="&gt;&gt;numericUpDown_ParallelDownload.ZOrder" xml:space="preserve">
-    <value>2</value>
-  </data>
-  <data name="label29.AutoSize" type="System.Boolean, mscorlib">
-    <value>True</value>
-  </data>
-  <data name="label29.Dock" type="System.Windows.Forms.DockStyle, System.Windows.Forms">
-    <value>Fill</value>
-  </data>
-  <data name="label29.ImeMode" type="System.Windows.Forms.ImeMode, System.Windows.Forms">
-    <value>NoControl</value>
-  </data>
-  <data name="label29.Location" type="System.Drawing.Point, System.Drawing">
-    <value>4, 27</value>
-  </data>
-  <data name="label29.Margin" type="System.Windows.Forms.Padding, System.Windows.Forms">
-    <value>4, 0, 4, 0</value>
-  </data>
-  <data name="label29.Size" type="System.Drawing.Size, System.Drawing">
-    <value>94, 27</value>
-  </data>
-  <data name="label29.TabIndex" type="System.Int32, mscorlib">
-    <value>9</value>
-  </data>
-  <data name="label29.Text" xml:space="preserve">
-    <value>Parallel download</value>
-  </data>
-  <data name="label29.TextAlign" type="System.Drawing.ContentAlignment, System.Drawing">
-    <value>MiddleLeft</value>
-  </data>
-  <data name="&gt;&gt;label29.Name" xml:space="preserve">
-    <value>label29</value>
-  </data>
-  <data name="&gt;&gt;label29.Type" xml:space="preserve">
-    <value>System.Windows.Forms.Label, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
-  </data>
-  <data name="&gt;&gt;label29.Parent" xml:space="preserve">
-    <value>tableLayoutPanel10</value>
-  </data>
-  <data name="&gt;&gt;label29.ZOrder" xml:space="preserve">
-    <value>3</value>
-  </data>
-  <data name="tableLayoutPanel10.Location" type="System.Drawing.Point, System.Drawing">
-    <value>518, 3</value>
-  </data>
-  <data name="tableLayoutPanel10.RowCount" type="System.Int32, mscorlib">
-    <value>2</value>
-  </data>
-  <data name="tableLayoutPanel10.Size" type="System.Drawing.Size, System.Drawing">
-    <value>173, 54</value>
-  </data>
-  <data name="tableLayoutPanel10.TabIndex" type="System.Int32, mscorlib">
-    <value>12</value>
-  </data>
-  <data name="&gt;&gt;tableLayoutPanel10.Name" xml:space="preserve">
-    <value>tableLayoutPanel10</value>
-  </data>
-  <data name="&gt;&gt;tableLayoutPanel10.Type" xml:space="preserve">
-    <value>System.Windows.Forms.TableLayoutPanel, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
-  </data>
-  <data name="&gt;&gt;tableLayoutPanel10.Parent" xml:space="preserve">
-    <value>flowLayoutPanel33</value>
-  </data>
-  <data name="&gt;&gt;tableLayoutPanel10.ZOrder" xml:space="preserve">
-    <value>1</value>
-  </data>
-  <data name="tableLayoutPanel10.LayoutSettings" type="System.Windows.Forms.TableLayoutSettings, System.Windows.Forms">
-    <value>&lt;?xml version="1.0" encoding="utf-16"?&gt;&lt;TableLayoutSettings&gt;&lt;Controls&gt;&lt;Control Name="label23" Row="0" RowSpan="1" Column="0" ColumnSpan="1" /&gt;&lt;Control Name="numericUpDown_ParallelUpload" Row="0" RowSpan="1" Column="1" ColumnSpan="1" /&gt;&lt;Control Name="numericUpDown_ParallelDownload" Row="1" RowSpan="1" Column="1" ColumnSpan="1" /&gt;&lt;Control Name="label29" Row="1" RowSpan="1" Column="0" ColumnSpan="1" /&gt;&lt;/Controls&gt;&lt;Columns Styles="AutoSize,0,AutoSize,0" /&gt;&lt;Rows Styles="AutoSize,0,AutoSize,0" /&gt;&lt;/TableLayoutSettings&gt;</value>
+    <value>&lt;?xml version="1.0" encoding="utf-16"?&gt;&lt;TableLayoutSettings&gt;&lt;Controls&gt;&lt;Control Name="label29" Row="1" RowSpan="1" Column="4" ColumnSpan="1" /&gt;&lt;Control Name="label23" Row="0" RowSpan="1" Column="4" ColumnSpan="1" /&gt;&lt;Control Name="label21" Row="0" RowSpan="1" Column="0" ColumnSpan="1" /&gt;&lt;Control Name="numericUpDown_ParallelUpload" Row="0" RowSpan="1" Column="5" ColumnSpan="1" /&gt;&lt;Control Name="textBox_UploadBandwidthLimit" Row="0" RowSpan="1" Column="1" ColumnSpan="1" /&gt;&lt;Control Name="numericUpDown_ParallelDownload" Row="1" RowSpan="1" Column="5" ColumnSpan="1" /&gt;&lt;Control Name="comboBox_UploadLimitUnit" Row="0" RowSpan="1" Column="2" ColumnSpan="1" /&gt;&lt;Control Name="checkBox_UploadTrick" Row="0" RowSpan="1" Column="3" ColumnSpan="1" /&gt;&lt;Control Name="label22" Row="1" RowSpan="1" Column="0" ColumnSpan="1" /&gt;&lt;Control Name="comboBox_DownloadLimitUnit" Row="1" RowSpan="1" Column="2" ColumnSpan="1" /&gt;&lt;Control Name="textBox_DownloadBandwidthLimit" Row="1" RowSpan="1" Column="1" ColumnSpan="1" /&gt;&lt;/Controls&gt;&lt;Columns Styles="AutoSize,0,AutoSize,0,AutoSize,0,AutoSize,0,AutoSize,0,AutoSize,0" /&gt;&lt;Rows Styles="AutoSize,0,AutoSize,0" /&gt;&lt;/TableLayoutSettings&gt;</value>
   </data>
   <data name="flowLayoutPanel33.Dock" type="System.Windows.Forms.DockStyle, System.Windows.Forms">
     <value>Fill</value>

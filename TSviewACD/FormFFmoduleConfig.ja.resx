@@ -117,64 +117,47 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
-  <data name="groupBox_Mouse.Text" xml:space="preserve">
-    <value>マウス</value>
-  </data>
   <assembly alias="System.Drawing" name="System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" />
-  <data name="label2.Size" type="System.Drawing.Size, System.Drawing">
-    <value>189, 36</value>
-  </data>
-  <data name="label2.Text" xml:space="preserve">
-    <value>右ボタン:
-  ドラッグ &amp;&amp; クリック-&gt;画面の幅に対する
-  X座標の位置の割合の時間にシーク</value>
+  <data name="button1.Location" type="System.Drawing.Point, System.Drawing">
+    <value>319, 273</value>
   </data>
   <data name="label1.Size" type="System.Drawing.Size, System.Drawing">
-    <value>184, 24</value>
+    <value>184, 36</value>
   </data>
   <data name="label1.Text" xml:space="preserve">
     <value>左ボタン:
+  クリック-&gt;シークバーを表示
   ダブルクリック-&gt;全画面表示切り替え</value>
   </data>
+  <data name="label2.Size" type="System.Drawing.Size, System.Drawing">
+    <value>174, 36</value>
+  </data>
+  <data name="label2.Text" xml:space="preserve">
+    <value>右ボタン:
+  ドラッグ&amp;クリック-&gt;ウインドウの横を
+  時間と見なしてx軸の位置にシーク</value>
+  </data>
+  <data name="tableLayoutPanel1.Size" type="System.Drawing.Size, System.Drawing">
+    <value>190, 72</value>
+  </data>
+  <data name="groupBox_Mouse.Size" type="System.Drawing.Size, System.Drawing">
+    <value>196, 90</value>
+  </data>
+  <data name="groupBox_Mouse.Text" xml:space="preserve">
+    <value>マウス操作</value>
+  </data>
   <data name="label3.Size" type="System.Drawing.Size, System.Drawing">
-    <value>116, 24</value>
+    <value>99, 24</value>
   </data>
   <data name="label3.Text" xml:space="preserve">
-    <value>下からコマンドを選択し
-ボックスでキーを押す -&gt;</value>
-  </data>
-  <data name="label3.ToolTip" xml:space="preserve">
-    <value>下のコマンドリストから、キーバインドを変更したいコマンドを選択し、
-右のテキストボックスで設定したいキーを押してください。</value>
+    <value>コマンドを選択して、
+ここでキーを押す-&gt;</value>
   </data>
   <data name="label4.Size" type="System.Drawing.Size, System.Drawing">
-    <value>129, 12</value>
+    <value>153, 12</value>
   </data>
   <data name="label4.Text" xml:space="preserve">
-    <value>表示に使うフォントへのパス</value>
-  </data>
-  <data name="label4.ToolTip" xml:space="preserve">
-    <value>再生画面でオーバーレイ表示に使用するフォントを設定</value>
-  </data>
-  <data name="textBox_keyenter.ToolTip" xml:space="preserve">
-    <value>キーバインドを設定するには、何かキーを押してください</value>
-  </data>
-  <data name="label6.Size" type="System.Drawing.Size, System.Drawing">
-    <value>121, 24</value>
-  </data>
-  <data name="label6.Text" xml:space="preserve">
-    <value>以下の速度を下回ると、
-切断して再接続する</value>
-  </data>
-  <data name="checkBox_autosize.Size" type="System.Drawing.Size, System.Drawing">
-    <value>135, 28</value>
-  </data>
-  <data name="checkBox_autosize.Text" xml:space="preserve">
-    <value>再生ウインドウを動画に
-合わせてリサイズする</value>
-  </data>
-  <data name="groupBox_keybord.Text" xml:space="preserve">
-    <value>キーボード</value>
+    <value>表示に使うフォントファイルのパス</value>
   </data>
   <data name="columnHeader_Command.Text" xml:space="preserve">
     <value>コマンド</value>
@@ -182,11 +165,31 @@
   <data name="columnHeader_KeyBind.Text" xml:space="preserve">
     <value>キーバインド</value>
   </data>
-  <data name="groupBox_font.Text" xml:space="preserve">
-    <value>フォント</value>
+  <data name="textBox_keyenter.Location" type="System.Drawing.Point, System.Drawing">
+    <value>108, 3</value>
   </data>
-  <data name="label5.Location" type="System.Drawing.Point, System.Drawing">
-    <value>6, 100</value>
+  <data name="tableLayoutPanel2.Size" type="System.Drawing.Size, System.Drawing">
+    <value>152, 49</value>
+  </data>
+  <data name="label6.Size" type="System.Drawing.Size, System.Drawing">
+    <value>146, 24</value>
+  </data>
+  <data name="label6.Text" xml:space="preserve">
+    <value>以下の速度を下回ると切断し
+再接続する</value>
+  </data>
+  <data name="checkBox_autosize.Size" type="System.Drawing.Size, System.Drawing">
+    <value>153, 28</value>
+  </data>
+  <data name="checkBox_autosize.Text" xml:space="preserve">
+    <value>ウインドウをビデオの大きさに
+合わせてリサイズする</value>
+  </data>
+  <data name="button2.Location" type="System.Drawing.Point, System.Drawing">
+    <value>81, 40</value>
+  </data>
+  <data name="button2.Text" xml:space="preserve">
+    <value>選択</value>
   </data>
   <data name="label5.Size" type="System.Drawing.Size, System.Drawing">
     <value>67, 12</value>
@@ -194,14 +197,29 @@
   <data name="label5.Text" xml:space="preserve">
     <value>フォントサイズ</value>
   </data>
-  <data name="button2.Text" xml:space="preserve">
-    <value>選択</value>
+  <data name="numericUpDown_FontSize.Location" type="System.Drawing.Point, System.Drawing">
+    <value>82, 81</value>
+  </data>
+  <data name="flowLayoutPanel3.Size" type="System.Drawing.Size, System.Drawing">
+    <value>159, 103</value>
+  </data>
+  <data name="groupBox_font.Size" type="System.Drawing.Size, System.Drawing">
+    <value>165, 121</value>
+  </data>
+  <data name="groupBox_font.Text" xml:space="preserve">
+    <value>フォント</value>
+  </data>
+  <data name="groupBox_speed.Size" type="System.Drawing.Size, System.Drawing">
+    <value>158, 67</value>
   </data>
   <data name="groupBox_speed.Text" xml:space="preserve">
-    <value>速度制御</value>
+    <value>スピード制御</value>
+  </data>
+  <data name="groupBox_Screen.Size" type="System.Drawing.Size, System.Drawing">
+    <value>167, 64</value>
   </data>
   <data name="groupBox_Screen.Text" xml:space="preserve">
-    <value>再生画面</value>
+    <value>スクリーン</value>
   </data>
   <data name="$this.Text" xml:space="preserve">
     <value>設定</value>

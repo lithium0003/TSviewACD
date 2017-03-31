@@ -72,11 +72,8 @@
             this.checkBox_Folder = new System.Windows.Forms.CheckBox();
             this.checkBox_File = new System.Windows.Forms.CheckBox();
             this.button_search = new System.Windows.Forms.Button();
-            this.flowLayoutPanel10 = new System.Windows.Forms.FlowLayoutPanel();
-            this.label28 = new System.Windows.Forms.Label();
-            this.flowLayoutPanel12 = new System.Windows.Forms.FlowLayoutPanel();
-            this.flowLayoutPanel11 = new System.Windows.Forms.FlowLayoutPanel();
             this.tableLayoutPanel1 = new System.Windows.Forms.TableLayoutPanel();
+            this.label28 = new System.Windows.Forms.Label();
             this.numericUpDown_sizeUnder = new System.Windows.Forms.NumericUpDown();
             this.numericUpDown_sizeOver = new System.Windows.Forms.NumericUpDown();
             this.checkBox_sizeUnder = new System.Windows.Forms.CheckBox();
@@ -173,18 +170,17 @@
             this.tabPage_Bandwidth = new System.Windows.Forms.TabPage();
             this.flowLayoutPanel33 = new System.Windows.Forms.FlowLayoutPanel();
             this.tableLayoutPanel9 = new System.Windows.Forms.TableLayoutPanel();
+            this.label29 = new System.Windows.Forms.Label();
+            this.label23 = new System.Windows.Forms.Label();
             this.label21 = new System.Windows.Forms.Label();
+            this.numericUpDown_ParallelUpload = new System.Windows.Forms.NumericUpDown();
             this.textBox_UploadBandwidthLimit = new System.Windows.Forms.TextBox();
+            this.numericUpDown_ParallelDownload = new System.Windows.Forms.NumericUpDown();
             this.comboBox_UploadLimitUnit = new System.Windows.Forms.ComboBox();
             this.checkBox_UploadTrick = new System.Windows.Forms.CheckBox();
             this.label22 = new System.Windows.Forms.Label();
             this.comboBox_DownloadLimitUnit = new System.Windows.Forms.ComboBox();
             this.textBox_DownloadBandwidthLimit = new System.Windows.Forms.TextBox();
-            this.tableLayoutPanel10 = new System.Windows.Forms.TableLayoutPanel();
-            this.label23 = new System.Windows.Forms.Label();
-            this.numericUpDown_ParallelUpload = new System.Windows.Forms.NumericUpDown();
-            this.numericUpDown_ParallelDownload = new System.Windows.Forms.NumericUpDown();
-            this.label29 = new System.Windows.Forms.Label();
             this.tabPage_Crypt = new System.Windows.Forms.TabPage();
             this.flowLayoutPanel37 = new System.Windows.Forms.FlowLayoutPanel();
             this.flowLayoutPanel34 = new System.Windows.Forms.FlowLayoutPanel();
@@ -262,7 +258,6 @@
             this.flowLayoutPanel7.SuspendLayout();
             this.flowLayoutPanel8.SuspendLayout();
             this.flowLayoutPanel9.SuspendLayout();
-            this.flowLayoutPanel10.SuspendLayout();
             this.tableLayoutPanel1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.numericUpDown_sizeUnder)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.numericUpDown_sizeOver)).BeginInit();
@@ -300,7 +295,6 @@
             this.tabPage_Bandwidth.SuspendLayout();
             this.flowLayoutPanel33.SuspendLayout();
             this.tableLayoutPanel9.SuspendLayout();
-            this.tableLayoutPanel10.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.numericUpDown_ParallelUpload)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.numericUpDown_ParallelDownload)).BeginInit();
             this.tabPage_Crypt.SuspendLayout();
@@ -573,7 +567,7 @@
             resources.ApplyResources(this.flowLayoutPanel15, "flowLayoutPanel15");
             this.flowLayoutPanel15.Controls.Add(this.flowLayoutPanel7);
             this.flowLayoutPanel15.Controls.Add(this.flowLayoutPanel9);
-            this.flowLayoutPanel15.Controls.Add(this.flowLayoutPanel10);
+            this.flowLayoutPanel15.Controls.Add(this.tableLayoutPanel1);
             this.flowLayoutPanel15.Controls.Add(this.flowLayoutPanel14);
             this.flowLayoutPanel15.Name = "flowLayoutPanel15";
             // 
@@ -652,39 +646,22 @@
             this.button_search.UseVisualStyleBackColor = true;
             this.button_search.Click += new System.EventHandler(this.button_search_Click);
             // 
-            // flowLayoutPanel10
+            // tableLayoutPanel1
             // 
-            resources.ApplyResources(this.flowLayoutPanel10, "flowLayoutPanel10");
-            this.flowLayoutPanel10.Controls.Add(this.label28);
-            this.flowLayoutPanel10.Controls.Add(this.flowLayoutPanel12);
-            this.flowLayoutPanel10.Controls.Add(this.flowLayoutPanel11);
-            this.flowLayoutPanel10.Controls.Add(this.tableLayoutPanel1);
-            this.flowLayoutPanel10.Name = "flowLayoutPanel10";
+            resources.ApplyResources(this.tableLayoutPanel1, "tableLayoutPanel1");
+            this.tableLayoutPanel1.Controls.Add(this.label28, 0, 0);
+            this.tableLayoutPanel1.Controls.Add(this.numericUpDown_sizeUnder, 1, 2);
+            this.tableLayoutPanel1.Controls.Add(this.numericUpDown_sizeOver, 1, 1);
+            this.tableLayoutPanel1.Controls.Add(this.checkBox_sizeUnder, 0, 2);
+            this.tableLayoutPanel1.Controls.Add(this.checkBox_sizeOver, 0, 1);
+            this.tableLayoutPanel1.Name = "tableLayoutPanel1";
             // 
             // label28
             // 
             resources.ApplyResources(this.label28, "label28");
+            this.tableLayoutPanel1.SetColumnSpan(this.label28, 2);
             this.label28.Name = "label28";
             this.toolTip1.SetToolTip(this.label28, resources.GetString("label28.ToolTip"));
-            // 
-            // flowLayoutPanel12
-            // 
-            resources.ApplyResources(this.flowLayoutPanel12, "flowLayoutPanel12");
-            this.flowLayoutPanel12.Name = "flowLayoutPanel12";
-            // 
-            // flowLayoutPanel11
-            // 
-            resources.ApplyResources(this.flowLayoutPanel11, "flowLayoutPanel11");
-            this.flowLayoutPanel11.Name = "flowLayoutPanel11";
-            // 
-            // tableLayoutPanel1
-            // 
-            resources.ApplyResources(this.tableLayoutPanel1, "tableLayoutPanel1");
-            this.tableLayoutPanel1.Controls.Add(this.numericUpDown_sizeUnder, 1, 1);
-            this.tableLayoutPanel1.Controls.Add(this.numericUpDown_sizeOver, 1, 0);
-            this.tableLayoutPanel1.Controls.Add(this.checkBox_sizeUnder, 0, 1);
-            this.tableLayoutPanel1.Controls.Add(this.checkBox_sizeOver, 0, 0);
-            this.tableLayoutPanel1.Name = "tableLayoutPanel1";
             // 
             // numericUpDown_sizeUnder
             // 
@@ -1372,14 +1349,17 @@
             // 
             resources.ApplyResources(this.flowLayoutPanel33, "flowLayoutPanel33");
             this.flowLayoutPanel33.Controls.Add(this.tableLayoutPanel9);
-            this.flowLayoutPanel33.Controls.Add(this.tableLayoutPanel10);
             this.flowLayoutPanel33.Name = "flowLayoutPanel33";
             // 
             // tableLayoutPanel9
             // 
             resources.ApplyResources(this.tableLayoutPanel9, "tableLayoutPanel9");
+            this.tableLayoutPanel9.Controls.Add(this.label29, 4, 1);
+            this.tableLayoutPanel9.Controls.Add(this.label23, 4, 0);
             this.tableLayoutPanel9.Controls.Add(this.label21, 0, 0);
+            this.tableLayoutPanel9.Controls.Add(this.numericUpDown_ParallelUpload, 5, 0);
             this.tableLayoutPanel9.Controls.Add(this.textBox_UploadBandwidthLimit, 1, 0);
+            this.tableLayoutPanel9.Controls.Add(this.numericUpDown_ParallelDownload, 5, 1);
             this.tableLayoutPanel9.Controls.Add(this.comboBox_UploadLimitUnit, 2, 0);
             this.tableLayoutPanel9.Controls.Add(this.checkBox_UploadTrick, 3, 0);
             this.tableLayoutPanel9.Controls.Add(this.label22, 0, 1);
@@ -1387,10 +1367,36 @@
             this.tableLayoutPanel9.Controls.Add(this.textBox_DownloadBandwidthLimit, 1, 1);
             this.tableLayoutPanel9.Name = "tableLayoutPanel9";
             // 
+            // label29
+            // 
+            resources.ApplyResources(this.label29, "label29");
+            this.label29.Name = "label29";
+            // 
+            // label23
+            // 
+            resources.ApplyResources(this.label23, "label23");
+            this.label23.Name = "label23";
+            // 
             // label21
             // 
             resources.ApplyResources(this.label21, "label21");
             this.label21.Name = "label21";
+            // 
+            // numericUpDown_ParallelUpload
+            // 
+            resources.ApplyResources(this.numericUpDown_ParallelUpload, "numericUpDown_ParallelUpload");
+            this.numericUpDown_ParallelUpload.Minimum = new decimal(new int[] {
+            1,
+            0,
+            0,
+            0});
+            this.numericUpDown_ParallelUpload.Name = "numericUpDown_ParallelUpload";
+            this.numericUpDown_ParallelUpload.Value = new decimal(new int[] {
+            1,
+            0,
+            0,
+            0});
+            this.numericUpDown_ParallelUpload.ValueChanged += new System.EventHandler(this.numericUpDown_ParallelUpload_ValueChanged);
             // 
             // textBox_UploadBandwidthLimit
             // 
@@ -1398,8 +1404,25 @@
             this.textBox_UploadBandwidthLimit.Name = "textBox_UploadBandwidthLimit";
             this.textBox_UploadBandwidthLimit.TextChanged += new System.EventHandler(this.textBox_UploadBandwidhtLimit_TextChanged);
             // 
+            // numericUpDown_ParallelDownload
+            // 
+            resources.ApplyResources(this.numericUpDown_ParallelDownload, "numericUpDown_ParallelDownload");
+            this.numericUpDown_ParallelDownload.Minimum = new decimal(new int[] {
+            1,
+            0,
+            0,
+            0});
+            this.numericUpDown_ParallelDownload.Name = "numericUpDown_ParallelDownload";
+            this.numericUpDown_ParallelDownload.Value = new decimal(new int[] {
+            1,
+            0,
+            0,
+            0});
+            this.numericUpDown_ParallelDownload.ValueChanged += new System.EventHandler(this.numericUpDown_ParallelDownload_ValueChanged);
+            // 
             // comboBox_UploadLimitUnit
             // 
+            resources.ApplyResources(this.comboBox_UploadLimitUnit, "comboBox_UploadLimitUnit");
             this.comboBox_UploadLimitUnit.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
             this.comboBox_UploadLimitUnit.FormattingEnabled = true;
             this.comboBox_UploadLimitUnit.Items.AddRange(new object[] {
@@ -1411,7 +1434,6 @@
             resources.GetString("comboBox_UploadLimitUnit.Items5"),
             resources.GetString("comboBox_UploadLimitUnit.Items6"),
             resources.GetString("comboBox_UploadLimitUnit.Items7")});
-            resources.ApplyResources(this.comboBox_UploadLimitUnit, "comboBox_UploadLimitUnit");
             this.comboBox_UploadLimitUnit.Name = "comboBox_UploadLimitUnit";
             this.comboBox_UploadLimitUnit.SelectedIndexChanged += new System.EventHandler(this.comboBox_UploadLimitUnit_SelectedIndexChanged);
             // 
@@ -1430,6 +1452,7 @@
             // 
             // comboBox_DownloadLimitUnit
             // 
+            resources.ApplyResources(this.comboBox_DownloadLimitUnit, "comboBox_DownloadLimitUnit");
             this.comboBox_DownloadLimitUnit.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
             this.comboBox_DownloadLimitUnit.FormattingEnabled = true;
             this.comboBox_DownloadLimitUnit.Items.AddRange(new object[] {
@@ -1441,7 +1464,6 @@
             resources.GetString("comboBox_DownloadLimitUnit.Items5"),
             resources.GetString("comboBox_DownloadLimitUnit.Items6"),
             resources.GetString("comboBox_DownloadLimitUnit.Items7")});
-            resources.ApplyResources(this.comboBox_DownloadLimitUnit, "comboBox_DownloadLimitUnit");
             this.comboBox_DownloadLimitUnit.Name = "comboBox_DownloadLimitUnit";
             this.comboBox_DownloadLimitUnit.SelectedIndexChanged += new System.EventHandler(this.comboBox_DownloadLimitUnit_SelectedIndexChanged);
             // 
@@ -1450,57 +1472,6 @@
             resources.ApplyResources(this.textBox_DownloadBandwidthLimit, "textBox_DownloadBandwidthLimit");
             this.textBox_DownloadBandwidthLimit.Name = "textBox_DownloadBandwidthLimit";
             this.textBox_DownloadBandwidthLimit.TextChanged += new System.EventHandler(this.textBox_DownloadBandwidthLimit_TextChanged);
-            // 
-            // tableLayoutPanel10
-            // 
-            resources.ApplyResources(this.tableLayoutPanel10, "tableLayoutPanel10");
-            this.tableLayoutPanel10.Controls.Add(this.label23, 0, 0);
-            this.tableLayoutPanel10.Controls.Add(this.numericUpDown_ParallelUpload, 1, 0);
-            this.tableLayoutPanel10.Controls.Add(this.numericUpDown_ParallelDownload, 1, 1);
-            this.tableLayoutPanel10.Controls.Add(this.label29, 0, 1);
-            this.tableLayoutPanel10.Name = "tableLayoutPanel10";
-            // 
-            // label23
-            // 
-            resources.ApplyResources(this.label23, "label23");
-            this.label23.Name = "label23";
-            // 
-            // numericUpDown_ParallelUpload
-            // 
-            resources.ApplyResources(this.numericUpDown_ParallelUpload, "numericUpDown_ParallelUpload");
-            this.numericUpDown_ParallelUpload.Minimum = new decimal(new int[] {
-            1,
-            0,
-            0,
-            0});
-            this.numericUpDown_ParallelUpload.Name = "numericUpDown_ParallelUpload";
-            this.numericUpDown_ParallelUpload.Value = new decimal(new int[] {
-            1,
-            0,
-            0,
-            0});
-            this.numericUpDown_ParallelUpload.ValueChanged += new System.EventHandler(this.numericUpDown_ParallelUpload_ValueChanged);
-            // 
-            // numericUpDown_ParallelDownload
-            // 
-            resources.ApplyResources(this.numericUpDown_ParallelDownload, "numericUpDown_ParallelDownload");
-            this.numericUpDown_ParallelDownload.Minimum = new decimal(new int[] {
-            1,
-            0,
-            0,
-            0});
-            this.numericUpDown_ParallelDownload.Name = "numericUpDown_ParallelDownload";
-            this.numericUpDown_ParallelDownload.Value = new decimal(new int[] {
-            1,
-            0,
-            0,
-            0});
-            this.numericUpDown_ParallelDownload.ValueChanged += new System.EventHandler(this.numericUpDown_ParallelDownload_ValueChanged);
-            // 
-            // label29
-            // 
-            resources.ApplyResources(this.label29, "label29");
-            this.label29.Name = "label29";
             // 
             // tabPage_Crypt
             // 
@@ -1928,8 +1899,6 @@
             this.flowLayoutPanel8.PerformLayout();
             this.flowLayoutPanel9.ResumeLayout(false);
             this.flowLayoutPanel9.PerformLayout();
-            this.flowLayoutPanel10.ResumeLayout(false);
-            this.flowLayoutPanel10.PerformLayout();
             this.tableLayoutPanel1.ResumeLayout(false);
             this.tableLayoutPanel1.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)(this.numericUpDown_sizeUnder)).EndInit();
@@ -2000,8 +1969,6 @@
             this.flowLayoutPanel33.PerformLayout();
             this.tableLayoutPanel9.ResumeLayout(false);
             this.tableLayoutPanel9.PerformLayout();
-            this.tableLayoutPanel10.ResumeLayout(false);
-            this.tableLayoutPanel10.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)(this.numericUpDown_ParallelUpload)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.numericUpDown_ParallelDownload)).EndInit();
             this.tabPage_Crypt.ResumeLayout(false);
@@ -2200,9 +2167,6 @@
         private System.Windows.Forms.FlowLayoutPanel flowLayoutPanel5;
         private System.Windows.Forms.FlowLayoutPanel flowLayoutPanel6;
         private System.Windows.Forms.TableLayoutPanel tableLayoutPanel2;
-        private System.Windows.Forms.FlowLayoutPanel flowLayoutPanel10;
-        private System.Windows.Forms.FlowLayoutPanel flowLayoutPanel12;
-        private System.Windows.Forms.FlowLayoutPanel flowLayoutPanel11;
         private System.Windows.Forms.TableLayoutPanel tableLayoutPanel1;
         private System.Windows.Forms.FlowLayoutPanel flowLayoutPanel9;
         private System.Windows.Forms.FlowLayoutPanel flowLayoutPanel7;
@@ -2235,7 +2199,6 @@
         private System.Windows.Forms.TableLayoutPanel tableLayoutPanel7;
         private System.Windows.Forms.FlowLayoutPanel flowLayoutPanel33;
         private System.Windows.Forms.TableLayoutPanel tableLayoutPanel9;
-        private System.Windows.Forms.TableLayoutPanel tableLayoutPanel10;
         private System.Windows.Forms.TableLayoutPanel tableLayoutPanel11;
         private System.Windows.Forms.FlowLayoutPanel flowLayoutPanel34;
         private System.Windows.Forms.FlowLayoutPanel flowLayoutPanel37;
