@@ -5721,7 +5721,7 @@ If empty, play whole file.</value>
     <value>1308, 916</value>
   </data>
   <data name="tableLayoutPanel6.TabIndex" type="System.Int32, mscorlib">
-    <value>7</value>
+    <value>0</value>
   </data>
   <data name="&gt;&gt;tableLayoutPanel6.Name" xml:space="preserve">
     <value>tableLayoutPanel6</value>
