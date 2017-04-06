@@ -63,11 +63,11 @@ namespace TSviewACD
             {
                 try
                 {
-                    if (IsMasterPasswordCorrect || Decrypt(enc_Check_drive_password, value) == Check_pass_password)
+                    if (IsMasterPasswordCorrect || Decrypt(Enc_Check_drive_password, value) == Check_pass_password)
                     {
                         _MasterPassword = value;
                         if (string.IsNullOrEmpty(value)) _MasterPassword = "crypt for password";
-                        enc_Check_drive_password = Encrypt(Check_pass_password, _MasterPassword);
+                        Enc_Check_drive_password = Encrypt(Check_pass_password, _MasterPassword);
                     }
                 }
                 catch { }
@@ -118,6 +118,7 @@ namespace TSviewACD
         public static double FFmodule_TransferLimit = 128;
         public static bool FFmodule_AutoResize = true;
         static string _DrivePassword = null;
+        static string _DrivePassword2 = null;
         public static bool IsMasterPasswordCorrect
         {
             get {
@@ -139,7 +140,7 @@ namespace TSviewACD
                 {
                     if(string.IsNullOrEmpty(_Encrypted_DirvePasswordCheck) || Decrypt(_Encrypted_DirvePasswordCheck, MasterPassword) == Check_pass_password)
                     {
-                        _DrivePassword = Decrypt(_Encrypted_DrivePassword, MasterPassword);
+                        DrivePassword = Decrypt(_Encrypted_DrivePassword, MasterPassword);
                     }
                 }
                 catch
@@ -153,9 +154,36 @@ namespace TSviewACD
                 _DrivePassword = value;
                 CryptCarotDAV.Password = _DrivePassword ?? "";
                 CryptCTR.password = _DrivePassword ?? "";
+                CryptRclone.Password = _DrivePassword ?? "";
             }
         }
+        public static string DrivePassword2
+        {
+            get
+            {
+                if (_DrivePassword2 != null) return _DrivePassword2;
+                try
+                {
+                    if (string.IsNullOrEmpty(_Encrypted_DirvePasswordCheck) || Decrypt(_Encrypted_DirvePasswordCheck, MasterPassword) == Check_pass_password)
+                    {
+                        DrivePassword2 = Decrypt(_Encrypted_DrivePassword2, MasterPassword);
+                    }
+                }
+                catch
+                {
+                    _DrivePassword2 = null;
+                }
+                return _DrivePassword2 ?? "";
+            }
+            set
+            {
+                _DrivePassword2 = value;
+                CryptRclone.Salt = _DrivePassword2 ?? "";
+            }
+        }
+        public static string CryptRoot = "/";
         public static bool LockPassword = false;
+        public static bool LockPassword2 = false;
         public static bool UseEncryption = false;
         public static bool UseFilenameEncryption = false;
         public static string Language = "";
@@ -234,7 +262,7 @@ namespace TSviewACD
         }
 
         private static string _Encrypted_DirvePasswordCheck;
-        public static string enc_Check_drive_password
+        public static string Enc_Check_drive_password
         {
             get
             {
@@ -249,7 +277,7 @@ namespace TSviewACD
         }
 
         private static string _Encrypted_DrivePassword;
-        public static string enc_drive_password
+        public static string Enc_drive_password
         {
             get
             {
@@ -260,6 +288,21 @@ namespace TSviewACD
             set
             {
                 _Encrypted_DrivePassword = value;
+            }
+        }
+
+        private static string _Encrypted_DrivePassword2;
+        public static string Enc_drive_password2
+        {
+            get
+            {
+                if (!IsMasterPasswordCorrect)
+                    return _Encrypted_DrivePassword2;
+                return (string.IsNullOrEmpty(DrivePassword2)) ? "" : Encrypt(DrivePassword2, MasterPassword);
+            }
+            set
+            {
+                _Encrypted_DrivePassword2 = value;
             }
         }
 
@@ -403,10 +446,15 @@ namespace TSviewACD
                         FFmodule_TransferLimit = data.FFmodule_TransferLimit;
                     if (data.FFmodule_AutoResize != true)
                         FFmodule_AutoResize = data.FFmodule_AutoResize;
-                    enc_drive_password = data.DrivePassword;
-                    enc_Check_drive_password = data.DrivePasswordCheck;
+                    if (!string.IsNullOrWhiteSpace(data.CryptRoot))
+                        CryptRoot = data.CryptRoot;
+                    Enc_drive_password = data.DrivePassword;
+                    Enc_drive_password2 = data.DrivePassword2;
+                    Enc_Check_drive_password = data.DrivePasswordCheck;
                     if (data.LockPassword != default(bool))
                         LockPassword = data.LockPassword;
+                    if (data.LockPassword2 != default(bool))
+                        LockPassword2 = data.LockPassword2;
                     if (data.UseEncryption != default(bool))
                         UseEncryption = data.UseEncryption;
                     if (data.UseFilenameEncryption != default(bool))
@@ -492,9 +540,12 @@ namespace TSviewACD
                         FontFilepath = FontFilepath,
                         FFmodule_TransferLimit = FFmodule_TransferLimit,
                         FFmodule_AutoResize = FFmodule_AutoResize,
-                        DrivePassword = enc_drive_password,
-                        DrivePasswordCheck = enc_Check_drive_password,
+                        CryptRoot = CryptRoot,
+                        DrivePassword = Enc_drive_password,
+                        DrivePassword2 = Enc_drive_password2,
+                        DrivePasswordCheck = Enc_Check_drive_password,
                         LockPassword = LockPassword,
+                        LockPassword2 = LockPassword2,
                         UseEncryption = UseEncryption,
                         UseFilenameEncryption = UseFilenameEncryption,
                         Language = Language,
@@ -569,11 +620,17 @@ namespace TSviewACD
         [DataMember]
         public bool FFmodule_AutoResize;
         [DataMember]
+        public string CryptRoot;
+        [DataMember]
         public string DrivePassword;
+        [DataMember]
+        public string DrivePassword2;
         [DataMember]
         public string DrivePasswordCheck;
         [DataMember]
         public bool LockPassword;
+        [DataMember]
+        public bool LockPassword2;
         [DataMember]
         public bool UseEncryption;
         [DataMember]

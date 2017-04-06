@@ -243,7 +243,7 @@ namespace TSviewACD
             List<FileMetadata_Info> ret = new List<FileMetadata_Info>();
             if (root == null)
             {
-                root = DriveData.AmazonDriveTree[DriveData.AmazonDriveRootID].info;
+                root = DriveData.AmazonDriveTree[DriveData.AmazonDriveRootID].Info;
             }
             if (!(path_str?.Length > 0))
             {
@@ -269,9 +269,9 @@ namespace TSviewACD
                     ((path_str[0].Contains('*') || path_str[0].Contains('?'))
                             && Regex.IsMatch(c.DisplayName, Regex.Escape(path_str[0]).Replace("\\*", ".*").Replace("\\?", "."))))
                 {
-                    if (c.info.kind == "FOLDER")
+                    if (c.Info.kind == "FOLDER")
                     {
-                        ret.AddRange(FindItems((recursive && path_str[0] == "*") ? path_str : path_str.Skip(1).ToArray(), recursive, c.info));
+                        ret.AddRange(FindItems((recursive && path_str[0] == "*") ? path_str : path_str.Skip(1).ToArray(), recursive, c.Info));
                     }
                     else
                     {
@@ -280,7 +280,7 @@ namespace TSviewACD
                             (((path_str[0].Contains('*') || path_str[0].Contains('?'))
                                 && Regex.IsMatch(c.DisplayName, Regex.Escape(path_str[0]).Replace("\\*", ".*").Replace("\\?", ".")))))
                         {
-                            ret.Add(c.info);
+                            ret.Add(c.Info);
                         }
                     }
                 }
@@ -315,7 +315,7 @@ namespace TSviewACD
 
             if (root == null)
             {
-                root = DriveData.AmazonDriveTree[DriveData.AmazonDriveRootID].info;
+                root = DriveData.AmazonDriveTree[DriveData.AmazonDriveRootID].Info;
             }
 
             var children = DriveData.AmazonDriveTree[root.id].children.Select(x => x.Value);
@@ -324,9 +324,9 @@ namespace TSviewACD
             {
                 if (c.DisplayName == path_str[0])
                 {
-                    if (c.info.kind == "FOLDER")
+                    if (c.Info.kind == "FOLDER")
                     {
-                        return FindItemsID(path_str.Skip(1).ToArray(), c.info);
+                        return FindItemsID(path_str.Skip(1).ToArray(), c.Info);
                     }
                     else
                     {

@@ -279,9 +279,9 @@ namespace TSviewACD
                 if (string.IsNullOrEmpty(targetID)) return;
 
                 // 対象がフォルダでない場合は、その上に上がる
-                while (targetID != DriveData.AmazonDriveRootID && DriveData.AmazonDriveTree[targetID].info.kind != "FOLDER")
+                while (targetID != DriveData.AmazonDriveRootID && DriveData.AmazonDriveTree[targetID].Info.kind != "FOLDER")
                 {
-                    targetID = DriveData.AmazonDriveTree[targetID].info.parents[0];
+                    targetID = DriveData.AmazonDriveTree[targetID].Info.parents[0];
                 }
 
                 // アップロードファイルのパス共通部分を検索

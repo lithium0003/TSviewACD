@@ -432,6 +432,12 @@ namespace TSviewACD
                                 contStream = new HashStream(cryptStream, new MD5CryptoServiceProvider());
                                 hasher = contStream;
                             }
+                            if(Config.CryptMethod == CryptMethods.Method3_Rclone)
+                            {
+                                cryptStream = new CryptRclone.CryptRclone_CryptStream(file);
+                                contStream = new HashStream(cryptStream, new MD5CryptoServiceProvider());
+                                hasher = contStream;
+                            }
                         }
                         else
                         {
@@ -562,7 +568,7 @@ namespace TSviewACD
             return false;
         }
 
-        public async Task<Stream> downloadFile(FileMetadata_Info target, long? from = null, long? to = null, string enckey = null, bool autodecrypt = true, CancellationToken ct = default(CancellationToken))
+        public async Task<Stream> downloadFile(FileMetadata_Info target, long? from = null, long? to = null, string enckey = null, byte[] nonce = null, bool autodecrypt = true, CancellationToken ct = default(CancellationToken))
         {
             string id = target.id;
             string filename = target.name;
@@ -570,6 +576,10 @@ namespace TSviewACD
             if (enckey != null)
             {
                 Encrypted = CryptMethods.Method1_CTR;
+            }
+            else if(nonce != null)
+            {
+                Encrypted = CryptMethods.Method3_Rclone;
             }
             else
             {
@@ -587,6 +597,19 @@ namespace TSviewACD
                 {
                     enckey = DriveData.DecryptFilename(target);
                     if (enckey != null) Encrypted = CryptMethods.Method1_CTR;
+                }
+                else if (CryptRclone.IsNameEncrypted(filename))
+                {
+                    Encrypted = CryptMethods.Method3_Rclone;
+                    enckey = "";
+                }
+                else if (Regex.IsMatch(filename, ".*?\\.bin$"))
+                {
+                    if (DriveData.AmazonDriveTree[target.id].IsEncrypted == CryptMethods.Method3_Rclone)
+                    {
+                        Encrypted = CryptMethods.Method3_Rclone;
+                        enckey = "";
+                    }
                 }
 
                 if (enckey == null) Encrypted = CryptMethods.Method0_Plain;
@@ -638,6 +661,46 @@ namespace TSviewACD
                         if (fix_from != null || fix_to != null)
                             client.DefaultRequestHeaders.Range = new RangeHeaderValue(fix_from, fix_to);
                     }
+                    else if (Encrypted == CryptMethods.Method3_Rclone)
+                    {
+                        if (fix_from != null)
+                        {
+                            if (fix_from < CryptRclone.blockDataSize)
+                            {
+                                // 先頭ブロックを取得するときはファイルの先頭から
+                                fix_from = 0;
+                            }
+                            else
+                            {
+                                // ブロックにアライメントを合わせる
+                                var chunk_num = fix_from / CryptRclone.blockDataSize;
+                                fix_from = CryptRclone.fileHeaderSize + CryptRclone.chunkSize * chunk_num;
+                            }
+                        }
+                        if (fix_to != null)
+                        {
+                            if (fix_to >= target.OrignalLength)
+                            {
+                                fix_to = null;
+                            }
+                            else
+                            {
+                                if (fix_to < 1) fix_to = 1;
+
+                                // ブロックの最後まで読み込む
+                                var chunk_num = (fix_to - 1) / CryptRclone.blockDataSize + 1;
+                                fix_to = CryptRclone.fileHeaderSize + CryptRclone.chunkSize * chunk_num;
+
+                                if (fix_to >= target.contentProperties?.size)
+                                {
+                                    // 最後はファイルの終端まで
+                                    fix_to = null;
+                                }
+                            }
+                        }
+                        if (fix_from != null || fix_to != null)
+                            client.DefaultRequestHeaders.Range = new RangeHeaderValue(fix_from, fix_to);
+                    }
                     else
                         client.DefaultRequestHeaders.Range = new RangeHeaderValue(from, to);
                 }
@@ -659,6 +722,15 @@ namespace TSviewACD
                         from ?? 0,
                         fix_from ?? 0,
                         target.contentProperties?.size ?? -1
+                        );
+                }
+                else if (Encrypted == CryptMethods.Method3_Rclone)
+                {
+                    return new CryptRclone.CryptRclone_DeryptStream(new ThrottleDownloadStream(new HashStream(await response.Content.ReadAsStreamAsync().ConfigureAwait(false), new MD5CryptoServiceProvider()), ct),
+                        from ?? 0,
+                        fix_from ?? 0,
+                        target.contentProperties?.size ?? -1,
+                        nonce
                         );
                 }
                 else

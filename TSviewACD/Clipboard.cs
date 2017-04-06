@@ -441,8 +441,8 @@ namespace TSviewACD
         {
             var total = new ConcurrentBag<KeyValuePair<string, FileMetadata_Info>>();
             string filename = items.DisplayName;
-            total.Add(new KeyValuePair<string, FileMetadata_Info>(basepath + filename, items.info));
-            if (items.info.kind == "FOLDER")
+            total.Add(new KeyValuePair<string, FileMetadata_Info>(basepath + filename, items.Info));
+            if (items.Info.kind == "FOLDER")
             {
                 if(items.children.Count() > 0)
                 {
@@ -480,7 +480,7 @@ namespace TSviewACD
                 });
             SortedDictionary<string, FileMetadata_Info> exItems = new SortedDictionary<string, FileMetadata_Info>(total.ToDictionary(y => y.Key, y => y.Value));
             selectedItems = exItems.Values.ToArray();
-            baseItems = items.Select(x => x.info).ToArray();
+            baseItems = items.Select(x => x.Info).ToArray();
 
             var flist = new List<FORMATETC>();
             using (var stream = new MemoryStream())

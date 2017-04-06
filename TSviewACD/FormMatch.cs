@@ -520,10 +520,10 @@ namespace TSviewACD
             {
                 var selects = (ListView.SelectedListViewItemCollection)e.Data.GetData(typeof(ListView.SelectedListViewItemCollection));
                 if (SelectedRemoteFiles == null || SelectedRemoteFiles.Count() == 0)
-                    SelectedRemoteFiles = selects.Cast<ListViewItem>().Select(x => (x.Tag as ItemInfo).info);
+                    SelectedRemoteFiles = selects.Cast<ListViewItem>().Select(x => (x.Tag as ItemInfo).Info);
                 else
                 {
-                    SelectedRemoteFiles = selects.Cast<ListViewItem>().Select(x => (x.Tag as ItemInfo).info).Concat(SelectedRemoteFiles);
+                    SelectedRemoteFiles = selects.Cast<ListViewItem>().Select(x => (x.Tag as ItemInfo).Info).Concat(SelectedRemoteFiles);
                 }
             }
         }

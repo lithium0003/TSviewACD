@@ -312,19 +312,19 @@ namespace TSviewACD
                         switch (_SortColum)
                         {
                             case ListColums.Name:
-                                return (IEnumerable<ItemInfo> x) => x.SortByKind(_SortKind).ThenBy(y => (Config.AutoDecode) ? y.DisplayName : y.info.name);
+                                return (IEnumerable<ItemInfo> x) => x.SortByKind(_SortKind).ThenBy(y => (Config.AutoDecode) ? y.DisplayName : y.Info.name);
                             case ListColums.Size:
-                                return (IEnumerable<ItemInfo> x) => x.SortByKind(_SortKind).ThenBy(y => y.info.contentProperties?.size ?? 0);
+                                return (IEnumerable<ItemInfo> x) => x.SortByKind(_SortKind).ThenBy(y => y.Info.contentProperties?.size ?? 0);
                             case ListColums.modifiedDate:
-                                return (IEnumerable<ItemInfo> x) => x.SortByKind(_SortKind).ThenBy(y => y.info.modifiedDate);
+                                return (IEnumerable<ItemInfo> x) => x.SortByKind(_SortKind).ThenBy(y => y.Info.modifiedDate);
                             case ListColums.createdDate:
-                                return (IEnumerable<ItemInfo> x) => x.SortByKind(_SortKind).ThenBy(y => y.info.createdDate);
+                                return (IEnumerable<ItemInfo> x) => x.SortByKind(_SortKind).ThenBy(y => y.Info.createdDate);
                             case ListColums.path:
                                 return (IEnumerable<ItemInfo> x) => x.SortByKind(_SortKind).ThenBy(y => DriveData.GetFullPathfromItem(y));
                             case ListColums.MD5:
-                                return (IEnumerable<ItemInfo> x) => x.SortByKind(_SortKind).ThenBy(y => y.info.contentProperties?.md5 ?? "");
+                                return (IEnumerable<ItemInfo> x) => x.SortByKind(_SortKind).ThenBy(y => y.Info.contentProperties?.md5 ?? "");
                             default:
-                                return (IEnumerable<ItemInfo> x) => x.SortByKind(_SortKind).ThenBy(y => (Config.AutoDecode) ? y.DisplayName : y.info.name);
+                                return (IEnumerable<ItemInfo> x) => x.SortByKind(_SortKind).ThenBy(y => (Config.AutoDecode) ? y.DisplayName : y.Info.name);
                         }
                     }
                     else
@@ -332,19 +332,19 @@ namespace TSviewACD
                         switch (_SortColum)
                         {
                             case ListColums.Name:
-                                return (IEnumerable<ItemInfo> x) => x.SortByKind(_SortKind).ThenByDescending(y => (Config.AutoDecode) ? y.DisplayName : y.info.name);
+                                return (IEnumerable<ItemInfo> x) => x.SortByKind(_SortKind).ThenByDescending(y => (Config.AutoDecode) ? y.DisplayName : y.Info.name);
                             case ListColums.Size:
-                                return (IEnumerable<ItemInfo> x) => x.SortByKind(_SortKind).ThenByDescending(y => y.info.contentProperties?.size ?? 0);
+                                return (IEnumerable<ItemInfo> x) => x.SortByKind(_SortKind).ThenByDescending(y => y.Info.contentProperties?.size ?? 0);
                             case ListColums.modifiedDate:
-                                return (IEnumerable<ItemInfo> x) => x.SortByKind(_SortKind).ThenByDescending(y => y.info.modifiedDate);
+                                return (IEnumerable<ItemInfo> x) => x.SortByKind(_SortKind).ThenByDescending(y => y.Info.modifiedDate);
                             case ListColums.createdDate:
-                                return (IEnumerable<ItemInfo> x) => x.SortByKind(_SortKind).ThenByDescending(y => y.info.createdDate);
+                                return (IEnumerable<ItemInfo> x) => x.SortByKind(_SortKind).ThenByDescending(y => y.Info.createdDate);
                             case ListColums.path:
                                 return (IEnumerable<ItemInfo> x) => x.SortByKind(_SortKind).ThenByDescending(y => DriveData.GetFullPathfromItem(y));
                             case ListColums.MD5:
-                                return (IEnumerable<ItemInfo> x) => x.SortByKind(_SortKind).ThenByDescending(y => y.info.contentProperties?.md5 ?? "");
+                                return (IEnumerable<ItemInfo> x) => x.SortByKind(_SortKind).ThenByDescending(y => y.Info.contentProperties?.md5 ?? "");
                             default:
-                                return (IEnumerable<ItemInfo> x) => x.SortByKind(_SortKind).ThenByDescending(y => (Config.AutoDecode) ? y.DisplayName : y.info.name);
+                                return (IEnumerable<ItemInfo> x) => x.SortByKind(_SortKind).ThenByDescending(y => (Config.AutoDecode) ? y.DisplayName : y.Info.name);
                         }
                     }
                 }
@@ -452,13 +452,13 @@ namespace TSviewACD
                     else
                     {
                         _Root = value;
-                        if (_Root.info.id == DriveData.AmazonDriveRootID)
+                        if (_Root.Info.id == DriveData.AmazonDriveRootID)
                         {
                             _Parent = _Root;
                         }
                         else
                         {
-                            _Parent = DriveData.AmazonDriveTree[_Root.info.parents[0]];
+                            _Parent = DriveData.AmazonDriveTree[_Root.Info.parents[0]];
                         }
                         _Items = SortFunction(_Root.children.Values).ToArray();
                     }
@@ -474,15 +474,15 @@ namespace TSviewACD
             {
                 var item = new ListViewItem(
                     new string[] {
-                            (Config.AutoDecode)? x.DisplayName: x.info.name,
-                            x.info.contentProperties?.size?.ToString("#,0"),
-                            x.info.modifiedDate.ToString(),
-                            x.info.createdDate.ToString(),
+                            (Config.AutoDecode)? x.DisplayName: x.Info.name,
+                            x.Info.contentProperties?.size?.ToString("#,0"),
+                            x.Info.modifiedDate.ToString(),
+                            x.Info.createdDate.ToString(),
                             DriveData.GetFullPathfromItem(x),
-                            x.info.id,
-                            x.info.contentProperties?.md5,
-                    }, (x.info.kind == "FOLDER") ? 0 : 2);
-                item.Name = (Config.AutoDecode) ? x.DisplayName : x.info.name;
+                            x.Info.id,
+                            x.Info.contentProperties?.md5,
+                    }, (x.Info.kind == "FOLDER") ? 0 : 2);
+                item.Name = (Config.AutoDecode) ? x.DisplayName : x.Info.name;
                 item.Tag = x;
                 item.ToolTipText = item.Name;
                 switch (x.IsEncrypted)
@@ -498,6 +498,13 @@ namespace TSviewACD
                         break;
                     case CryptMethods.Method2_CBC_CarotDAV:
                         item.ForeColor = Color.ForestGreen;
+                        if (x.CryptError)
+                        {
+                            item.BackColor = Color.LightPink;
+                        }
+                        break;
+                    case CryptMethods.Method3_Rclone:
+                        item.ForeColor = Color.Orchid;
                         if (x.CryptError)
                         {
                             item.BackColor = Color.LightPink;
@@ -527,14 +534,14 @@ namespace TSviewACD
                             new string[] {
                             ".",
                             "",
-                            root.info.modifiedDate.ToString(),
-                            root.info.createdDate.ToString(),
+                            root.Info.modifiedDate.ToString(),
+                            root.Info.createdDate.ToString(),
                             DriveData.GetFullPathfromItem(root),
-                            root.info.id,
+                            root.Info.id,
                             "",
                             }, 0);
                         rootitem.Tag = root;
-                        rootitem.Name = (root.info.id == DriveData.AmazonDriveRootID) ? "/" : ".";
+                        rootitem.Name = (root.Info.id == DriveData.AmazonDriveRootID) ? "/" : ".";
                         rootitem.ToolTipText = Resource_text.CurrentFolder_str;
                         return rootitem;
                     }
@@ -545,14 +552,14 @@ namespace TSviewACD
                             new string[] {
                             "..",
                             "",
-                            up.info.modifiedDate.ToString(),
-                            up.info.createdDate.ToString(),
+                            up.Info.modifiedDate.ToString(),
+                            up.Info.createdDate.ToString(),
                             DriveData.GetFullPathfromItem(up),
-                            up.info.id,
+                            up.Info.id,
                             "",
                             }, 0);
                         upitem.Tag = up;
-                        upitem.Name = (up.info.id == DriveData.AmazonDriveRootID) ? "/" : "..";
+                        upitem.Name = (up.Info.id == DriveData.AmazonDriveRootID) ? "/" : "..";
                         upitem.ToolTipText = Resource_text.UpFolder_str;
                         return upitem;
                     }
@@ -566,7 +573,7 @@ namespace TSviewACD
             }
             public bool Contains(string id)
             {
-                return (Root?.info.id == id) || (Parent?.info.id == id) || (Items.Select(x => x.info.id).Contains(id));
+                return (Root?.Info.id == id) || (Parent?.Info.id == id) || (Items.Select(x => x.Info.id).Contains(id));
             }
             public bool Contains(IEnumerable<string> id)
             {
@@ -580,7 +587,7 @@ namespace TSviewACD
         {
             listviewitem.Root = Root;
             listView1.VirtualListSize = listviewitem.Count;
-            DisplayItems(Root?.info.id);
+            DisplayItems(Root?.Info.id);
         }
 
         private void Login()
@@ -657,9 +664,9 @@ namespace TSviewACD
             var ret = new List<TreeNode>();
             Parallel.ForEach(children, () => new List<TreeNode>(), (x, state, local) =>
              {
-                 int img = (x.info.kind == "FOLDER") ? 0 : 2;
-                 var node = new TreeNode((Config.AutoDecode) ? x.DisplayName : x.info.name, img, img);
-                 node.Name = (Config.AutoDecode) ? x.DisplayName : x.info.name;
+                 int img = (x.Info.kind == "FOLDER") ? 0 : 2;
+                 var node = new TreeNode((Config.AutoDecode) ? x.DisplayName : x.Info.name, img, img);
+                 node.Name = (Config.AutoDecode) ? x.DisplayName : x.Info.name;
                  node.Tag = x;
                  switch (x.IsEncrypted)
                  {
@@ -671,20 +678,23 @@ namespace TSviewACD
                      case CryptMethods.Method2_CBC_CarotDAV:
                          node.ForeColor = Color.ForestGreen;
                          break;
+                     case CryptMethods.Method3_Rclone:
+                         node.ForeColor = Color.Orchid;
+                         break;
                  }
-                 if (x.info.kind == "FOLDER" && count > 0 && x.children.Count > 0)
+                 if (x.Info.kind == "FOLDER" && count > 0 && x.children.Count > 0)
                  {
                      node.Nodes.AddRange(GenerateTreeNode(x.children.Values, count - 1));
                  }
                  ItemInfo value;
-                 if (DriveData.AmazonDriveTree.TryGetValue(x.info.id, out value))
+                 if (DriveData.AmazonDriveTree.TryGetValue(x.Info.id, out value))
                  {
                      value.tree = node;
                  }
                  else
                  {
-                     DriveData.AmazonDriveTree[x.info.id] = new ItemInfo(null);
-                     DriveData.AmazonDriveTree[x.info.id].tree = node;
+                     DriveData.AmazonDriveTree[x.Info.id] = new ItemInfo(null);
+                     DriveData.AmazonDriveTree[x.Info.id].tree = node;
                  }
                  local.Add(node);
                  return local;
@@ -737,7 +747,7 @@ namespace TSviewACD
         private void LoadTreeItem(TreeNode node)
         {
             var nodedata = node.Tag as ItemInfo;
-            if (nodedata.info.kind != "FOLDER") return;
+            if (nodedata.Info.kind != "FOLDER") return;
 
             foreach (TreeNode child in node.Nodes)
             {
@@ -757,11 +767,11 @@ namespace TSviewACD
                     // not loaded tree
                     List<string> tree_ids = new List<string>();
                     tree_ids.Add(target_id);
-                    var p = DriveData.AmazonDriveTree[target_id].info.parents[0];
+                    var p = DriveData.AmazonDriveTree[target_id].Info.parents[0];
                     while (DriveData.AmazonDriveTree[p].tree == null)
                     {
                         tree_ids.Add(p);
-                        p = DriveData.AmazonDriveTree[p].info.parents[0];
+                        p = DriveData.AmazonDriveTree[p].Info.parents[0];
                     }
                     tree_ids.Reverse();
                     DriveData.AmazonDriveTree[p].tree.Nodes.AddRange(GenerateTreeNode(DriveData.AmazonDriveTree[p].children.Values));
@@ -811,9 +821,11 @@ namespace TSviewACD
             textBox_keySendApp.Text = Config.SendVK_Application;
             SetBandwidthInfo();
             textBox_Password.Text = Config.DrivePassword;
+            textBox_Password2.Text = Config.DrivePassword2;
             checkBox_crypt.Checked = Config.UseEncryption;
             checkBox_cryptfilename.Checked = Config.UseFilenameEncryption;
             checkBox_LockPassword.Checked = Config.LockPassword;
+            checkBox_LockPassword2.Checked = Config.LockPassword2;
             switch (Config.Language)
             {
                 case "en":
@@ -834,6 +846,9 @@ namespace TSviewACD
                     break;
                 case CryptMethods.Method2_CBC_CarotDAV:
                     radioButton_crypt_2_CBC.Checked = true;
+                    break;
+                case CryptMethods.Method3_Rclone:
+                    radioButton_crypt_3_Rclone.Checked = true;
                     break;
             }
             Config.UseEncryption = crypton;
@@ -1077,13 +1092,13 @@ namespace TSviewACD
                 var selectdata = e.Node.Tag as ItemInfo;
                 if (selectdata == null) return;
 
-                if (selectdata.info.kind == "FOLDER")
+                if (selectdata.Info.kind == "FOLDER")
                 {
                     ChageDisplay(selectdata);
                 }
                 else
                 {
-                    ChageDisplay(DriveData.AmazonDriveTree[selectdata.info.parents[0]]);
+                    ChageDisplay(DriveData.AmazonDriveTree[selectdata.Info.parents[0]]);
                 }
             }
         }
@@ -1130,7 +1145,7 @@ namespace TSviewACD
             var selectdata = listviewitem.GetItems(listView1.SelectedIndices).FirstOrDefault();
 
             if (selectdata == null) return;
-            if (selectdata.info.kind == "FOLDER")
+            if (selectdata.Info.kind == "FOLDER")
             {
                 ChageDisplay(selectdata);
                 listView1.SelectedIndices.Clear();
@@ -1178,7 +1193,7 @@ namespace TSviewACD
             Config.Log.LogOut("Upload Start.");
             if (!initialized) return;
 
-            string parent_id = listviewitem.Root?.info.id;
+            string parent_id = listviewitem.Root?.Info.id;
             ItemInfo target = listviewitem.Root;
             if (parent_id == null) return;
 
@@ -1199,7 +1214,7 @@ namespace TSviewACD
                 {
                     job.Progress = -1;
                     upjob = AmazonDriveControl.DoDirectoryUpload(new string[] { folderBrowserDialog1.SelectedPath }, parent_id, WeekDepend: true, parentJob: job);
-                    ReloadAfterJob(upjob, target?.info.id);
+                    ReloadAfterJob(upjob, target?.Info.id);
                     job.Progress = 1;
                     job.ProgressStr = "done.";
                 });
@@ -1213,13 +1228,13 @@ namespace TSviewACD
                 }
 
                 upjob = AmazonDriveControl.DoFileUpload(openFileDialog1.FileNames, parent_id);
-                ReloadAfterJob(upjob, target?.info.id);
+                ReloadAfterJob(upjob, target?.Info.id);
             }
         }
 
         public void ReloadAfterJob(JobControler.Job[] mainjobs)
         {
-            ReloadAfterJob(mainjobs, listviewitem.Root?.info.id);
+            ReloadAfterJob(mainjobs, listviewitem.Root?.Info.id);
         }
 
         private void ReloadAfterJob(JobControler.Job[] mainjobs, string reload_id)
@@ -1262,7 +1277,7 @@ namespace TSviewACD
                 });
             }
 
-            ReloadAfterJob(joblist.ToArray(), target?.info.id);
+            ReloadAfterJob(joblist.ToArray(), target?.Info.id);
         }
 
         private void trashItemToolStripMenuItem_Click(object sender, EventArgs e)
@@ -1271,7 +1286,7 @@ namespace TSviewACD
             if (!initialized) return;
             var select = listviewitem.GetItems(listView1.SelectedIndices);
 
-            DoTrashItem(select.Select(x => x.info.id));
+            DoTrashItem(select.Select(x => x.Info.id));
         }
 
         private ConcurrentDictionary<string, int> ReloadRequests = new ConcurrentDictionary<string, int>();
@@ -1293,7 +1308,7 @@ namespace TSviewACD
                 ReloadRequests.AddOrUpdate(DriveData.AmazonDriveRootID, 1, (key, val) => { return val + 1; });
             else if(reload_target_id != null)
                 ReloadRequests.AddOrUpdate(reload_target_id, 1, (key, val) => { return val + 1; });
-            var disp_id = listviewitem.Root?.info.id;
+            var disp_id = listviewitem.Root?.Info.id;
             if(disp_id == null)
             {
                 //search result
@@ -1353,7 +1368,7 @@ namespace TSviewACD
                                     var p = disp_id;
                                     while (p != DriveData.AmazonDriveRootID)
                                     {
-                                        p = DriveData.AmazonDriveTree[p].info.parents[0];
+                                        p = DriveData.AmazonDriveTree[p].Info.parents[0];
                                         tree_ids.Add(p);
                                     }
                                     tree_ids.Reverse();
@@ -1361,7 +1376,7 @@ namespace TSviewACD
                                     foreach (var t in tree_ids)
                                     {
                                         if (t == DriveData.AmazonDriveRootID) continue;
-                                        var i = Nodes.OfType<TreeNode>().Where(x => (x.Tag as ItemInfo).info.id == t);
+                                        var i = Nodes.OfType<TreeNode>().Where(x => (x.Tag as ItemInfo).Info.id == t);
                                         if (i.Count() > 0)
                                         {
                                             treeView1.SelectedNode = i.First();
@@ -1423,7 +1438,7 @@ namespace TSviewACD
         {
             if (!initialized) return;
             string target_id = DriveData.AmazonDriveRootID;
-            target_id = listviewitem.Root?.info.id ?? target_id;
+            target_id = listviewitem.Root?.Info.id ?? target_id;
 
             if ((ModifierKeys & Keys.Shift) == Keys.Shift ||
                 (ModifierKeys & Keys.Control) == Keys.Control)
@@ -1461,7 +1476,7 @@ namespace TSviewACD
         private void downloadItemToolStripMenuItem_Click(object sender, EventArgs e)
         {
             if (!initialized) return;
-            downloadItems(listviewitem.GetItems(listView1.SelectedIndices).Select(x => x.info));
+            downloadItems(listviewitem.GetItems(listView1.SelectedIndices).Select(x => x.Info));
         }
 
         private void sendUDPToolStripMenuItem_Click(object sender, EventArgs e)
@@ -1475,11 +1490,11 @@ namespace TSviewACD
             IEnumerable<ItemInfo> selection = DriveData.AmazonDriveTree.Values;
 
             if (checkBox_File.Checked && checkBox_Folder.Checked)
-                selection = selection.Where(x => x.info.kind != "ASSET");
+                selection = selection.Where(x => x.Info.kind != "ASSET");
             else if (checkBox_Folder.Checked)
-                selection = selection.Where(x => x.info.kind == "FOLDER");
+                selection = selection.Where(x => x.Info.kind == "FOLDER");
             else if (checkBox_File.Checked)
-                selection = selection.Where(x => x.info.kind != "FOLDER" && x.info.kind != "ASSET");
+                selection = selection.Where(x => x.Info.kind != "FOLDER" && x.Info.kind != "ASSET");
             else
             {
                 // all item selected
@@ -1535,23 +1550,23 @@ namespace TSviewACD
                 }
 
                 if (SizeOver)
-                    selection = selection.Where(x => (x.info.contentProperties?.size ?? 0) > Over);
+                    selection = selection.Where(x => (x.Info.contentProperties?.size ?? 0) > Over);
                 if (SizeUnder)
-                    selection = selection.Where(x => (x.info.contentProperties?.size ?? 0) < Under);
+                    selection = selection.Where(x => (x.Info.contentProperties?.size ?? 0) < Under);
 
                 if (CreateTime)
                 {
                     if (fromflag)
-                        selection = selection.Where(x => x.info.createdDate > from);
+                        selection = selection.Where(x => x.Info.createdDate > from);
                     if (toflag)
-                        selection = selection.Where(x => x.info.createdDate < to);
+                        selection = selection.Where(x => x.Info.createdDate < to);
                 }
                 if (ModifiedDate)
                 {
                     if (fromflag)
-                        selection = selection.Where(x => x.info.modifiedDate > from);
+                        selection = selection.Where(x => x.Info.modifiedDate > from);
                     if (toflag)
-                        selection = selection.Where(x => x.info.modifiedDate < to);
+                        selection = selection.Where(x => x.Info.modifiedDate < to);
                 }
 
                 job.ProgressStr = "Searching...";
@@ -1584,7 +1599,7 @@ namespace TSviewACD
             Config.Log.LogOut("make Folder Start.");
             if (!initialized) return;
 
-            string parent_id = listviewitem.Root?.info.id;
+            string parent_id = listviewitem.Root?.Info.id;
             if (parent_id == null) return;
 
             var newname = textBox_newName.Text;
@@ -1619,7 +1634,7 @@ namespace TSviewACD
             Config.Log.LogOut("rename Start.");
             if (!initialized) return;
 
-            var selectItem = listviewitem.GetItems(listView1.SelectedIndices).Select(x => x.info);
+            var selectItem = listviewitem.GetItems(listView1.SelectedIndices).Select(x => x.Info);
 
             int f_all = selectItem.Count();
             int changecount = 0;
@@ -1629,7 +1644,7 @@ namespace TSviewACD
                 if (MessageBox.Show(Resource_text.RenameMulti_str, "Rename Items", MessageBoxButtons.OKCancel) != DialogResult.OK) return;
 
             var checkpoint = DriveData.ChangeCheckpoint;
-            string parent_id = listviewitem.Root?.info.id;
+            string parent_id = listviewitem.Root?.Info.id;
             JobControler.Job prevjob = null;
             foreach (var downitem in selectItem)
             {
@@ -1728,7 +1743,7 @@ namespace TSviewACD
                 var droptarget = item?.Tag as ItemInfo;
                 var current = listviewitem.Root;
 
-                if (!listviewitem.Contains(droptarget?.info.id) || droptarget?.info.kind != "FOLDER")
+                if (!listviewitem.Contains(droptarget?.Info.id) || droptarget?.Info.kind != "FOLDER")
                 {
                     // display root is target
                 }
@@ -1739,14 +1754,14 @@ namespace TSviewACD
 
                 if (current != null)
                 {
-                    if (current.info.kind == "FOLDER")
+                    if (current.Info.kind == "FOLDER")
                     {
                         if (e.Data.GetDataPresent(DataFormats.FileDrop))
                             e.Effect = DragDropEffects.Copy;
                         else
                         {
                             var selectedItems = GetSelectedItemsFromDataObject(e.Data);
-                            if ((!selectedItems?.Select(x => x.id).Contains(current.info.id) ?? false) && !current.children.Keys.Intersect(selectedItems?.Select(x => x.id)).Any())
+                            if ((!selectedItems?.Select(x => x.id).Contains(current.Info.id) ?? false) && !current.children.Keys.Intersect(selectedItems?.Select(x => x.id)).Any())
                             {
                                 e.Effect = DragDropEffects.Move;
                             }
@@ -1766,7 +1781,7 @@ namespace TSviewACD
         {
             Config.Log.LogOut(string.Format("move({0}) Start.", logprefix));
 
-            string parent_id = listviewitem.Root?.info.id;
+            string parent_id = listviewitem.Root?.Info.id;
             var selects = GetSelectedItemsFromDataObject(data);
             int count = 0;
 
@@ -1796,7 +1811,7 @@ namespace TSviewACD
 
         private void DragDrop_FileDrop(string[] drags, string parent_id, string logprefix = "")
         {
-            string disp_id = listviewitem.Root?.info.id;
+            string disp_id = listviewitem.Root?.Info.id;
 
             var job = JobControler.CreateNewJob();
             job.DisplayName = "Drop Items";
@@ -1846,7 +1861,7 @@ namespace TSviewACD
                 var droptarget = item?.Tag as ItemInfo;
                 var current = listviewitem.Root;
 
-                if (!listviewitem.Contains(droptarget?.info.id) || droptarget?.info.kind != "FOLDER")
+                if (!listviewitem.Contains(droptarget?.Info.id) || droptarget?.Info.kind != "FOLDER")
                 {
                     // display root is target
                 }
@@ -1856,7 +1871,7 @@ namespace TSviewACD
                 }
                 if (current == null) return;
 
-                var ParentId = current.info.id;
+                var ParentId = current.Info.id;
                 if (e.Data.GetDataPresent(ClipboardAmazonDrive.CFSTR_AMAZON_DRIVE_ITEMS))
                 {
                     DragDrop_AmazonItem(e.Data, ParentId, "listview");
@@ -1887,7 +1902,7 @@ namespace TSviewACD
             supressListviewRefresh = true;
             try
             {
-                var children_kind = item.Nodes.OfType<TreeNode>().Select(x => (x.Tag as ItemInfo).info.kind);
+                var children_kind = item.Nodes.OfType<TreeNode>().Select(x => (x.Tag as ItemInfo).Info.kind);
                 if (children_kind.Where(x => x == "FOLDER").Count() > 0)
                 {
                     // ノードを展開する。
@@ -1923,7 +1938,7 @@ namespace TSviewACD
                     item?.NextNode?.EnsureVisible();
                 }
 
-                if (item == null || !string.IsNullOrEmpty((item.Tag as ItemInfo).info.kind))
+                if (item == null || !string.IsNullOrEmpty((item.Tag as ItemInfo).Info.kind))
                 {
                     if (e.Data.GetDataPresent(DataFormats.FileDrop))
                     {
@@ -1935,13 +1950,13 @@ namespace TSviewACD
 
                         if (item != null)
                         {
-                            while ((item.Tag as ItemInfo).info.kind != "FOLDER")
+                            while ((item.Tag as ItemInfo).Info.kind != "FOLDER")
                             {
                                 item = item.Parent;
                                 if (item == null) break;
                             }
                         }
-                        var toParent = (item?.Tag as ItemInfo)?.info.id ?? DriveData.AmazonDriveRootID;
+                        var toParent = (item?.Tag as ItemInfo)?.Info.id ?? DriveData.AmazonDriveRootID;
                         foreach (var aItem in GetSelectedItemsFromDataObject(e.Data))
                         {
                             var fromParent = aItem.parents[0];
@@ -1961,7 +1976,7 @@ namespace TSviewACD
 
         private void treeView1_DragDrop_FileDrop(System.Windows.Forms.IDataObject data, string parent_id)
         {
-            string disp_id = listviewitem.Root?.info.id;
+            string disp_id = listviewitem.Root?.Info.id;
 
             Config.Log.LogOut("upload(treeview) Start.");
             string[] drags = (string[])data.GetData(DataFormats.FileDrop);
@@ -1982,7 +1997,7 @@ namespace TSviewACD
 
                 if (item != null)
                 {
-                    while ((item.Tag as ItemInfo)?.info.kind != "FOLDER")
+                    while ((item.Tag as ItemInfo)?.Info.kind != "FOLDER")
                     {
                         item = item.Parent;
                         if (item == null) break;
@@ -1990,7 +2005,7 @@ namespace TSviewACD
                 }
 
 
-                string ParentId = (item?.Tag as ItemInfo)?.info.id ?? DriveData.AmazonDriveRootID;
+                string ParentId = (item?.Tag as ItemInfo)?.Info.id ?? DriveData.AmazonDriveRootID;
                 if (e.Data.GetDataPresent(ClipboardAmazonDrive.CFSTR_AMAZON_DRIVE_ITEMS))
                 {
                     DragDrop_AmazonItem(e.Data, ParentId, "treeview");
@@ -2122,14 +2137,14 @@ namespace TSviewACD
         public IEnumerable<FileMetadata_Info> GetSeletctedRemoteFiles()
         {
             if (listView1.SelectedIndices.Count == 0)
-                return listviewitem.Items.Select(x => x.info);
+                return listviewitem.Items.Select(x => x.Info);
             if (listviewitem.Root == null)
-                return listviewitem.GetItems(listView1.SelectedIndices).Select(x => x.info);
+                return listviewitem.GetItems(listView1.SelectedIndices).Select(x => x.Info);
 
             if (listView1.SelectedIndices.Contains(0)) listView1.SelectedIndices.Remove(0);
             if (listView1.SelectedIndices.Contains(1)) listView1.SelectedIndices.Remove(1);
 
-            return listviewitem.GetItems(listView1.SelectedIndices).Select(x => x.info);
+            return listviewitem.GetItems(listView1.SelectedIndices).Select(x => x.Info);
         }
 
         private void button_LocalRemoteMatch_Click(object sender, EventArgs e)
@@ -2555,7 +2570,7 @@ namespace TSviewACD
                         if (decext.Contains(ext))
                         {
                             CancellationToken ct = player.ct;
-                            using (var st = new AmazonDriveSeekableStream(Drive, t.Value.info))
+                            using (var st = new AmazonDriveSeekableStream(Drive, t.Value.Info))
                             {
                                 var img = Image.FromStream(st);
                                 ret = new Bitmap(img);
@@ -2722,7 +2737,7 @@ namespace TSviewACD
             var select = listView1.SelectedIndices;
             if (select.Count == 0) return null;
 
-            var selectItem = listviewitem.GetItems(select).Select(x => x.info).Where(x => x.kind != "FOLDER").ToArray();
+            var selectItem = listviewitem.GetItems(select).Select(x => x.Info).Where(x => x.kind != "FOLDER").ToArray();
 
             int f_all = selectItem.Count();
             if (f_all == 0) return null;
@@ -2898,9 +2913,11 @@ namespace TSviewACD
             textBox_Password.PasswordChar = (Config.LockPassword) ? '*' : '\0';
         }
 
-        private void textBox_Password_TextChanged(object sender, EventArgs e)
+        private void checkBox_LockPassword2_CheckedChanged(object sender, EventArgs e)
         {
-            Config.DrivePassword = textBox_Password.Text;
+            Config.LockPassword2 = checkBox_LockPassword2.Checked;
+            textBox_Password2.Enabled = !checkBox_LockPassword2.Checked;
+            textBox_Password2.PasswordChar = (Config.LockPassword2) ? '*' : '\0';
         }
 
         private void checkBox_crypt_CheckedChanged(object sender, EventArgs e)
@@ -3039,7 +3056,7 @@ namespace TSviewACD
             var select = listView1.SelectedIndices;
             if (select.Count == 0) return;
 
-            var selectItem = listviewitem.GetItems(select).Select(x => x.info).Where(x => x.kind != "FOLDER").ToArray();
+            var selectItem = listviewitem.GetItems(select).Select(x => x.Info).Where(x => x.kind != "FOLDER").ToArray();
             MakeTempDownloadLinks(selectItem);
         }
 
@@ -3057,7 +3074,11 @@ namespace TSviewACD
 
         private void radioButton_crypt_1_CTR_CheckedChanged(object sender, EventArgs e)
         {
-            if (radioButton_crypt_1_CTR.Checked) Config.CryptMethod = CryptMethods.Method1_CTR;
+            if (radioButton_crypt_1_CTR.Checked)
+            {
+                Config.CryptMethod = CryptMethods.Method1_CTR;
+                tableLayoutPanel_password2.Enabled = false;
+            }
         }
 
         private void radioButton_crypt_2_CBC_CheckedChanged(object sender, EventArgs e)
@@ -3066,13 +3087,23 @@ namespace TSviewACD
             {
                 Config.CryptMethod = CryptMethods.Method2_CBC_CarotDAV;
                 checkBox_cryptfilename.Checked = true;
+                tableLayoutPanel_password2.Enabled = false;
+            }
+        }
+
+        private void radioButton_crypt_3_Rclone_CheckedChanged(object sender, EventArgs e)
+        {
+            if (radioButton_crypt_3_Rclone.Checked)
+            {
+                Config.CryptMethod = CryptMethods.Method3_Rclone;
+                tableLayoutPanel_password2.Enabled = true;
             }
         }
 
         private void checkBox_decodeView_CheckedChanged(object sender, EventArgs e)
         {
             Config.AutoDecode = checkBox_decodeView.Checked;
-            ReloadItems(listviewitem.Root?.info.id);
+            ReloadItems(listviewitem.Root?.Info.id);
         }
 
         private void comboBox_CarotDAV_Escape_SelectedIndexChanged(object sender, EventArgs e)
@@ -3088,12 +3119,15 @@ namespace TSviewACD
                 DriveData.ChangeCryption2().Wait(job.ct);
                 job.Progress = 1;
                 job.ProgressStr = "done.";
-                ReloadItems(listviewitem.Root?.info.id);
+                ReloadItems(listviewitem.Root?.Info.id);
             });
         }
 
         private void textBox_Password_Leave(object sender, EventArgs e)
         {
+            if (Config.DrivePassword == textBox_Password.Text) return;
+
+            Config.DrivePassword = textBox_Password.Text;
             if (!initialized) return;
             var job = JobControler.CreateNewJob();
             job.DisplayName = "Apply changes";
@@ -3104,7 +3138,45 @@ namespace TSviewACD
                 DriveData.ChangeCryption1().Wait(job.ct);
                 job.Progress = 1;
                 job.ProgressStr = "done.";
-                ReloadItems(listviewitem.Root?.info.id);
+                ReloadItems(listviewitem.Root?.Info.id);
+            });
+        }
+
+        private void textBox_Password2_Leave(object sender, EventArgs e)
+        {
+            if (Config.DrivePassword2 == textBox_Password2.Text) return;
+
+            Config.DrivePassword2 = textBox_Password2.Text;
+            if (!initialized) return;
+            var job = JobControler.CreateNewJob();
+            job.DisplayName = "Apply changes";
+            job.ProgressStr = "passward2 change.";
+            JobControler.Run(job, (j) =>
+            {
+                job.Progress = -1;
+                DriveData.ChangeCryption3().Wait(job.ct);
+                job.Progress = 1;
+                job.ProgressStr = "done.";
+                ReloadItems(listviewitem.Root?.Info.id);
+            });
+        }
+
+        private void textBox_Rclone_cryptroot_Leave(object sender, EventArgs e)
+        {
+            if (Config.CryptRoot == textBox_Rclone_cryptroot.Text) return;
+
+            Config.CryptRoot = textBox_Rclone_cryptroot.Text;
+            if (!initialized) return;
+            var job = JobControler.CreateNewJob();
+            job.DisplayName = "Apply changes";
+            job.ProgressStr = "crypt root change.";
+            JobControler.Run(job, (j) =>
+            {
+                job.Progress = -1;
+                DriveData.ChangeCryption3().Wait(job.ct);
+                job.Progress = 1;
+                job.ProgressStr = "done.";
+                ReloadItems(listviewitem.Root?.Info.id);
             });
         }
 
@@ -3129,12 +3201,12 @@ namespace TSviewACD
             if (selection.Count() == 1)
             {
                 var select = selection.First();
-                if (select.info?.kind == "FOLDER")
+                if (select.Info?.kind == "FOLDER")
                     current = select;
             }
             if (current == null) return;
 
-            var ParentId = current.info.id;
+            var ParentId = current.Info.id;
             if (Clipboard.ContainsData(DataFormats.FileDrop))
             {
                 Config.Log.LogOut("upload(clipboard) Start.");
@@ -3199,13 +3271,14 @@ namespace TSviewACD
         {
             FormTaskList.Instance.FixPosition();
         }
+
     }
 
     static class Extensions
     {
         public static IOrderedEnumerable<ItemInfo> SortByKind(this IEnumerable<ItemInfo> x, bool SortKind)
         {
-            return x.OrderBy(y => (SortKind) ? (y.info.kind != "FOLDER") : true).ThenBy(y => (SortKind)? y.IsEncrypted: CryptMethods.Unknown);
+            return x.OrderBy(y => (SortKind) ? (y.Info.kind != "FOLDER") : true).ThenBy(y => (SortKind)? y.IsEncrypted: CryptMethods.Unknown);
         }
     }
 }

@@ -55,11 +55,11 @@ namespace TSviewACD
         {
             return children.Select(x =>
             {
-                int img = (x.info.kind == "FOLDER") ? 0 : 2;
+                int img = (x.Info.kind == "FOLDER") ? 0 : 2;
                 var node = new TreeNode(x.DisplayName, img, img);
                 node.Name = x.DisplayName;
                 node.Tag = x;
-                if (x.info.kind == "FOLDER" && count > 0)
+                if (x.Info.kind == "FOLDER" && count > 0)
                 {
                     node.Nodes.AddRange(GenerateTreeNode(x.children.Values, count - 1));
                 }
@@ -70,7 +70,7 @@ namespace TSviewACD
         private void LoadTreeItem(TreeNode node)
         {
             var nodedata = node.Tag as ItemInfo;
-            if (nodedata.info.kind != "FOLDER") return;
+            if (nodedata.Info.kind != "FOLDER") return;
 
             foreach (TreeNode child in node.Nodes)
             {
@@ -129,7 +129,7 @@ namespace TSviewACD
         {
             get
             {
-                return (treeView1.SelectedNode?.Tag as ItemInfo)?.info.id;
+                return (treeView1.SelectedNode?.Tag as ItemInfo)?.Info.id;
             }
         }
     }

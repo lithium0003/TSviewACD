@@ -399,7 +399,7 @@ namespace TSviewACD
                                 sb.AppendFormat("{0:#,0}/{1:#,0}({2:0.00%}) ", subtotal + UploadProgressDone, UploadTotal, Progress);
                                 var speed = (subtotal + UploadProgressDone) / (DateTime.Now - StartTime).TotalSeconds;
                                 var togo = Math.Round((UploadTotal - subtotal - UploadProgressDone) / speed);
-                                togo = (double.IsInfinity(togo)) ? 0 : togo;
+                                togo = (double.IsInfinity(togo) || double.IsNaN(togo)) ? 0 : togo;
                                 sb.AppendFormat("{0} [to go {1}]", ConvertUnit(speed), TimeSpan.FromSeconds(togo));
                                 return sb.ToString();
                             }
@@ -414,7 +414,7 @@ namespace TSviewACD
                                 sb.AppendFormat("{0:#,0}/{1:#,0}({2:0.00%}) ", subtotal + DownloadProgressDone, DownloadTotal, Progress);
                                 var speed = (subtotal + DownloadProgressDone) / (DateTime.Now - StartTime).TotalSeconds;
                                 var togo = Math.Round((DownloadTotal - subtotal - DownloadProgressDone) / speed);
-                                togo = (double.IsInfinity(togo)) ? 0 : togo;
+                                togo = (double.IsInfinity(togo) || double.IsNaN(togo)) ? 0 : togo;
                                 sb.AppendFormat("{0} [to go {1}]", ConvertUnit(speed), TimeSpan.FromSeconds(togo));
                                 return sb.ToString();
                             }

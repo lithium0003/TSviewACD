@@ -90,7 +90,7 @@ namespace TSviewACD
                     continue;
                 }
 
-                var done_files = DriveData.AmazonDriveTree[parentID].children.Values.Select(x => x.info).ToArray();
+                var done_files = DriveData.AmazonDriveTree[parentID].children.Values.Select(x => x.Info).ToArray();
                 FileMetadata_Info newdir = null;
                 if (done_files?.Where(x => x.kind == "FOLDER").Select(x => x.name.ToLower()).Contains(p.ToLower()) ?? false)
                 {
@@ -100,14 +100,9 @@ namespace TSviewACD
                 {
                     if (Config.CryptMethod == CryptMethods.Method1_CTR)
                     {
-                        var selection = done_files?.Where(x => (Path.GetExtension(x.name) == ".enc") && (Path.GetFileNameWithoutExtension(Path.GetFileNameWithoutExtension(x.name)) == p));
-                        if (selection?.Any() ?? false)
+                        if (Config.UseFilenameEncryption)
                         {
-                            newdir = selection.FirstOrDefault();
-                        }
-                        if (newdir == null && Config.UseFilenameEncryption)
-                        {
-                            selection = done_files?.Where(x =>
+                            var selection = done_files?.Where(x =>
                             {
                                 var enc = DriveData.DecryptFilename(x);
                                 if (enc == null) return false;
@@ -132,8 +127,24 @@ namespace TSviewACD
                             newdir = selection.FirstOrDefault();
                         }
                     }
+                    if (Config.CryptMethod == CryptMethods.Method3_Rclone)
+                    {
+                        if (Config.UseFilenameEncryption)
+                        {
+                            var selection = done_files?.Where(x =>
+                            {
+                                var enc = CryptRclone.DecryptName(x.name);
+                                if (enc == null) return false;
+                                return enc == p;
+                            });
+                            if (selection?.Any() ?? false)
+                            {
+                                newdir = selection.FirstOrDefault();
+                            }
+                        }
+                    }
                 }
-                if(newdir != null)
+                if (newdir != null)
                 {
                     parentID = newdir.id;
                     continue;
@@ -164,7 +175,7 @@ namespace TSviewACD
                 {
                     if (p == "") continue;
 
-                    var done_files = DriveData.AmazonDriveTree[parentID].children.Values.Select(x => x.info).ToArray();
+                    var done_files = DriveData.AmazonDriveTree[parentID].children.Values.Select(x => x.Info).ToArray();
                     FileMetadata_Info newdir = null;
                     if (done_files?.Where(x => x.kind == "FOLDER").Select(x => x.name.ToLower()).Contains(p.ToLower()) ?? false)
                     {
@@ -174,14 +185,9 @@ namespace TSviewACD
                     {
                         if (Config.CryptMethod == CryptMethods.Method1_CTR)
                         {
-                            var selection = done_files?.Where(x => (Path.GetExtension(x.name) == ".enc") && (Path.GetFileNameWithoutExtension(Path.GetFileNameWithoutExtension(x.name)) == p));
-                            if (selection?.Any() ?? false)
+                            if (Config.UseFilenameEncryption)
                             {
-                                newdir = selection.FirstOrDefault();
-                            }
-                            if (newdir == null && Config.UseFilenameEncryption)
-                            {
-                                selection = done_files?.Where(x =>
+                                var selection = done_files?.Where(x =>
                                 {
                                     var enc = DriveData.DecryptFilename(x);
                                     if (enc == null) return false;
@@ -204,6 +210,22 @@ namespace TSviewACD
                             if (selection?.Any() ?? false)
                             {
                                 newdir = selection.FirstOrDefault();
+                            }
+                        }
+                        if (Config.CryptMethod == CryptMethods.Method3_Rclone)
+                        {
+                            if (Config.UseFilenameEncryption)
+                            {
+                                var selection = done_files?.Where(x =>
+                                {
+                                    var enc = CryptRclone.DecryptName(x.name);
+                                    if (enc == null) return false;
+                                    return enc == p;
+                                });
+                                if (selection?.Any() ?? false)
+                                {
+                                    newdir = selection.FirstOrDefault();
+                                }
                             }
                         }
                     }
@@ -230,6 +252,11 @@ namespace TSviewACD
                                 else if (Config.CryptMethod == CryptMethods.Method2_CBC_CarotDAV)
                                 {
                                     makedirname = CryptCarotDAV.EncryptFilename(p);
+                                }
+                                else if (Config.CryptMethod == CryptMethods.Method3_Rclone)
+                                {
+                                    if (Config.UseFilenameEncryption)
+                                        makedirname = CryptRclone.EncryptName(p);
                                 }
                             }
 
@@ -397,9 +424,16 @@ namespace TSviewACD
             {
                 if (parentJob.Any(x => x.IsCanceled)) return null;
                 var filesize = new FileInfo(filename).Length;
-                if (Config.UseEncryption && Config.CryptMethod == CryptMethods.Method2_CBC_CarotDAV)
+                if (Config.UseEncryption)
                 {
-                    filesize = filesize + CryptCarotDAV.BlockSizeByte + CryptCarotDAV.CryptHeaderByte + CryptCarotDAV.CryptFooterByte;
+                    if (Config.CryptMethod == CryptMethods.Method2_CBC_CarotDAV)
+                    {
+                        filesize = filesize + CryptCarotDAV.BlockSizeByte + CryptCarotDAV.CryptHeaderByte + CryptCarotDAV.CryptFooterByte;
+                    }
+                    else if(Config.CryptMethod == CryptMethods.Method3_Rclone)
+                    {
+                        filesize = CryptRclone.CalcEncryptedSize(filesize);
+                    }
                 }
                 var job = JobControler.CreateNewJob(
                     type: JobControler.JobClass.Upload, 
@@ -433,7 +467,7 @@ namespace TSviewACD
 
                     if (upskip_check)
                     {
-                        done_files = DriveData.AmazonDriveTree[parent_id].children.Values.Select(x => x.info).ToArray();
+                        done_files = DriveData.AmazonDriveTree[parent_id].children.Values.Select(x => x.Info).ToArray();
                     }
 
                     Config.Log.LogOut("Upload File: " + filename);
@@ -453,6 +487,14 @@ namespace TSviewACD
                         else if (Config.CryptMethod == CryptMethods.Method2_CBC_CarotDAV)
                         {
                             uploadfilename = CryptCarotDAV.EncryptFilename(short_filename);
+                            enckey = "";
+                        }
+                        else if (Config.CryptMethod == CryptMethods.Method3_Rclone)
+                        {
+                            if (Config.UseFilenameEncryption)
+                                uploadfilename = CryptRclone.EncryptName(short_filename);
+                            else
+                                uploadfilename = short_filename + ".bin";
                             enckey = "";
                         }
                     }
@@ -483,6 +525,19 @@ namespace TSviewACD
                                 return enc == short_filename;
                             }).Any(x => x) ?? false);
                         }
+                        if(Config.CryptMethod == CryptMethods.Method3_Rclone)
+                        {
+                            dup_flg = dup_flg || (done_files?.Select(x => (Path.GetExtension(x.name) == ".bin") && (Path.GetFileNameWithoutExtension(x.name) == short_filename)).Any(x => x) ?? false);
+                            if (Config.UseFilenameEncryption)
+                            {
+                                dup_flg = dup_flg || (done_files?.Select(x =>
+                                {
+                                    var enc = CryptRclone.DecryptName(x.name);
+                                    if (enc == null) return false;
+                                    return enc == short_filename;
+                                }).Any(x => x) ?? false);
+                            }
+                        }
                     }
 
                     if (dup_flg)
@@ -509,6 +564,19 @@ namespace TSviewACD
                                 if (enc == null) return false;
                                 return enc == short_filename;
                             }).FirstOrDefault();
+                        }
+                        if (target == null && Config.UseEncryption && Config.CryptMethod == CryptMethods.Method3_Rclone)
+                        {
+                            target = done_files.Where(x => (Path.GetExtension(x.name) == ".bin") && (Path.GetFileNameWithoutExtension(x.name) == short_filename)).FirstOrDefault();
+                            if (target == null && Config.UseFilenameEncryption)
+                            {
+                                target = done_files.Where(x =>
+                                {
+                                    var enc = CryptRclone.DecryptName(x.name);
+                                    if (enc == null) return false;
+                                    return enc == short_filename;
+                                }).FirstOrDefault();
+                            }
                         }
 
                         if (filesize == target?.contentProperties?.size)
@@ -550,6 +618,18 @@ namespace TSviewACD
                                     else if (Config.CryptMethod == CryptMethods.Method2_CBC_CarotDAV)
                                     {
                                         using (var encfile = new CryptCarotDAV.CryptCarotDAV_CryptStream(hfile))
+                                        {
+                                            md5 = md5calc.ComputeHash(encfile);
+                                        }
+                                    }
+                                    else if(Config.CryptMethod == CryptMethods.Method3_Rclone)
+                                    {
+                                        byte[] nonce = DriveData.AmazonDriveTree[target.id].nonce;
+                                        if(nonce == null)
+                                        {
+                                            // download nonce
+                                        }
+                                        using(var encfile = new CryptRclone.CryptRclone_CryptStream(hfile, nonce))
                                         {
                                             md5 = md5calc.ComputeHash(encfile);
                                         }
@@ -628,12 +708,36 @@ namespace TSviewACD
                                     }
                                 }
                             }
+                            if (Config.UseEncryption && Config.CryptMethod == CryptMethods.Method3_Rclone)
+                            {
+                                if (Config.UseFilenameEncryption)
+                                {
+                                    var conflict_crypt = done_files.Where(x =>
+                                    {
+                                        var enc = CryptRclone.DecryptName(x.name);
+                                        if (enc == null) return false;
+                                        return enc == short_filename;
+                                    });
+                                    foreach (var conflicts in conflict_crypt)
+                                    {
+                                        DriveData.Drive.TrashItem(conflicts.id, ct).Wait(ct);
+                                    }
+                                }
+                                else
+                                {
+                                    var conflict_crypt = done_files.Where(x => (Path.GetExtension(x.name) == ".bin") && (Path.GetFileNameWithoutExtension(x.name) == short_filename));
+                                    foreach (var conflicts in conflict_crypt)
+                                    {
+                                        DriveData.Drive.TrashItem(conflicts.id, ct).Wait(ct);
+                                    }
+                                }
+                            }
                             Task.Delay(TimeSpan.FromSeconds(5), ct).ContinueWith((t) =>
                             {
                                 DriveData.GetChanges(checkpoint, ct).ContinueWith((t2) =>
                                 {
                                     checkpoint = DriveData.ChangeCheckpoint;
-                                    done_files = DriveData.AmazonDriveTree[parent_id].children.Values.Select(x => x.info).ToArray();
+                                    done_files = DriveData.AmazonDriveTree[parent_id].children.Values.Select(x => x.Info).ToArray();
                                 }, ct).Wait(ct);
                             }, ct).Wait(ct);
                         }
@@ -744,7 +848,7 @@ namespace TSviewACD
                                             DriveData.Drive.TrashItem(uploadeditem.id, ct).Wait(ct);
                                             Task.Delay(TimeSpan.FromSeconds(5), ct).Wait(ct);
                                         }
-                                        done_files = DriveData.AmazonDriveTree[parent_id].children.Values.Select(x => x.info).ToArray();
+                                        done_files = DriveData.AmazonDriveTree[parent_id].children.Values.Select(x => x.Info).ToArray();
                                         job.Progress = 1;
                                         throw new Exception("break");
                                     }
@@ -781,7 +885,7 @@ namespace TSviewACD
                                 JobControler.ErrorOut("Upload : failed. filename encryption failed. {0}", uploadfilename);
                             }
                         }, ct).Wait(ct);
-                        done_files = DriveData.AmazonDriveTree[parent_id].children.Values.Select(x => x.info).ToArray();
+                        done_files = DriveData.AmazonDriveTree[parent_id].children.Values.Select(x => x.Info).ToArray();
                         if (job.IsError) return;
                     }
 

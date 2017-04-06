@@ -200,6 +200,8 @@
             this.radioButton_crypt_1_CTR = new System.Windows.Forms.RadioButton();
             this.comboBox_CarotDAV_Escape = new System.Windows.Forms.ComboBox();
             this.radioButton_crypt_2_CBC = new System.Windows.Forms.RadioButton();
+            this.radioButton_crypt_3_Rclone = new System.Windows.Forms.RadioButton();
+            this.textBox_Rclone_cryptroot = new System.Windows.Forms.TextBox();
             this.flowLayoutPanel36 = new System.Windows.Forms.FlowLayoutPanel();
             this.checkBox_decodeView = new System.Windows.Forms.CheckBox();
             this.button_masterpass = new System.Windows.Forms.Button();
@@ -1545,7 +1547,6 @@
             this.tableLayoutPanel11.SetColumnSpan(this.textBox_Password, 2);
             resources.ApplyResources(this.textBox_Password, "textBox_Password");
             this.textBox_Password.Name = "textBox_Password";
-            this.textBox_Password.TextChanged += new System.EventHandler(this.textBox_Password_TextChanged);
             this.textBox_Password.Leave += new System.EventHandler(this.textBox_Password_Leave);
             // 
             // tableLayoutPanel_password2
@@ -1567,12 +1568,14 @@
             this.checkBox_LockPassword2.Name = "checkBox_LockPassword2";
             this.toolTip1.SetToolTip(this.checkBox_LockPassword2, resources.GetString("checkBox_LockPassword2.ToolTip"));
             this.checkBox_LockPassword2.UseVisualStyleBackColor = true;
+            this.checkBox_LockPassword2.CheckedChanged += new System.EventHandler(this.checkBox_LockPassword2_CheckedChanged);
             // 
             // textBox_Password2
             // 
             this.tableLayoutPanel_password2.SetColumnSpan(this.textBox_Password2, 2);
             resources.ApplyResources(this.textBox_Password2, "textBox_Password2");
             this.textBox_Password2.Name = "textBox_Password2";
+            this.textBox_Password2.Leave += new System.EventHandler(this.textBox_Password2_Leave);
             // 
             // groupBox1
             // 
@@ -1587,6 +1590,8 @@
             this.tableLayoutPanel13.Controls.Add(this.radioButton_crypt_1_CTR, 0, 0);
             this.tableLayoutPanel13.Controls.Add(this.comboBox_CarotDAV_Escape, 1, 1);
             this.tableLayoutPanel13.Controls.Add(this.radioButton_crypt_2_CBC, 0, 1);
+            this.tableLayoutPanel13.Controls.Add(this.radioButton_crypt_3_Rclone, 0, 2);
+            this.tableLayoutPanel13.Controls.Add(this.textBox_Rclone_cryptroot, 1, 2);
             this.tableLayoutPanel13.Name = "tableLayoutPanel13";
             // 
             // radioButton_crypt_1_CTR
@@ -1612,6 +1617,20 @@
             this.radioButton_crypt_2_CBC.TabStop = true;
             this.radioButton_crypt_2_CBC.UseVisualStyleBackColor = true;
             this.radioButton_crypt_2_CBC.CheckedChanged += new System.EventHandler(this.radioButton_crypt_2_CBC_CheckedChanged);
+            // 
+            // radioButton_crypt_3_Rclone
+            // 
+            resources.ApplyResources(this.radioButton_crypt_3_Rclone, "radioButton_crypt_3_Rclone");
+            this.radioButton_crypt_3_Rclone.Name = "radioButton_crypt_3_Rclone";
+            this.radioButton_crypt_3_Rclone.TabStop = true;
+            this.radioButton_crypt_3_Rclone.UseVisualStyleBackColor = true;
+            this.radioButton_crypt_3_Rclone.CheckedChanged += new System.EventHandler(this.radioButton_crypt_3_Rclone_CheckedChanged);
+            // 
+            // textBox_Rclone_cryptroot
+            // 
+            resources.ApplyResources(this.textBox_Rclone_cryptroot, "textBox_Rclone_cryptroot");
+            this.textBox_Rclone_cryptroot.Name = "textBox_Rclone_cryptroot";
+            this.textBox_Rclone_cryptroot.Leave += new System.EventHandler(this.textBox_Rclone_cryptroot_Leave);
             // 
             // flowLayoutPanel36
             // 
@@ -2209,6 +2228,8 @@
         private System.Windows.Forms.TextBox textBox_Password2;
         private System.Windows.Forms.TableLayoutPanel tableLayoutPanel13;
         private System.Windows.Forms.FlowLayoutPanel flowLayoutPanel36;
+        private System.Windows.Forms.RadioButton radioButton_crypt_3_Rclone;
+        private System.Windows.Forms.TextBox textBox_Rclone_cryptroot;
     }
 }
 

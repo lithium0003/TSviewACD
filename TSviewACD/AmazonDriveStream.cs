@@ -258,6 +258,7 @@ namespace TSviewACD
 
         AmazonDrive Drive;
         FileMetadata_Info targetItem;
+        byte[] nonce = null;
 
         CancellationTokenSource Internal_cts = new CancellationTokenSource();
         CancellationTokenSource cts;
@@ -297,14 +298,32 @@ namespace TSviewACD
                 length = (targetItem.OrignalLength ?? 0) - start;
             }
             if (length <= 0) return;
-            readslot = slotno;
             done = false;
+            readslot = slotno;
             CancellationTokenSource cancel_cts = new CancellationTokenSource();
             var cts_1 = CancellationTokenSource.CreateLinkedTokenSource(cts.Token, cancel_cts.Token);
 
             //Config.Log.LogOut(string.Format("AmazonDriveStream : start to download slot {0} offset {1:#,0} - ", slotno, start));
 
-            Drive.downloadFile(targetItem, start, ct: cts_1.Token)
+            if (DriveData.AmazonDriveTree[targetItem.id].IsEncrypted == CryptMethods.Method3_Rclone)
+            {
+                try
+                {
+                    while (start > 0 && DriveData.AmazonDriveTree[targetItem.id].nonce == null)
+                    {
+                        Task.Delay(1000, cts_1.Token);
+                        cts.Token.ThrowIfCancellationRequested();
+                    }
+                }
+                catch
+                {
+                    done = true;
+                    throw;
+                }
+                nonce = DriveData.AmazonDriveTree[targetItem.id].nonce;
+            }
+
+            Drive.downloadFile(targetItem, start, nonce: nonce, ct: cts_1.Token)
             .ContinueWith(task =>
             {
                 if (!task.Wait(timeout, cts_1.Token))
@@ -315,6 +334,10 @@ namespace TSviewACD
                 }
                 using (var stream = task.Result)
                 {
+                    if (stream is CryptRclone.CryptRclone_DeryptStream RCloneStream && DriveData.AmazonDriveTree[targetItem.id].nonce == null)
+                    {
+                        DriveData.AmazonDriveTree[targetItem.id].nonce = RCloneStream.Nonce;
+                    }
                     while (slotno <= lastslot)
                     {
                         //Config.Log.LogOut(string.Format("AmazonDriveStream : download slot {0}", slotno));
@@ -416,6 +439,7 @@ namespace TSviewACD
                     {
                         Config.Log.LogOut(string.Format("AmazonDriveStream : ERROR restart to download {0} - ", slotno));
                         cancel_cts.Cancel(true);
+                        done = false;
                         StartDownload(slotno, slot, SlotBuffer);
                     }
                     else

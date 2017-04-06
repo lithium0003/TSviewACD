@@ -88,15 +88,23 @@ namespace TSviewACD
         [DataMember]
         public contentProperties_Info contentProperties;
 
+
+        private long? _OriginalLength;
+
         public long? OrignalLength
         {
             get
             {
+                if (_OriginalLength != null) return _OriginalLength;
                 if (name.StartsWith(Config.CarotDAV_CryptNameHeader))
                 {
                     return contentProperties?.size - (CryptCarotDAV.BlockSizeByte + CryptCarotDAV.CryptFooterByte + CryptCarotDAV.CryptFooterByte);
                 }
                 return contentProperties?.size;
+            }
+            set
+            {
+                _OriginalLength = value;
             }
         }
     }
