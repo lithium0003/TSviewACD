@@ -45,7 +45,7 @@ extern "C" {
 #include <stdlib.h>
 #include <inttypes.h>
 
-#define SDL_AUDIO_BUFFER_SIZE 1024
+#define SDL_AUDIO_BUFFER_SIZE 256 * 1024
 #define MAX_AUDIO_FRAME_SIZE 192000
 
 #define FF_REFRESH_EVENT (SDL_USEREVENT)
@@ -270,7 +270,7 @@ namespace ffmodule {
 		AVStream        *audio_st;
 		std::shared_ptr<AVCodecContext> audio_ctx;
 		PacketQueue     audioq;
-		uint8_t         audio_buf[MAX_AUDIO_FRAME_SIZE * 5];
+		uint8_t         audio_buf[MAX_AUDIO_FRAME_SIZE * 10];
 		unsigned int    audio_buf_size;
 		unsigned int    audio_buf_index;
 		double          audio_diff_cum; /* used for AV difference average computation */

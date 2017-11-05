@@ -438,8 +438,7 @@ namespace TSviewACD
                     if (++failcount < 10)
                     {
                         Config.Log.LogOut(string.Format("AmazonDriveStream : ERROR restart to download {0} - ", slotno));
-                        cancel_cts.Cancel(true);
-                        done = false;
+                        cancel_cts.Cancel();
                         StartDownload(slotno, slot, SlotBuffer);
                     }
                     else
@@ -458,7 +457,7 @@ namespace TSviewACD
                     //Config.Log.LogOut(string.Format("AmazonDriveStream : finish download {0}", slotno));
                     done = true;
                 }
-                cancel_cts.Cancel(true);
+                cancel_cts.Cancel();
             });
         }
 
