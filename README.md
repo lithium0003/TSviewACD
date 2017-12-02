@@ -1,6 +1,9 @@
 # TSviewACD
 TS viewer for Amazon Cloud Drive
 
+## This project moved to next version
+[TS viewer for Cloud Drive](../../../TSviewCloud)
+
 ## Overview
 Amazon Driveに保存した動画や音楽ファイルをストリーミング再生するソフト
 
